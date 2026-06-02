@@ -83,6 +83,9 @@ Takegumi operates on a normalized state structure:
 * **WTextGroup**: An opacity-unified envelope linking multiple WTextBlocks.
 
 * **WTextBlock**: An individual block containing text content, styling configurations, and transition parameters.
+
+Further Schema Specifications are to be found as YAML files in /gnd (ground directory, as the single source of truth).
+
 ---
 
 ## 📖 Script Parsing Format
