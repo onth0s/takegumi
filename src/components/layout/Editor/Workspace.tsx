@@ -5,9 +5,9 @@ import FloatingHeader from "./FloatingHeader";
 
 export default function Workspace() {
   return (
-    <div className="flex flex-1 flex-col h-full w-full bg-background text-foreground overflow-hidden relative">
+    <div className="flex flex-col h-screen w-screen bg-background text-foreground overflow-hidden relative">
       <FloatingHeader />
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         <Viewport />
         <Inspector />
       </div>
