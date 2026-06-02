@@ -34,6 +34,8 @@ export interface WTextGroup {
 export interface WPanel {
   id: string;
   imageUrl: string | null;
+  x: number;
+  y: number;
   width: number;
   height: number;
   textGroups: WTextGroup[];
