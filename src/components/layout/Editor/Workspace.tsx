@@ -1,9 +1,14 @@
+"use client";
+
 import StatusBar from "./StatusBar";
 import Viewport from "./Viewport";
 import Inspector from "./Inspector";
 import FloatingHeader from "./FloatingHeader";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 export default function Workspace() {
+  useKeyboardShortcuts();
+
   return (
     <div className="flex flex-col h-screen w-screen bg-background text-foreground overflow-hidden relative">
       <FloatingHeader />

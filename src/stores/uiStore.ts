@@ -23,6 +23,10 @@ interface UIState {
   setActiveSidebarTab: (tab: SidebarTab) => void;
   setAlignmentGuides: (guides: AlignmentGuide[]) => void;
   clearSelection: () => void;
+
+  selectPanel: (id: string) => void;
+  selectTextGroup: (panelId: string, groupId: string) => void;
+  selectTextBlock: (panelId: string, groupId: string, blockId: string) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -46,5 +50,26 @@ export const useUIStore = create<UIState>((set) => ({
       selectedWPanelId: null,
       selectedWTextGroupId: null,
       selectedWTextBlockId: null,
+    }),
+
+  selectPanel: (id) =>
+    set({
+      selectedWPanelId: id,
+      selectedWTextGroupId: null,
+      selectedWTextBlockId: null,
+    }),
+
+  selectTextGroup: (panelId, groupId) =>
+    set({
+      selectedWPanelId: panelId,
+      selectedWTextGroupId: groupId,
+      selectedWTextBlockId: null,
+    }),
+
+  selectTextBlock: (panelId, groupId, blockId) =>
+    set({
+      selectedWPanelId: panelId,
+      selectedWTextGroupId: groupId,
+      selectedWTextBlockId: blockId,
     }),
 }));
