@@ -1,14 +1,21 @@
 import Header from "./Header";
-import Sidebar from "./Sidebar";
+import Recents from "./Recents";
 import Center from "./Center";
 import Footer from "./Footer";
 
 export default function Home() {
   return (
-    <div className="relative flex flex-col h-screen w-full items-center justify-between pt-24 pb-6 bg-background text-foreground border border-border-subtle">
-      <Header />
-      <Sidebar />
-      <Center />
+    <div className="flex flex-col h-screen w-full bg-background text-foreground border border-border-subtle overflow-hidden">
+      {/* Main area: sidebar + center column */}
+      <div className="flex flex-1 min-h-0 gap-4 p-6">
+        <Recents />
+        <div className="flex flex-1 flex-col items-center justify-center gap-8">
+          <Header />
+          <Center />
+        </div>
+      </div>
+
+      {/* Footer */}
       <Footer />
     </div>
   );
