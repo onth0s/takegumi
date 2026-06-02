@@ -3,3 +3,11 @@
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
+
+# USER RULES
+
+## Regarding TailwindCSS Styling
+
+- Whenever a class name has an underscore at the end "bg-blue-200_", it is just for debugging convenience, to quickly "switch" it on and off at will. Feel free to remove them whenever you see them. 
+
+- Whenever you find a non-standard Tailwind spacing utility (mt-26 instead of mt-24 or mt-28) replace it with a standard one. I leave at your design judgment which one to choose instead. 
