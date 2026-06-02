@@ -3,6 +3,7 @@ import { useCallback, useRef, useState } from "react";
 import type { WProject as WProjectType } from "@/types/canvas";
 import { useProjectStore } from "@/stores/projectStore";
 import { createBlankPanel } from "@/utils/createProject";
+import { imageBlobStore } from "@/stores/imageStore";
 import WPanel from "../WPanel";
 
 interface Props {
@@ -20,6 +21,47 @@ export default function WProject({ project }: Props) {
     });
   }, [updateProject]);
 
+  const processFiles = useCallback((files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    
+    const fileArray = Array.from(files);
+    Promise.all(fileArray.map((file) => {
+      return new Promise<any>((resolve) => {
+        const tempUrl = URL.createObjectURL(file);
+        const img = new Image();
+        img.src = tempUrl;
+        img.onload = async () => {
+          const defaultWidth = 320; // 50% of default project panel area (640px)
+          const aspect = img.naturalHeight / img.naturalWidth;
+          const height = Math.round(defaultWidth * aspect);
+          const panel = createBlankPanel({ width: defaultWidth, height });
+          
+          await imageBlobStore.setItem(panel.id, file);
+          panel.imageUrl = `local://${panel.id}`;
+          URL.revokeObjectURL(tempUrl);
+          resolve(panel);
+        };
+        img.onerror = async () => {
+          const panel = createBlankPanel();
+          await imageBlobStore.setItem(panel.id, file);
+          panel.imageUrl = `local://${panel.id}`;
+          URL.revokeObjectURL(tempUrl);
+          resolve(panel);
+        };
+      });
+    })).then((panels) => {
+      updateProject((draft) => {
+        panels.forEach((p) => {
+          draft.panels.push(p);
+        });
+      });
+    });
+  }, [updateProject]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    processFiles(e.target.files);
+  };
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(true);
@@ -32,7 +74,7 @@ export default function WProject({ project }: Props) {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-    // Panel creation from dropped images — Phase 4
+    processFiles(e.dataTransfer.files);
   };
 
   return (
@@ -81,6 +123,7 @@ export default function WProject({ project }: Props) {
             accept="image/*"
             multiple
             className="hidden"
+            onChange={handleFileChange}
           />
         </div>
 

@@ -7,21 +7,25 @@ import { useProjectStore } from "@/stores/projectStore";
 export default function Footer() {
   const router = useRouter();
 
-  const handleNuke = useCallback(() => {
+  const handleNuke = useCallback(async () => {
     // 1. Flush any pending continuous-commit timer
     useProjectStore.getState().clearHistory();
-    // 2. Reset all in-memory state to factory defaults
+    // 2. Reset all in-memory state to factory defaults (including projects list)
     useProjectStore.setState({
       project: null,
+      projects: [],
       past: [],
       future: [],
       tempPastState: null,
       continuousTimer: null,
       lastChangedElementId: null,
     });
-    // 3. Wipe the IndexedDB entry
+    // 3. Wipe the IndexedDB project store entry
     useProjectStore.persist.clearStorage();
-    // 4. Back to home
+    // 4. Wipe the IndexedDB panel image binary store
+    const { imageBlobStore } = await import("@/stores/imageStore");
+    await imageBlobStore.clear();
+    // 5. Back to home
     router.push("/");
   }, [router]);
 

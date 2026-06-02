@@ -26,6 +26,7 @@ const MAX_HISTORY_DEPTH = 50;
 
 interface ProjectState {
   project: WProject | null;
+  projects: WProject[];
   
   // History Stacks
   past: WProject[];
@@ -78,6 +79,7 @@ export const useProjectStore = create<ProjectState>()(
 
       return {
         project: null,
+        projects: [],
         past: [],
         future: [],
         tempPastState: null,
@@ -87,9 +89,15 @@ export const useProjectStore = create<ProjectState>()(
         setProject: (project) => {
           set((state) => {
             const flushed = flushContinuousCommit(state);
+            const currentProjects = state.projects || [];
+            const exists = currentProjects.some((p) => p.id === project.id);
+            const nextProjects = exists
+              ? currentProjects.map((p) => (p.id === project.id ? project : p))
+              : [...currentProjects, project];
             return {
               ...flushed,
               project,
+              projects: nextProjects,
               past: [],
               future: [],
             };
@@ -106,8 +114,14 @@ export const useProjectStore = create<ProjectState>()(
             draft.updatedAt = new Date().toISOString();
           });
 
+          // Sync into projects list
+          const currentProjects = state.projects || [];
+          const nextProjects = currentProjects.map((p) =>
+            p.id === nextProject.id ? nextProject : p
+          );
+
           if (commitType === "ignore") {
-            set({ project: nextProject });
+            set({ project: nextProject, projects: nextProjects });
             return;
           }
 
@@ -119,6 +133,7 @@ export const useProjectStore = create<ProjectState>()(
               return {
                 ...flushed,
                 project: nextProject,
+                projects: nextProjects,
                 past: newPast,
                 future: [],
               };
@@ -151,6 +166,7 @@ export const useProjectStore = create<ProjectState>()(
 
               return {
                 project: nextProject,
+                projects: nextProjects,
                 past: nextPast,
                 tempPastState: savedBaseState,
                 continuousTimer: timer,
@@ -195,9 +211,16 @@ export const useProjectStore = create<ProjectState>()(
             const remainingPast = activePast.slice(0, -1);
             const newFuture = [curr.project, ...curr.future].slice(0, MAX_HISTORY_DEPTH);
 
+            // Sync inside projects list
+            const currentProjects = curr.projects || [];
+            const nextProjects = currentProjects.map((p) =>
+              p.id === previous.id ? previous : p
+            );
+
             return {
               ...flushed,
               project: previous,
+              projects: nextProjects,
               past: remainingPast,
               future: newFuture,
             };
@@ -213,9 +236,16 @@ export const useProjectStore = create<ProjectState>()(
             const remainingFuture = curr.future.slice(1);
             const newPast = [...flushed.past, curr.project].slice(-MAX_HISTORY_DEPTH);
 
+            // Sync inside projects list
+            const currentProjects = curr.projects || [];
+            const nextProjects = currentProjects.map((p) =>
+              p.id === next.id ? next : p
+            );
+
             return {
               ...flushed,
               project: next,
+              projects: nextProjects,
               past: newPast,
               future: remainingFuture,
             };
@@ -243,7 +273,7 @@ export const useProjectStore = create<ProjectState>()(
       storage: indexedDBStorage,
       partialize: (state) => ({
         project: state.project,
-        // We only persist the current project, not history stacks or timers
+        projects: state.projects || [],
       }) as any,
     }
   )

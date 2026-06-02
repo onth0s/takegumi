@@ -20,11 +20,11 @@ function createDefaultBlock(): WTextBlock {
 }
 
 /** Default WTextGroup — one group pre-seeded with a single default block. */
-function createDefaultTextGroup(): WTextGroup {
+function createDefaultTextGroup(x = 320, y = 240): WTextGroup {
   return {
     id: uid(),
-    x: 320,
-    y: 240,
+    x,
+    y,
     width: 0,  // computed by useWPath in Phase 2
     height: 0, // computed by useWPath in Phase 2
     style: {
@@ -48,14 +48,16 @@ function createDefaultTextGroup(): WTextGroup {
  * without having to reconstruct the full object.
  */
 export function createBlankPanel(overrides?: Partial<WPanel>): WPanel {
+  const width = overrides?.width ?? 640;
+  const height = overrides?.height ?? 480;
   return {
     id: uid(),
     imageUrl: null,
     x: 0,
     y: 0,
-    width: 640,
-    height: 480,
-    textGroups: [createDefaultTextGroup()],
+    width,
+    height,
+    textGroups: [createDefaultTextGroup(width / 2, height / 2)],
     style: {},
     ...overrides,
   };

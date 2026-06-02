@@ -28,9 +28,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${robotoSans.variable} ${robotoMono.variable} h-full antialiased`}
+      className={`${robotoSans.variable} ${robotoMono.variable} h-full antialiased bg-background text-foreground`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-background text-foreground">{children}</body>
     </html>
   );
 }

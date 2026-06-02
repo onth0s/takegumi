@@ -1,5 +1,6 @@
 import type { WPanel as WPanelType } from "@/types/canvas";
 import WTextGroup from "../WTextGroup";
+import WPanelImage from "./WPanelImage";
 
 interface Props {
   panel: WPanelType;
@@ -8,14 +9,13 @@ interface Props {
 export default function WPanel({ panel }: Props) {
   return (
     <div
-      className="relative bg-surface-elevated border border-border-default rounded shadow-md overflow-hidden flex-shrink-0"
+      className="relative bg-surface-elevated border border-border-default rounded shadow-md overflow-visible flex-shrink-0"
       style={{ width: `${panel.width}px`, height: `${panel.height}px` }}
     >
       {/* Background image layer */}
       {panel.imageUrl ? (
-        <img
-          src={panel.imageUrl}
-          alt=""
+        <WPanelImage
+          imageUrl={panel.imageUrl}
           className="absolute inset-0 w-full h-full object-cover"
         />
       ) : (
