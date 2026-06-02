@@ -9,7 +9,7 @@ export default function Home() {
       {/* Main area: sidebar + center column */}
       <div className="flex flex-1 min-h-0 gap-4 p-6">
         <Recents />
-        <div className="flex flex-1 flex-col items-center justify-center gap-8">
+        <div className="flex flex-1 flex-col items-center justify-center gap-14">
           <Header />
           <Center />
         </div>

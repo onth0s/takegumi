@@ -8,7 +8,7 @@ interface Props {
 export default function WTextGroup({ group }: Props) {
   return (
     <div
-      className="absolute flex flex-col gap-1"z
+      className="absolute flex flex-col gap-1"
       style={{ left: group.x, top: group.y }}
     >
       {group.blocks.map((block) => (

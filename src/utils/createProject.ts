@@ -61,13 +61,13 @@ export function createBlankPanel(overrides?: Partial<WPanel>): WPanel {
   };
 }
 
-/** Creates a blank WProject seeded with two panels, each with one default text group. */
+/** Creates a blank WProject with no panels — the empty stage. */
 export function createBlankProject(name = "Untitled Project"): WProject {
   const now = new Date().toISOString();
   return {
     id: uid(),
     name,
-    panels: [createBlankPanel(), createBlankPanel()],
+    panels: [],
     createdAt: now,
     updatedAt: now,
   };
