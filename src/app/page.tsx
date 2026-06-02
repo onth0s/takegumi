@@ -1,4 +1,4 @@
-import { Home } from "../components/layout";
+import { Home } from "@/components/layout";
 
 export default function Main() {
   return <Home />;

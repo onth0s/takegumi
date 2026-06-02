@@ -1,4 +1,4 @@
-import WProject from "../../canvas/WProject/WProject";
+import { WProject } from "@/components/canvas";
 
 export default function Viewport() {
   return (
