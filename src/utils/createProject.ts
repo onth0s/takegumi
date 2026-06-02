@@ -11,9 +11,9 @@ function createDefaultBlock(): WTextBlock {
     id: uid(),
     text: "Text Block",
     style: {
-      fontSize: 16,
-      fontWeight: "400",
-      color: "#000000",
+      fontSize: 24,
+      fontWeight: "700",
+      color: "#ffffff",
       textAlign: "center",
     },
   };
@@ -23,13 +23,13 @@ function createDefaultBlock(): WTextBlock {
 function createDefaultTextGroup(): WTextGroup {
   return {
     id: uid(),
-    x: 20,
-    y: 20,
+    x: 320,
+    y: 240,
     width: 0,  // computed by useWPath in Phase 2
     height: 0, // computed by useWPath in Phase 2
     style: {
       opacity: 0.5,
-      backgroundColor: "#00000000",
+      backgroundColor: "#000000",
       borderRadius: 8,
       borderWidth: 0,
       shapeType: "rounded-rectangle",

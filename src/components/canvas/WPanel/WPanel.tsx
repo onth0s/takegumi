@@ -9,7 +9,7 @@ export default function WPanel({ panel }: Props) {
   return (
     <div
       className="relative bg-surface-elevated border border-border-default rounded shadow-md overflow-hidden flex-shrink-0"
-      style={{ width: panel.width, height: panel.height }}
+      style={{ width: `${panel.width}px`, height: `${panel.height}px` }}
     >
       {/* Background image layer */}
       {panel.imageUrl ? (
@@ -19,9 +19,7 @@ export default function WPanel({ panel }: Props) {
           className="absolute inset-0 w-full h-full object-cover"
         />
       ) : (
-        <div className="absolute inset-0 bg-gradient-to-b from-surface-elevated to-surface flex items-center justify-center text-text-tertiary text-xs tracking-widest uppercase">
-          No Image
-        </div>
+        <div className="absolute inset-0 bg-[#808080]" />
       )}
 
       {/* Text group overlay — absolutely positioned within panel coordinate space */}
