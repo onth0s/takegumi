@@ -1,7 +1,16 @@
 /**
  * Offscreen/Headless text measurement using Canvas.
- * Accepts text and styling, returns computed width, height, and line count.
+ *
+ * @planned Phase 2 target (misc/PLAN.md) — replace ResizeObserver sizing in useWPath.
+ * Kept as scaffold; not wired into the render pipeline yet.
+ *
+ * NOTE: This module contains browser-only APIs (HTMLCanvasElement, OffscreenCanvas).
+ * The module-level variables are null in SSR contexts (Node) — that is intentional.
+ * The `measureText` function returns a rough character-count estimate on SSR.
+ * Do NOT add DOM calls at module scope below this comment block.
  */
+
+import { DEFAULT_WTB_FONT_SIZE } from "@/constants/canvasDefaults";
 
 interface MeasureStyle {
   fontSize?: number;
@@ -17,14 +26,16 @@ export interface MeasuredDimensions {
   lines: string[];
 }
 
+// Module-level canvas instances — created once, reused on every call.
 let canvasElement: HTMLCanvasElement | null = null;
+let offscreenElement: OffscreenCanvas | null = null;
 
-function getCanvasContext(): any {
+function getCanvasContext(): CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null {
   if (typeof window === "undefined") return null;
 
   if (typeof OffscreenCanvas !== "undefined") {
-    const offscreen = new OffscreenCanvas(1, 1);
-    return offscreen.getContext("2d");
+    if (!offscreenElement) offscreenElement = new OffscreenCanvas(1, 1);
+    return offscreenElement.getContext("2d");
   }
 
   if (!canvasElement) {
@@ -36,7 +47,7 @@ function getCanvasContext(): any {
 }
 
 export function measureText(text: string, style: MeasureStyle): MeasuredDimensions {
-  const fontSize = style.fontSize ?? 24;
+  const fontSize = style.fontSize ?? DEFAULT_WTB_FONT_SIZE;
   const fontFamily = style.fontFamily ?? "sans-serif";
   const fontWeight = style.fontWeight ?? "400";
   const lineHeightMultiplier = style.lineHeight ?? 1.2;
@@ -44,7 +55,7 @@ export function measureText(text: string, style: MeasureStyle): MeasuredDimensio
 
   const ctx = getCanvasContext();
   if (!ctx) {
-    // SSR Fallback
+    // SSR fallback — rough estimate only
     const estimatedLines = text.split("\n");
     return {
       width: Math.min(maxWidth, text.length * fontSize * 0.6),
@@ -53,7 +64,6 @@ export function measureText(text: string, style: MeasureStyle): MeasuredDimensio
     };
   }
 
-  // Configure canvas font
   ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
 
   // Split into paragraphs by newline, then wrap words
@@ -86,14 +96,11 @@ export function measureText(text: string, style: MeasureStyle): MeasuredDimensio
     }
   }
 
-  // Calculate actual bounding box dimensions
   let maxLineWidth = 0;
   for (const line of finalLines) {
     if (line) {
       const w = ctx.measureText(line).width;
-      if (w > maxLineWidth) {
-        maxLineWidth = w;
-      }
+      if (w > maxLineWidth) maxLineWidth = w;
     }
   }
 

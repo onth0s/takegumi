@@ -1,3 +1,4 @@
+import { motion } from "motion/react";
 import type { WPanel as WPanelType } from "@/types/canvas";
 import WTextGroup from "../WTextGroup";
 import WPanelImage from "./WPanelImage";
@@ -7,19 +8,28 @@ interface Props {
 }
 
 export default function WPanel({ panel }: Props) {
+  const hasImage = !!panel.imageUrl;
+
+  const initial = hasImage ? { opacity: 0 } : undefined;
+  const animate = hasImage ? { opacity: 1 } : undefined;
+  const transition = hasImage ? { duration: 0.4, ease: "easeOut" as const } : undefined;
+
   return (
-    <div
-      className="relative bg-surface-elevated border border-border-default rounded shadow-md overflow-visible flex-shrink-0"
+    <motion.div
+      initial={initial}
+      animate={animate}
+      transition={transition}
+      className={`relative shadow-md overflow-visible flex-shrink-0 ${hasImage ? "bg-transparent" : "bg-surface-elevated"}`}
       style={{ width: `${panel.width}px`, height: `${panel.height}px` }}
     >
       {/* Background image layer */}
-      {panel.imageUrl ? (
+      {hasImage ? (
         <WPanelImage
           imageUrl={panel.imageUrl}
           className="absolute inset-0 w-full h-full object-cover"
         />
       ) : (
-        <div className="absolute inset-0 bg-[#808080]" />
+        <div className="absolute inset-0 bg-placeholder" />
       )}
 
       {/* Text group overlay — absolutely positioned within panel coordinate space */}
@@ -28,6 +38,6 @@ export default function WPanel({ panel }: Props) {
           <WTextGroup key={group.id} group={group} />
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 }

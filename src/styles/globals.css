@@ -25,6 +25,9 @@
   --color-text-primary: var(--_text-primary);
   --color-text-secondary: var(--_text-secondary);
   --color-text-tertiary: var(--_text-tertiary);
+
+  /* Placeholder / skeleton surfaces */
+  --color-placeholder: var(--_placeholder);
 }
 
 :root {
@@ -52,6 +55,9 @@
   --_text-primary: #c8c8c8;
   --_text-secondary: #8a8a8a;
   --_text-tertiary: #555555;
+
+  /* Placeholder / skeleton surfaces */
+  --_placeholder: #808080;
 }
 
 body {

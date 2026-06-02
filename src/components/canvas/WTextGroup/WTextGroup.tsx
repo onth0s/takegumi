@@ -1,6 +1,11 @@
 "use client";
 import { useRef } from "react";
 import type { WTextGroup as WTextGroupType } from "@/types/canvas";
+import {
+  DEFAULT_WTG_BACKGROUND_COLOR,
+  DEFAULT_WTG_BORDER_WIDTH,
+  DEFAULT_WTG_OPACITY,
+} from "@/constants/canvasDefaults";
 import { useWPath } from "@/hooks/useWPath";
 import WTextBlock from "../WTextBlock";
 
@@ -12,14 +17,11 @@ export default function WTextGroup({ group }: Props) {
   const contentRef = useRef<HTMLDivElement>(null);
   const { backdropPath, tailPathString, width, height } = useWPath(group, contentRef);
 
-  const opacity = group.style.opacity ?? 0.5;
-  const borderWidth = group.style.borderWidth ?? 0;
-  const strokeColor = borderWidth > 0 ? "#000000" : "none";
+  const opacity = group.style.opacity ?? DEFAULT_WTG_OPACITY;
+  const borderWidth = group.style.borderWidth ?? DEFAULT_WTG_BORDER_WIDTH;
+  const strokeColor = borderWidth > 0 ? DEFAULT_WTG_BACKGROUND_COLOR : "none";
 
-  // Per README.md and canvas.yaml, background defaults to 50% black when opacity is applied
-  const fillColor = group.style.backgroundColor && group.style.backgroundColor !== "#00000000"
-    ? group.style.backgroundColor
-    : "#000000";
+  const fillColor = group.style.backgroundColor ?? DEFAULT_WTG_BACKGROUND_COLOR;
 
   return (
     <div

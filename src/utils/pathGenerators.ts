@@ -2,11 +2,6 @@
  * Pure SVG path generation utilities for speech bubbles and backdrops.
  */
 
-interface Rect {
-  width: number;
-  height: number;
-}
-
 /**
  * Generates a standard rounded rectangle path.
  */
@@ -63,11 +58,26 @@ export function actionBurstPath(w: number, h: number): string {
   return points.join(" ");
 }
 
+export type BackdropShapeType = "pill" | "rounded-rectangle" | "action-burst";
+
+/** Dispatches to the correct backdrop path generator for a shape type. */
+export function getBackdropPath(
+  shapeType: BackdropShapeType,
+  width: number,
+  height: number,
+  borderRadius: number
+): string {
+  if (width <= 0 || height <= 0) return "";
+  if (shapeType === "pill") return pillPath(width, height);
+  if (shapeType === "action-burst") return actionBurstPath(width, height);
+  return roundedRectPath(width, height, borderRadius);
+}
+
 /**
  * Finds the nearest point on a rectangle's perimeter to a given anchor point.
  * Coordinates are relative to the rectangle's top-left corner (0,0).
  */
-export function getPerimeterPoint(w: number, h: number, anchorX: number, anchorY: number): { x: number; y: number } {
+function getPerimeterPoint(w: number, h: number, anchorX: number, anchorY: number): { x: number; y: number } {
   const cx = w / 2;
   const cy = h / 2;
 

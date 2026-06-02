@@ -1,4 +1,5 @@
 # Takegumi Data Model Schemas (Single Source of Truth)
+# Runtime defaults live in src/constants/canvasDefaults.ts
 
 WProject:
   type: object
@@ -28,14 +29,14 @@ WPanel:
       description: Unique panel identifier
     imageUrl:
       type: string
-      description: URL/data URI of the background panel artwork
+      description: Remote URL, data URI, or local blob reference (`local://<panelId>`)
       nullable: true
     x:
       type: number
-      description: Relative X position within the parent WProject 
+      description: Reserved for absolute layout engine — flex layout used today
     y:
       type: number
-      description: Relative Y position within the parent WProject
+      description: Reserved for absolute layout engine — flex layout used today
     width:
       type: number
       description: Width in pixels
@@ -48,7 +49,13 @@ WPanel:
         $ref: '#/WTextGroup'
     style:
       type: object
-      description: Visual configuration (e.g. border styles)
+      properties:
+        gutter:
+          type: number
+          description: Spacing between adjacent panels (not yet wired)
+        borderStyle:
+          type: string
+          description: Synthetic border style token (not yet wired)
 
 WTextGroup:
   type: object
@@ -62,12 +69,6 @@ WTextGroup:
     y:
       type: number
       description: Relative Y position within the parent WPanel
-    width:
-      type: number
-      description: Computed width of the backdrop boundary
-    height:
-      type: number
-      description: Computed height of the backdrop boundary
     style:
       type: object
       properties:
@@ -76,14 +77,17 @@ WTextGroup:
           minimum: 0
           maximum: 1
           default: 0.5
+          description: Backdrop layer opacity — text blocks default to 1 independently
         backgroundColor:
           type: string
-          description: Backdrop fill color
-          default: "#00000000"
+          description: Backdrop fill color (opacity applied separately via style.opacity)
+          default: "#000000"
         borderRadius:
           type: number
+          default: 8
         borderWidth:
           type: number
+          default: 0
         shapeType:
           type: string
           enum: [pill, rounded-rectangle, action-burst]
@@ -94,14 +98,17 @@ WTextGroup:
       properties:
         x:
           type: number
-          description: Relative anchor target target X
+          description: Relative anchor target X
         y:
           type: number
-          description: Relative anchor target target Y
+          description: Relative anchor target Y
     blocks:
       type: array
       items:
         $ref: '#/WTextBlock'
+  description: >
+    Backdrop width/height are runtime-computed by useWPath (ResizeObserver) and are
+    not persisted on the model.
 
 WTextBlock:
   type: object
@@ -117,10 +124,13 @@ WTextBlock:
       properties:
         fontSize:
           type: number
+          default: 24
         fontWeight:
           type: string
+          default: "700"
         color:
           type: string
+          default: "#ffffff"
         fontFamily:
           type: string
         lineHeight:
@@ -129,6 +139,29 @@ WTextBlock:
           type: string
           enum: [left, center, right]
           default: center
+        opacity:
+          type: number
+          minimum: 0
+          maximum: 1
+          default: 1
+          description: Text opacity (independent of WTextGroup backdrop opacity)
     transition:
       type: object
-      description: Remotion motion layout keyframe definitions
+      description: "@planned Remotion playback transitions — not implemented yet"
+      properties:
+        in:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [fade, slide, scale]
+            duration:
+              type: number
+        out:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [fade, slide, scale]
+            duration:
+              type: number

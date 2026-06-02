@@ -1,280 +1,256 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { produce } from "immer";
-import localforage from "localforage";
-import { WProject, WPanel, WTextGroup, WTextBlock } from "../types/canvas";
+import type { WProject } from "@/types/canvas";
+import { projectStoreDb } from "@/storage";
+import {
+  CONTINUOUS_COMMIT_DEBOUNCE_MS,
+  emptyHistoryState,
+  flushContinuousCommit,
+  MAX_HISTORY_DEPTH,
+  type CommitType,
+  type HistoryState,
+} from "@/stores/projectHistory";
+import { clearAllPanelImages, deletePanelImage } from "@/utils/panelImageStorage";
+import { syncProjectInList } from "@/utils/projectList";
 
-// Configure localforage for IndexedDB storage
-localforage.config({
-  name: "Takegumi",
-  storeName: "project_store",
-});
-
-const indexedDBStorage = createJSONStorage<ProjectState>(() => ({
-  getItem: async (name) => {
-    return await localforage.getItem(name);
-  },
-  setItem: async (name, value) => {
-    await localforage.setItem(name, value);
-  },
-  removeItem: async (name) => {
-    await localforage.removeItem(name);
-  },
-}));
-
-const MAX_HISTORY_DEPTH = 50;
-
-interface ProjectState {
+interface PersistedProjectState {
   project: WProject | null;
   projects: WProject[];
-  
-  // History Stacks
-  past: WProject[];
-  future: WProject[];
-  
-  // Temporal tracking for continuous actions
-  tempPastState: WProject | null;
-  continuousTimer: NodeJS.Timeout | null;
-  lastChangedElementId: string | null;
+}
 
-  // Setters & Root Actions
+interface ProjectState extends HistoryState {
+  project: WProject | null;
+  projects: WProject[];
+
+  /** Switch the active project and sync the recents list. Clears undo/redo history. */
   setProject: (project: WProject) => void;
-  updateProject: (recipe: (draft: WProject) => void, commitType?: "discrete" | "continuous" | "ignore", elementId?: string) => void;
-  
-  // History Actions
+  deleteProject: (projectId: string) => void;
+  /** Mutate the active project. Records undo history unless commitType is `"ignore"`. */
+  updateProject: (
+    recipe: (draft: WProject) => void,
+    commitType?: CommitType,
+    elementId?: string
+  ) => void;
+
   undo: () => void;
   redo: () => void;
   clearHistory: () => void;
-  
-  // Explicitly end a continuous sequence
   endContinuousCommit: () => void;
+
+  /** Wipe all persisted project data, history, and panel image blobs. */
+  resetAll: () => Promise<void>;
 }
+
+const indexedDBStorage = createJSONStorage<PersistedProjectState>(() => ({
+  getItem: async (name) => projectStoreDb.getItem(name),
+  setItem: async (name, value) => {
+    await projectStoreDb.setItem(name, value);
+  },
+  removeItem: async (name) => {
+    await projectStoreDb.removeItem(name);
+  },
+}));
 
 export const useProjectStore = create<ProjectState>()(
   persist(
-    (set, get) => {
-      // Helper to clear pending continuous action timers and commit if necessary
-      const flushContinuousCommit = (state: ProjectState) => {
-        if (state.continuousTimer) {
-          clearTimeout(state.continuousTimer);
-        }
-        if (state.tempPastState && state.project) {
-          const newPast = [...state.past, state.tempPastState].slice(-MAX_HISTORY_DEPTH);
+    (set, get) => ({
+      project: null,
+      projects: [],
+      ...emptyHistoryState(),
+
+      setProject: (project) => {
+        set((state) => {
+          const flushed = flushContinuousCommit(state);
           return {
-            past: newPast,
-            future: [] as WProject[],
-            tempPastState: null as WProject | null,
-            continuousTimer: null as NodeJS.Timeout | null,
-            lastChangedElementId: null as string | null,
+            ...flushed,
+            project,
+            projects: syncProjectInList(state.projects || [], project),
+            past: [],
+            future: [],
           };
-        }
-        return {
-          past: state.past,
-          future: state.future,
-          tempPastState: null as WProject | null,
-          continuousTimer: null as NodeJS.Timeout | null,
-          lastChangedElementId: null as string | null,
-        };
-      };
+        });
+      },
 
-      return {
-        project: null,
-        projects: [],
-        past: [],
-        future: [],
-        tempPastState: null,
-        continuousTimer: null,
-        lastChangedElementId: null,
-
-        setProject: (project) => {
-          set((state) => {
-            const flushed = flushContinuousCommit(state);
-            const currentProjects = state.projects || [];
-            const exists = currentProjects.some((p) => p.id === project.id);
-            const nextProjects = exists
-              ? currentProjects.map((p) => (p.id === project.id ? project : p))
-              : [...currentProjects, project];
-            return {
-              ...flushed,
-              project,
-              projects: nextProjects,
-              past: [],
-              future: [],
-            };
-          });
-        },
-
-        updateProject: (recipe, commitType = "discrete", elementId) => {
-          const state = get();
-          if (!state.project) return;
-
-          // Compute the next project state via Immer
-          const nextProject = produce(state.project, (draft) => {
-            recipe(draft);
-            draft.updatedAt = new Date().toISOString();
-          });
-
-          // Sync into projects list
+      deleteProject: (projectId) => {
+        set((state) => {
+          const flushed = flushContinuousCommit(state);
           const currentProjects = state.projects || [];
-          const nextProjects = currentProjects.map((p) =>
-            p.id === nextProject.id ? nextProject : p
-          );
+          const nextProjects = currentProjects.filter((p) => p.id !== projectId);
+          const activeProjectDeleted = state.project?.id === projectId;
 
-          if (commitType === "ignore") {
-            set({ project: nextProject, projects: nextProjects });
-            return;
-          }
-
-          if (commitType === "discrete") {
-            set((curr) => {
-              // Flush any active continuous commits first
-              const flushed = flushContinuousCommit(curr);
-              const newPast = [...flushed.past, curr.project!].slice(-MAX_HISTORY_DEPTH);
-              return {
-                ...flushed,
-                project: nextProject,
-                projects: nextProjects,
-                past: newPast,
-                future: [],
-              };
-            });
-            return;
-          }
-
-          if (commitType === "continuous") {
-            // Continuous changes (e.g. typing or active drag)
-            set((curr) => {
-              let savedBaseState = curr.tempPastState;
-              let nextPast = curr.past;
-
-              // If the element changed or we have no stored base state, commit the previous one and start a new anchor
-              if (!savedBaseState || (elementId && curr.lastChangedElementId !== elementId)) {
-                if (savedBaseState && curr.project) {
-                  nextPast = [...curr.past, savedBaseState].slice(-MAX_HISTORY_DEPTH);
-                }
-                savedBaseState = curr.project; // capture baseline before this new continuous stream
-              }
-
-              // Reset/setup the debounce timeout to commit this stream after inactivity
-              if (curr.continuousTimer) {
-                clearTimeout(curr.continuousTimer);
-              }
-
-              const timer = setTimeout(() => {
-                get().endContinuousCommit();
-              }, 500); // 500ms debounce window
-
-              return {
-                project: nextProject,
-                projects: nextProjects,
-                past: nextPast,
-                tempPastState: savedBaseState,
-                continuousTimer: timer,
-                lastChangedElementId: elementId || null,
-              };
+          const deletedProj = currentProjects.find((p) => p.id === projectId);
+          if (deletedProj) {
+            deletedProj.panels.forEach((panel) => {
+              deletePanelImage(panel.id).catch((err) => {
+                console.error("Failed to delete image for panel", panel.id, err);
+              });
             });
           }
-        },
 
-        endContinuousCommit: () => {
-          set((curr) => {
-            if (curr.continuousTimer) {
-              clearTimeout(curr.continuousTimer);
-            }
-            if (curr.tempPastState) {
-              const newPast = [...curr.past, curr.tempPastState].slice(-MAX_HISTORY_DEPTH);
-              return {
-                past: newPast,
-                future: [],
-                tempPastState: null,
-                continuousTimer: null,
-                lastChangedElementId: null,
-              };
-            }
-            return {
-              continuousTimer: null,
-              tempPastState: null,
-              lastChangedElementId: null,
-            };
-          });
-        },
+          return {
+            ...flushed,
+            projects: nextProjects,
+            project: activeProjectDeleted ? null : state.project,
+            past: activeProjectDeleted ? [] : flushed.past,
+            future: activeProjectDeleted ? [] : flushed.future,
+          };
+        });
+      },
 
-        undo: () => {
-          set((curr) => {
-            // First flush any active continuous action
-            const flushed = flushContinuousCommit(curr);
-            const activePast = flushed.past;
-            
-            if (activePast.length === 0 || !curr.project) return {};
+      updateProject: (recipe, commitType = "discrete", elementId) => {
+        const state = get();
+        if (!state.project) return;
 
-            const previous = activePast[activePast.length - 1];
-            const remainingPast = activePast.slice(0, -1);
-            const newFuture = [curr.project, ...curr.future].slice(0, MAX_HISTORY_DEPTH);
+        const nextProject = produce(state.project, (draft) => {
+          recipe(draft);
+          draft.updatedAt = new Date().toISOString();
+        });
 
-            // Sync inside projects list
-            const currentProjects = curr.projects || [];
-            const nextProjects = currentProjects.map((p) =>
-              p.id === previous.id ? previous : p
-            );
+        const nextProjects = syncProjectInList(state.projects || [], nextProject);
 
-            return {
-              ...flushed,
-              project: previous,
-              projects: nextProjects,
-              past: remainingPast,
-              future: newFuture,
-            };
-          });
-        },
+        if (commitType === "ignore") {
+          set({ project: nextProject, projects: nextProjects });
+          return;
+        }
 
-        redo: () => {
+        if (commitType === "discrete") {
           set((curr) => {
             const flushed = flushContinuousCommit(curr);
-            if (curr.future.length === 0 || !curr.project) return {};
-
-            const next = curr.future[0];
-            const remainingFuture = curr.future.slice(1);
-            const newPast = [...flushed.past, curr.project].slice(-MAX_HISTORY_DEPTH);
-
-            // Sync inside projects list
-            const currentProjects = curr.projects || [];
-            const nextProjects = currentProjects.map((p) =>
-              p.id === next.id ? next : p
-            );
-
+            const newPast = [...flushed.past, curr.project!].slice(-MAX_HISTORY_DEPTH);
             return {
               ...flushed,
-              project: next,
+              project: nextProject,
               projects: nextProjects,
               past: newPast,
-              future: remainingFuture,
+              future: [],
             };
           });
-        },
+          return;
+        }
 
-        clearHistory: () => {
+        if (commitType === "continuous") {
           set((curr) => {
+            let savedBaseState = curr.tempPastState;
+            let nextPast = curr.past;
+
+            if (!savedBaseState || (elementId && curr.lastChangedElementId !== elementId)) {
+              if (savedBaseState && curr.project) {
+                nextPast = [...curr.past, savedBaseState].slice(-MAX_HISTORY_DEPTH);
+              }
+              savedBaseState = curr.project;
+            }
+
             if (curr.continuousTimer) {
               clearTimeout(curr.continuousTimer);
             }
+
+            const timer = setTimeout(() => {
+              get().endContinuousCommit();
+            }, CONTINUOUS_COMMIT_DEBOUNCE_MS);
+
             return {
-              past: [],
+              project: nextProject,
+              projects: nextProjects,
+              past: nextPast,
+              tempPastState: savedBaseState,
+              continuousTimer: timer,
+              lastChangedElementId: elementId || null,
+            };
+          });
+        }
+      },
+
+      endContinuousCommit: () => {
+        set((curr) => {
+          if (curr.continuousTimer) {
+            clearTimeout(curr.continuousTimer);
+          }
+          if (curr.tempPastState) {
+            const newPast = [...curr.past, curr.tempPastState].slice(-MAX_HISTORY_DEPTH);
+            return {
+              past: newPast,
               future: [],
               tempPastState: null,
               continuousTimer: null,
               lastChangedElementId: null,
             };
-          });
-        },
-      };
-    },
+          }
+          return {
+            continuousTimer: null,
+            tempPastState: null,
+            lastChangedElementId: null,
+          };
+        });
+      },
+
+      undo: () => {
+        set((curr) => {
+          const flushed = flushContinuousCommit(curr);
+          const activePast = flushed.past;
+
+          if (activePast.length === 0 || !curr.project) return {};
+
+          const previous = activePast[activePast.length - 1];
+          const remainingPast = activePast.slice(0, -1);
+          const newFuture = [curr.project, ...curr.future].slice(0, MAX_HISTORY_DEPTH);
+
+          return {
+            ...flushed,
+            project: previous,
+            projects: syncProjectInList(curr.projects || [], previous),
+            past: remainingPast,
+            future: newFuture,
+          };
+        });
+      },
+
+      redo: () => {
+        set((curr) => {
+          const flushed = flushContinuousCommit(curr);
+          if (curr.future.length === 0 || !curr.project) return {};
+
+          const next = curr.future[0];
+          const remainingFuture = curr.future.slice(1);
+          const newPast = [...flushed.past, curr.project].slice(-MAX_HISTORY_DEPTH);
+
+          return {
+            ...flushed,
+            project: next,
+            projects: syncProjectInList(curr.projects || [], next),
+            past: newPast,
+            future: remainingFuture,
+          };
+        });
+      },
+
+      clearHistory: () => {
+        set((curr) => {
+          if (curr.continuousTimer) {
+            clearTimeout(curr.continuousTimer);
+          }
+          return emptyHistoryState();
+        });
+      },
+
+      resetAll: async () => {
+        get().clearHistory();
+        set({
+          project: null,
+          projects: [],
+          ...emptyHistoryState(),
+        });
+        await useProjectStore.persist.clearStorage();
+        await clearAllPanelImages();
+      },
+    }),
     {
       name: "takegumi-project-storage",
       storage: indexedDBStorage,
-      partialize: (state) => ({
+      partialize: (state): PersistedProjectState => ({
         project: state.project,
         projects: state.projects || [],
-      }) as any,
+      }),
     }
   )
 );
