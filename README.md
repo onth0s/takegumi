@@ -48,3 +48,21 @@ To maintain blazing-fast rendering speeds and keep saved projects lightweight, T
 *   **[useProjectStore]** (Persistent): Manages domain entities like WProjects, WPanels, WTextGroups, and WTextBlocks. It saves data to `localStorage` and handles data schema migrations (e.g. migrating flat text blocks into composite `TextGroup` models).
 
 *   **[useUIStore]** (Ephemeral): Tracks transient runtime parameters such as selection highlights (`selectedPanelId`, `selectedTextBlockId`), right-click context menu positions, and active sidebar inspector tabs.
+
+### 2. SSR-Safe Hydration Guard
+To prevent mismatch warnings when Next.js compares server-rendered layouts with persisted client storage, the system employs the custom [useHydration] hook. The editor interface delays rendering persistent state elements until hydration has successfully resolved in the client browser.
+
+### 3. Dynamic Synthetic Borders (`useSyntheticBorder`)
+Standard CSS outlines and borders are rigid, drawing lines straight through overlying speech bubbles. Takegumi solves this with a custom math engine in the [useSyntheticBorder] hook:
+
+1.  It listens to panel and text container boundaries using a debounced `ResizeObserver` and scroll listeners.
+2.  It projects the layout of overlay "bubbles" (WTextGroups) onto the four borders of the panel.
+3.  Using a **merge-intervals algorithm**, it finds all overlapping intersections along each border segment.
+4.  It constructs the borders using absolutely positioned segment elements ([SyntheticBorderStrips.tsx]), generating clean, dynamic gaps behind text bubbles.
+
+### 4. Alpha-Preserving Text Compositing
+To support semi-transparent background colors on speech bubbles without accumulating opacity when multiple bounding boxes intersect, [TextGroup.tsx] splits rendering into two layers:
+
+*   **Layer 1 (Backgrounds Only)**: Renders only the background boxes under a parent-level group opacity style.
+*   **Layer 2 (Foregrounds Only)**: Renders only text characters, borders, and shadows at 100% solid opacity.
+This structure ensures text remains perfectly legible and shadows do not look double-rendered or muddy.
