@@ -1,4 +1,4 @@
-# **Takegumi** — 竹組み
+# 🎋 **Takegumi** — 竹組み
 
 - Takegumi is a high-fidelity, web-based content creation and typesetting workstation designed specifically for composing webtoon panels, adding highly styled text overlays, configuring dynamic transitions, and exporting to Short Video Format (SVF).
 The name **Takegumi** (竹組み) refers to the Japanese art of bamboo-framing or assembly, reflecting the tool's focus on structuring panel layouts, borders, and typography into a cohesive sequence.
