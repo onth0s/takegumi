@@ -2,28 +2,54 @@
 
 @theme {
   /* Surface palette */
-  --color-surface: #141414;
-  --color-surface-elevated: #1c1c1c;
-  --color-surface-hover: #242424;
+  --color-surface: var(--_surface);
+  --color-surface-elevated: var(--_surface-elevated);
+  --color-surface-hover: var(--_surface-hover);
 
   /* Borders */
-  --color-border-subtle: #222222;
-  --color-border-default: #333333;
+  --color-border-subtle: var(--_border-subtle);
+  --color-border-default: var(--_border-default);
 
   /* Accent — warm amber/gold, evokes ink on parchment */
-  --color-accent: #c4a35a;
-  --color-accent-hover: #d4b36a;
-  --color-accent-muted: rgba(196, 163, 90, 0.15);
+  --color-accent: var(--_accent);
+  --color-accent-hover: var(--_accent-hover);
+  --color-accent-muted: var(--_accent-muted);
 
   /* Semantic */
-  --color-danger: #c45a5a;
-  --color-success: #5ac47a;
+  --color-danger: var(--_danger);
+  --color-success: var(--_success);
 
   /* Text & Base */
-  --color-foreground: #ededed;
-  --color-background: #0a0a0a;
-  --color-text-secondary: #8a8a8a;
-  --color-text-tertiary: #555555;
+  --color-foreground: var(--_foreground);
+  --color-background: var(--_background);
+  --color-text-secondary: var(--_text-secondary);
+  --color-text-tertiary: var(--_text-tertiary);
+}
+
+:root {
+  /* Surface palette */
+  --_surface: #141414;
+  --_surface-elevated: #1c1c1c;
+  --_surface-hover: #242424;
+
+  /* Borders */
+  --_border-subtle: #222222;
+  --_border-default: #333333;
+
+  /* Accent */
+  --_accent: #c4a35a;
+  --_accent-hover: #d4b36a;
+  --_accent-muted: rgba(196, 163, 90, 0.15);
+
+  /* Semantic */
+  --_danger: #c45a5a;
+  --_success: #5ac47a;
+
+  /* Text & Base */
+  --_foreground: #ededed;
+  --_background: #0a0a0a;
+  --_text-secondary: #8a8a8a;
+  --_text-tertiary: #555555;
 }
 
 body {
