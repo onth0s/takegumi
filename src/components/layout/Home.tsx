@@ -5,7 +5,7 @@ import Footer from "./Footer";
 
 export default function Home() {
   return (
-    <div className="relative flex flex-col h-screen w-full items-center justify-between pt-24 pb-6">
+    <div className="relative flex flex-col h-screen w-full items-center justify-between pt-24 pb-6 bg-background text-foreground border border-border-subtle">
       <Header />
       <Sidebar />
       <Center />
