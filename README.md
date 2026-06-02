@@ -110,7 +110,9 @@ To maintain blazing-fast rendering speeds and keep saved projects lightweight, T
 * **[useProjectStore]** (Persistent): Manages domain entities like WProjects, WPanels, WTextGroups, and WTextBlocks. It saves data to `localStorage` via localForage (IndexedDB) and handles data schema migrations (e.g. migrating flat text blocks into composite `WTextGroup` models).
 * **[useUIStore]** (Ephemeral): Tracks transient runtime parameters such as selection highlights (`selectedWPanelId`, `selectedWTextBlockId`), right-click context menu positions, and active sidebar inspector tabs.
 ### 4. SSR-Safe Hydration Guard
+
 To prevent mismatch warnings when Next.js compares server-rendered layouts with persisted client storage, the system employs the custom [useHydration] hook. The editor interface delays rendering persistent state elements until hydration has successfully resolved in the client browser.
+
 ---
 ## 📝 Content & Workflow Systems
 ### 1. Markdown Script Parser
