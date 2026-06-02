@@ -96,9 +96,9 @@ Further Schema Specifications are to be found as YAML files in /gnd (ground dire
 ## ⏳ State-Level History System (Undo / Redo Archetype)
 
 1. Architecture Overview
-To provide a robust, lightweight history without bloating memory or performance hiccups, Takegumi utilizes a Linear State-Snapshot Command Stream on top of the persistent state store.
+- To provide a robust, lightweight history without bloating memory or performance hiccups, Takegumi utilizes a Linear State-Snapshot Command Stream on top of the persistent state store.
 
-Instead of tracking micro-mutations on an element-by-element basis, the history engine leverages Zustand's immutable structural sharing via immer. This guarantees that unaffected nodes share references between history frames, keeping the memory footprint exceptionally low.
+- Instead of tracking micro-mutations on an element-by-element basis, the history engine leverages Zustand's immutable structural sharing via immer. This guarantees that unaffected nodes share references between history frames, keeping the memory footprint exceptionally low.
 
 ```text
 [User Action] ───> Throttled / Debounced Trigger
@@ -120,11 +120,11 @@ Instead of tracking micro-mutations on an element-by-element basis, the history 
 ```
 
 2. Core Mechanics & State Boundary
-The history ecosystem explicitly separates Domain State from Ephemeral UI State:
+- The history ecosystem explicitly separates Domain State from Ephemeral UI State:
 
-Included in History (useProjectStore): Structural modifications to WProjects, WPanels, WTextGroups, and WTextBlocks.
+- Included in History (useProjectStore): Structural modifications to WProjects, WPanels, WTextGroups, and WTextBlocks.
 
-Excluded from History (useUIStore): Selection states, side panel toggle states, hovering highlights, and context menu coordinates. This ensures that hitting "Undo" resets the actual canvas layout rather than merely toggling an inspector sidebar tab.
+- Excluded from History (useUIStore): Selection states, side panel toggle states, hovering highlights, and context menu coordinates. This ensures that hitting "Undo" resets the actual canvas layout rather than merely toggling an inspector sidebar tab.
 
 3. Commit Strategies & Interaction Filtering
 To prevent every single pixel of a drag interaction from pushing a new state onto the history stack, the engine utilizes three distinct commit behaviors:
