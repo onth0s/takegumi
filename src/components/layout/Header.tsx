@@ -1,7 +1,7 @@
 export default function Header() {
   return (
     <div className="flex flex-col items-center text-center gap-3">
-      <h1 className="text-2xl font-semibold tracking-wider text-accent">
+      <h1 className="text-2xl font-light tracking-wider text-accent">
         竹 Takegumi
       </h1>
       <p className="text-sm text-text-secondary leading-relaxed max-w-sm">

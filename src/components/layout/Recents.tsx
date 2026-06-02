@@ -42,7 +42,7 @@ export default function Recents() {
 
   return (
     <div
-      className="h-full border border-border-default bg-surface-elevated rounded-lg flex overflow-hidden select-none flex-shrink-0"
+      className="h-full border border-border-default bg-surface rounded-lg flex overflow-hidden select-none flex-shrink-0"
       style={{ width }}
     >
       {/* Panel content */}
