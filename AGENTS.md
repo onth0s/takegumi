@@ -16,3 +16,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 - Keep hex/rgba values in `:root { }` blocks using `--_<name>` prefixed variables, then reference them in `@theme { }` via `var(--_<name>)`. This is because VS Code's CSS language server doesn't reliably maintain color swatches for hex values inside `@theme` blocks (they flash then vanish), but recognizes them permanently on `:root`.
 - Both blocks must be kept in sync — the `@theme` block drives Tailwind utility generation (`bg-surface`, `text-surface`, etc.), while `:root` provides the raw color values. 
+
+## Surgical Edits — Never Reconstruct From Memory
+
+- **Always read the file immediately before editing it.** Never reconstruct file content from conversation history or prior tool outputs — those may be stale.
+- **Target the minimum lines necessary.** Only replace the exact lines that need to change. Do not re-emit surrounding content unless it is part of the contiguous block being changed.
+- **Never infer "original" content.** If uncertain about the current state of a file, read it first, then edit. No exceptions.

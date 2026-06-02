@@ -1,0 +1,134 @@
+# Takegumi Data Model Schemas (Single Source of Truth)
+
+WProject:
+  type: object
+  properties:
+    id:
+      type: string
+      description: Unique project identifier
+    name:
+      type: string
+      description: Name of the project
+    panels:
+      type: array
+      items:
+        $ref: '#/WPanel'
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+WPanel:
+  type: object
+  properties:
+    id:
+      type: string
+      description: Unique panel identifier
+    imageUrl:
+      type: string
+      description: URL/data URI of the background panel artwork
+      nullable: true
+    x:
+      type: number
+      description: Relative X position within the parent WProject 
+    y:
+      type: number
+      description: Relative Y position within the parent WProject
+    width:
+      type: number
+      description: Width in pixels
+    height:
+      type: number
+      description: Height in pixels
+    textGroups:
+      type: array
+      items:
+        $ref: '#/WTextGroup'
+    style:
+      type: object
+      description: Visual configuration (e.g. border styles)
+
+WTextGroup:
+  type: object
+  properties:
+    id:
+      type: string
+      description: Unique text group identifier
+    x:
+      type: number
+      description: Relative X position within the parent WPanel
+    y:
+      type: number
+      description: Relative Y position within the parent WPanel
+    width:
+      type: number
+      description: Computed width of the backdrop boundary
+    height:
+      type: number
+      description: Computed height of the backdrop boundary
+    style:
+      type: object
+      properties:
+        opacity:
+          type: number
+          minimum: 0
+          maximum: 1
+          default: 0.5
+        backgroundColor:
+          type: string
+          description: Backdrop fill color
+          default: "#00000000"
+        borderRadius:
+          type: number
+        borderWidth:
+          type: number
+        shapeType:
+          type: string
+          enum: [pill, rounded-rectangle, action-burst]
+          default: rounded-rectangle
+    tailAnchor:
+      type: object
+      nullable: true
+      properties:
+        x:
+          type: number
+          description: Relative anchor target target X
+        y:
+          type: number
+          description: Relative anchor target target Y
+    blocks:
+      type: array
+      items:
+        $ref: '#/WTextBlock'
+
+WTextBlock:
+  type: object
+  properties:
+    id:
+      type: string
+      description: Unique text block identifier
+    text:
+      type: string
+      description: Text content of the dialogue, narrative or SFX element
+    style:
+      type: object
+      properties:
+        fontSize:
+          type: number
+        fontWeight:
+          type: string
+        color:
+          type: string
+        fontFamily:
+          type: string
+        lineHeight:
+          type: number
+        textAlign:
+          type: string
+          enum: [left, center, right]
+          default: center
+    transition:
+      type: object
+      description: Remotion motion layout keyframe definitions
