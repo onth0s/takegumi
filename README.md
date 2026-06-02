@@ -9,10 +9,15 @@ The name **Takegumi** (竹組み) refers to the Japanese art of bamboo-framing o
 ## 🚀 Key Features
 
 *   **Continuous Vertical Canvas**: Simulates a mobile-native webtoon reading flow with intuitive `@dnd-kit`-powered drag-and-drop panel reordering, image file drops, and interactive click-to-upload workflows.
+
 *   **Macro Sequence Grid Overview**: A responsive thumbnail dashboard mapping the structural narrative at a glance.
+
 *   **Immersive Playback Player**: A full-featured test player.
+
 *   **Synthetic Border Carving System**: A dynamic border engine that computes panel borders and cleanly carves out gaps wherever text "bubbles" overlap them, ensuring a clean, modern graphic novel aesthetic.
+
 *   **Alpha-Preserved Text Compositing**: A two-layer rendering pipeline that isolates semi-transparent text bubble backgrounds within groups to prevent ugly overlapping alpha build-up.
+
 *   **Markdown Script Parser**: Automates project setup by converting plain text scripts with markdown panel demarcations (`[[1]]`, `[[2]]`) and speaker lines (`_Speaker_: dialogue`) into fully populated layouts.
 
 ---
@@ -34,3 +39,12 @@ The name **Takegumi** (竹組み) refers to the Japanese art of bamboo-framing o
 *   **Storage Medium**: LocalStorage (key: `takegumi-projects`)
 
 ---
+
+## 🏗 System Architecture & Mechanics
+
+### 1. Dual-Store State Separation
+To maintain blazing-fast rendering speeds and keep saved projects lightweight, Takegumi splits its state into two distinct stores:
+
+*   **[useProjectStore]** (Persistent): Manages domain entities like WProjects, WPanels, WTextGroups, and WTextBlocks. It saves data to `localStorage` and handles data schema migrations (e.g. migrating flat text blocks into composite `TextGroup` models).
+
+*   **[useUIStore]** (Ephemeral): Tracks transient runtime parameters such as selection highlights (`selectedPanelId`, `selectedTextBlockId`), right-click context menu positions, and active sidebar inspector tabs.
