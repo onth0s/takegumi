@@ -1,3 +1,5 @@
-export default function Home() {
-  return <div>test</div>;
+import { Home } from "../components/layout";
+
+export default function Main() {
+  return <Home />;
 }
