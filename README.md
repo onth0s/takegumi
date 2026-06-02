@@ -100,21 +100,23 @@ To provide a robust, lightweight history without bloating memory or performance 
 
 Instead of tracking micro-mutations on an element-by-element basis, the history engine leverages Zustand's immutable structural sharing via immer. This guarantees that unaffected nodes share references between history frames, keeping the memory footprint exceptionally low.
 
-[User Action] ---> Throttled / Debounced Trigger
-                            |
-                            v
-+-----------------------------------------------------------+
-|                  History Middleware Layer                 |
-|                                                           |
-|  +--------------+     +--------------------+              |
-|  | Past Stack   | <-- | Current App State  | (useProjectStore)
-|  +--------------+     +--------------------+              |
-|                               |                           |
-|                               v                           |
-|                       +---------------+                   |
-|                       | Future Stack  |                   |
-|                       +---------------+                   |
-+-----------------------------------------------------------+
+```text
+[User Action] ───> Throttled / Debounced Trigger
+                                 │
+                                 ▼
+┌───────────────────────────────────────────────────────────┐
+│                 History Middleware Layer                  │
+│                                                           │
+│  ┌──────────────┐     ┌────────────────────┐              │
+│  │  Past Stack  │ <── │ Current App State  │              │
+│  └──────────────┘     │ (useProjectStore)  │              │
+│                       └────────────────────┘              │
+│                                  │                        │
+│                                  ▼                        │
+│                       ┌──────────────┐                    │
+│                       │ Future Stack │                    │
+│                       └──────────────┘                    │
+└───────────────────────────────────────────────────────────┘
 
 2. Core Mechanics & State Boundary
 The history ecosystem explicitly separates Domain State from Ephemeral UI State:
