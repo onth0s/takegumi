@@ -117,6 +117,7 @@ Instead of tracking micro-mutations on an element-by-element basis, the history 
 │                       │ Future Stack │                    │
 │                       └──────────────┘                    │
 └───────────────────────────────────────────────────────────┘
+```
 
 2. Core Mechanics & State Boundary
 The history ecosystem explicitly separates Domain State from Ephemeral UI State:
