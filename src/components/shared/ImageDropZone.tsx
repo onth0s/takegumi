@@ -48,7 +48,7 @@ export default function ImageDropZone({
         VARIANT_LAYOUT[variant],
         isDragOver
           ? "border-accent bg-accent/5"
-          : "border-border-default hover:border-accent/50 hover:bg-accent/5",
+          : "border-border-default/60 hover:border-accent/50 hover:bg-accent/5",
       ].join(" ")}
     >
       <svg
@@ -56,7 +56,7 @@ export default function ImageDropZone({
         height="36"
         viewBox="0 0 36 36"
         fill="none"
-        className="text-border-default group-hover:text-accent/40 transition-colors duration-200"
+        className="text-text-tertiary group-hover:text-accent/40 transition-colors duration-200"
       >
         <rect x="3" y="3" width="30" height="30" rx="4" stroke="currentColor" strokeWidth="1.5" />
         <circle cx="12" cy="13" r="2.5" stroke="currentColor" strokeWidth="1.5" />

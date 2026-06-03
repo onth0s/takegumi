@@ -9,6 +9,7 @@ import {
 } from "@/utils/findInProject";
 import { EmptyInspectorState } from "./inspector/InspectorFields";
 import PanelInspector from "./inspector/PanelInspector";
+import ProjectInspector from "./inspector/ProjectInspector";
 import TextBlockInspector from "./inspector/TextBlockInspector";
 import TextGroupInspector from "./inspector/TextGroupInspector";
 
@@ -20,7 +21,7 @@ function inspectorTitle(
   if (selectedBlockId) return "Text Block";
   if (selectedGroupId) return "Text Group";
   if (selectedPanelId) return "Panel";
-  return "Inspector";
+  return "Project";
 }
 
 export default function Inspector() {
@@ -50,6 +51,8 @@ export default function Inspector() {
     if (panel) {
       content = <PanelInspector panel={panel} />;
     }
+  } else if (project) {
+    content = <ProjectInspector project={project} />;
   }
 
   return (

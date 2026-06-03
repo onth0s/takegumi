@@ -50,7 +50,7 @@ export default function WProject({ project }: Props) {
   return (
     <div
       onClick={handleCanvasClick}
-      className="w-4/5 bg-background h-full overflow-y-auto no-scrollbar flex flex-col gap-8 p-8"
+      className="w-4/5 bg-white h-full overflow-y-auto no-scrollbar flex flex-col gap-8 p-8"
     >
       {project.panels.map((panel, i) => (
         <div
@@ -87,9 +87,9 @@ export default function WProject({ project }: Props) {
           id="create-blank-wpanel-btn"
           onClick={handleCreateBlankPanel}
           onKeyDown={(e) => e.key === "Enter" && handleCreateBlankPanel()}
-          className="group flex flex-col items-center justify-center gap-3 flex-[3.5] h-52 px-8 border-2 border-dashed rounded-2xl cursor-pointer transition-colors duration-200 outline-none focus-visible:ring-1 focus-visible:ring-accent/50 border-border-default bg-surface hover:border-accent/50 hover:bg-accent/5"
+          className="group flex flex-col items-center justify-center gap-3 flex-[3.5] h-52 px-8 border-2 border-dashed rounded-2xl cursor-pointer transition-colors duration-200 outline-none focus-visible:ring-1 focus-visible:ring-accent/50 border-border-default/60 hover:border-accent/50 hover:bg-accent/5"
         >
-          <div className="w-10 h-10 rounded-full border border-border-default flex items-center justify-center group-hover:border-accent/50 transition-colors duration-200">
+          <div className="w-10 h-10 rounded-full border border-border-default/60 flex items-center justify-center group-hover:border-accent/50 transition-colors duration-200">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-text-tertiary group-hover:text-accent transition-colors duration-200">
               <path d="M8 2.5V13.5M2.5 8H13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
