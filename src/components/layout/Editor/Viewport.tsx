@@ -20,6 +20,13 @@ export default function Viewport() {
     }
   }, [hydrated, project, setProject]);
 
+  const handleViewportClick = useCallback(
+    () => {
+      clearSelection();
+    },
+    [clearSelection]
+  );
+
   if (!hydrated) {
     return (
       <div className="flex-1 h-full bg-grid flex items-center justify-center text-text-secondary text-xs tracking-widest uppercase">
@@ -29,13 +36,6 @@ export default function Viewport() {
   }
 
   if (!project) return null;
-
-  const handleViewportClick = useCallback(
-    () => {
-      clearSelection();
-    },
-    [clearSelection]
-  );
 
   const isDarkTheme = project.canvasTheme === "dark";
 
@@ -47,13 +47,15 @@ export default function Viewport() {
       }`}
     >
       <div className="relative w-full h-full">
-        {project.grid.showGrid && (
-          <WGrid gridSize={project.grid.size} canvasTheme={project.canvasTheme} />
-        )}
         <div className="flex items-center justify-center w-full h-full">
-          <WProject project={project} />
+          <div className="relative w-full max-w-[960px] h-full">
+            {project.grid.showGrid && (
+              <WGrid gridSize={project.grid.size} canvasTheme={project.canvasTheme} />
+            )}
+            <WProject project={project} />
+            {process.env.NODE_ENV === "development" && <DebugAxis />}
+          </div>
         </div>
-        {process.env.NODE_ENV === "development" && <DebugAxis />}
       </div>
     </div>
   );
