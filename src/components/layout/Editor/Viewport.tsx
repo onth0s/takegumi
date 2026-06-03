@@ -1,7 +1,8 @@
 "use client";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { WProject, WGrid } from "@/components/canvas";
 import { useProjectStore } from "@/stores/projectStore";
+import { useUIStore } from "@/stores/uiStore";
 import { useHydration } from "@/hooks/useHydration";
 import { createBlankProject } from "@/utils/createProject";
 import DebugAxis from "@/components/debug/DebugAxis";
@@ -10,6 +11,7 @@ export default function Viewport() {
   const hydrated = useHydration();
   const project = useProjectStore((s) => s.project);
   const setProject = useProjectStore((s) => s.setProject);
+  const clearSelection = useUIStore((s) => s.clearSelection);
 
   // Seed a blank project the first time the store hydrates with no saved data.
   useEffect(() => {
@@ -28,10 +30,18 @@ export default function Viewport() {
 
   if (!project) return null;
 
+  const handleViewportClick = useCallback(
+    () => {
+      clearSelection();
+    },
+    [clearSelection]
+  );
+
   const isDarkTheme = project.canvasTheme === "dark";
 
   return (
     <div
+      onClick={handleViewportClick}
       className={`flex-1 h-full overflow-hidden ${
         isDarkTheme ? "bg-neutral-50 bg-grid-light" : "bg-grid"
       }`}
