@@ -1,4 +1,5 @@
 "use client";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { CanvasTheme } from "@/types/canvas";
 
 interface WGridProps {
@@ -18,6 +19,19 @@ function lineColors(theme: CanvasTheme): { minor: string; major: string } {
 }
 
 export default function WGrid({ gridSize, canvasTheme }: WGridProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | undefined>(undefined);
+
+  useLayoutEffect(() => {
+    const parent = ref.current?.parentElement;
+    if (!parent) return;
+    const update = () => setHeight(parent.scrollHeight);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(parent);
+    return () => observer.disconnect();
+  }, [gridSize]);
+
   if (gridSize < 1) return null;
 
   const colors = lineColors(canvasTheme);
@@ -26,7 +40,11 @@ export default function WGrid({ gridSize, canvasTheme }: WGridProps) {
   const majorId = `wgrid-major-${gridSize}`;
 
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
+    <div
+      ref={ref}
+      className="absolute top-0 left-0 right-0 pointer-events-none overflow-hidden"
+      style={{ zIndex: 1, height }}
+    >
       <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id={minorId} width={gridSize} height={gridSize} patternUnits="userSpaceOnUse">

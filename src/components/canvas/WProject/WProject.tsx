@@ -8,6 +8,8 @@ import { processImageFiles } from "@/utils/processImageFiles";
 import { useImageDrop } from "@/hooks/useImageDrop";
 import ImageDropZone from "@/components/shared/ImageDropZone";
 import WPanel from "../WPanel";
+import WGrid from "../WGrid";
+import DebugAxis from "@/components/debug/DebugAxis";
 
 interface Props {
   project: WProjectType;
@@ -50,10 +52,14 @@ export default function WProject({ project }: Props) {
   return (
     <div
       onClick={handleCanvasClick}
-      className={`w-full max-w-[960px] h-full overflow-y-auto no-scrollbar flex flex-col gap-[40px] p-[40px] ${
+      className={`relative w-full max-w-[960px] h-full overflow-y-auto no-scrollbar flex flex-col gap-[40px] p-[40px] ${
         project.canvasTheme === "dark" ? "bg-black" : "bg-white"
       }`}
     >
+      {project.grid.showGrid && (
+        <WGrid gridSize={project.grid.size} canvasTheme={project.canvasTheme} />
+      )}
+      {process.env.NODE_ENV === "development" && <DebugAxis />}
       {project.panels.map((panel, i) => (
         <div
           key={panel.id}

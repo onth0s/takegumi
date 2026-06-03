@@ -1,17 +1,36 @@
 "use client";
 import { useCallback, useEffect } from "react";
-import { WProject, WGrid } from "@/components/canvas";
+import { WProject } from "@/components/canvas";
 import { useProjectStore } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
 import { useHydration } from "@/hooks/useHydration";
 import { createBlankProject } from "@/utils/createProject";
-import DebugAxis from "@/components/debug/DebugAxis";
+
+
+function UndoRedoBtn({ label, disabled, onClick }: { label: string; disabled?: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      disabled={disabled}
+      onClick={onClick}
+      className="flex w-10 h-10 justify-center items-center text-text-secondary rounded-sm border border-accent bg-black/70 hover:border-accent/50 hover:text-accent transition-colors duration-150 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-accent disabled:hover:text-text-secondary"
+    >
+      {label === "Undo" ? "↶" : "↷"}
+    </button>
+  );
+}
 
 export default function Viewport() {
   const hydrated = useHydration();
   const project = useProjectStore((s) => s.project);
   const setProject = useProjectStore((s) => s.setProject);
   const clearSelection = useUIStore((s) => s.clearSelection);
+  const undo = useProjectStore((s) => s.undo);
+  const redo = useProjectStore((s) => s.redo);
+  const canUndo = useProjectStore((s) => s.past.length > 0 || s.tempPastState !== null);
+  const canRedo = useProjectStore((s) => s.future.length > 0);
 
   // Seed a blank project the first time the store hydrates with no saved data.
   useEffect(() => {
@@ -47,13 +66,13 @@ export default function Viewport() {
       }`}
     >
       <div className="relative w-full h-full">
+        <div className="absolute bottom-6 right-4 z-10 select-none flex flex-col gap-2">
+          <UndoRedoBtn label="Undo" disabled={!canUndo} onClick={undo} />
+          <UndoRedoBtn label="Redo" disabled={!canRedo} onClick={redo} />
+        </div>
         <div className="flex items-center justify-center w-full h-full">
           <div className="relative w-full max-w-[960px] h-full">
-            {project.grid.showGrid && (
-              <WGrid gridSize={project.grid.size} canvasTheme={project.canvasTheme} />
-            )}
             <WProject project={project} />
-            {process.env.NODE_ENV === "development" && <DebugAxis />}
           </div>
         </div>
       </div>
