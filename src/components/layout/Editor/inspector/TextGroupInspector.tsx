@@ -71,23 +71,24 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
 
   const project = useProjectStore((s) => s.project);
   const parentPanel = project ? findPanel(project, panelId) : null;
+  const panelX = parentPanel?.x ?? 0;
   const panelWidth = parentPanel?.width ?? DEFAULT_PANEL_WIDTH;
 
   const handleAlign = useCallback(
     (dir: "left" | "center" | "right") => {
       mutateGroup((g) => {
-        if (dir === "left") g.x = GROUP_PADDING;
-        else if (dir === "center") g.x = Math.round(panelWidth / 2);
-        else g.x = panelWidth - GROUP_PADDING;
+        if (dir === "left") g.x = panelX + GROUP_PADDING;
+        else if (dir === "center") g.x = panelX + Math.round(panelWidth / 2);
+        else g.x = panelX + panelWidth - GROUP_PADDING;
       }, "discrete");
     },
-    [mutateGroup, panelWidth]
+    [mutateGroup, panelX, panelWidth]
   );
 
   const alignOffsets = {
-    left: GROUP_PADDING,
-    center: Math.round(panelWidth / 2),
-    right: panelWidth - GROUP_PADDING,
+    left: panelX + GROUP_PADDING,
+    center: panelX + Math.round(panelWidth / 2),
+    right: panelX + panelWidth - GROUP_PADDING,
   };
   const currentAlign: "left" | "center" | "right" =
     Math.abs(group.x - alignOffsets.left) <= 2 ? "left" :

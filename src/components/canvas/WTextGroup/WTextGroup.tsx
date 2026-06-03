@@ -13,9 +13,10 @@ import WTextBlock from "../WTextBlock";
 interface Props {
   panelId: string;
   group: WTextGroupType;
+  panelX: number;
 }
 
-export default function WTextGroup({ panelId, group }: Props) {
+export default function WTextGroup({ panelId, group, panelX }: Props) {
   const contentRef = useRef<HTMLDivElement>(null);
   const { backdropPath, tailPathString, width, height } = useWPath(group, contentRef);
 
@@ -47,7 +48,7 @@ export default function WTextGroup({ panelId, group }: Props) {
         isSelected ? "ring-2 ring-accent" : "hover:ring-1 hover:ring-border-default"
       }`}
       style={{
-        left: `${group.x}px`,
+        left: `${group.x - panelX}px`,
         top: `${group.y}px`,
         width: width > 0 ? `${width}px` : "auto",
         height: height > 0 ? `${height}px` : "auto",

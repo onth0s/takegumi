@@ -53,7 +53,7 @@ export default memo(function PanelInspector({ panel }: Props) {
 
   const handleAddTextGroup = useCallback(() => {
     mutatePanel((p) => {
-      p.textGroups.push(createTextGroup(p.width / 2, p.height / 2));
+      p.textGroups.push(createTextGroup(p.x + p.width / 2, p.height / 2));
     });
   }, [mutatePanel]);
 

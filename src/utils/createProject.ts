@@ -92,7 +92,7 @@ export function createBlankPanel(overrides?: Partial<WPanel>, existingPanels?: W
     y: 0,
     width,
     height,
-    textGroups: [createTextGroup(width / 2, height / 2)],
+    textGroups: [createTextGroup(x + width / 2, height / 2)],
     style: {},
     ...overrides,
   };

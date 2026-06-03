@@ -47,7 +47,7 @@ export default function WPanel({ panel }: Props) {
       {/* Text group overlay — absolutely positioned within panel coordinate space */}
       <div className="absolute inset-0">
         {panel.textGroups.map((group) => (
-          <WTextGroup key={group.id} panelId={panel.id} group={group} />
+          <WTextGroup key={group.id} panelId={panel.id} group={group} panelX={panel.x} />
         ))}
       </div>
     </div>
