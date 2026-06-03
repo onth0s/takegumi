@@ -118,8 +118,8 @@ export default function DebugAxis() {
       <div
         className="absolute pointer-events-none text-[10px] font-mono leading-none"
         style={{
-          left: halfArm + 6,
-          top: halfArm + 6,
+          left: halfArm + 2,
+          top: halfArm + 2,
           color: dotColor,
           background: "rgba(0,0,0,0.7)",
           padding: "2px 5px",
