@@ -11,9 +11,8 @@ interface Props {
 export default function DeleteConfirmChip({ onConfirm, onCancel, className = "" }: Props) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={false}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.1 }}
       className={`absolute h-5 w-10 flex items-center bg-surface-elevated border border-border-default rounded-full shadow-lg overflow-hidden z-20 ${className}`}
       onClick={(e) => e.stopPropagation()}
     >
