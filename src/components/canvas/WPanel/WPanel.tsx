@@ -19,7 +19,7 @@ export default function WPanel({ panel }: Props) {
       initial={initial}
       animate={animate}
       transition={transition}
-      className={`relative shadow-md overflow-visible flex-shrink-0 ${hasImage ? "bg-transparent" : "bg-surface-elevated"}`}
+      className={`relative shadow-md overflow-visible shrink-0 ${hasImage ? "bg-transparent" : "bg-surface-elevated"}`}
       style={{ width: `${panel.width}px`, height: `${panel.height}px` }}
     >
       {/* Background image layer */}
