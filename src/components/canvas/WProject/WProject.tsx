@@ -52,7 +52,7 @@ export default function WProject({ project }: Props) {
   return (
     <div
       onClick={handleCanvasClick}
-      className={`relative w-full max-w-[960px] h-full overflow-y-auto no-scrollbar flex flex-col gap-[40px] pt-[40px] ${
+      className={`relative w-full max-w-[960px] h-full overflow-y-auto no-scrollbar flex flex-col gap-[40px] pt-[40px] pb-[40px] ${
         project.canvasTheme === "dark" ? "bg-black" : "bg-white"
       }`}
     >

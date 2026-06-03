@@ -11,12 +11,6 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-function snapToSteps(value: number, steps: number[]): number {
-  return steps.reduce((prev, curr) =>
-    Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
-  );
-}
-
 interface SmartNumberInputProps {
   value: number;
   onChange: (value: number) => void;

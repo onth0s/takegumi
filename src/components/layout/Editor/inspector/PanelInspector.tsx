@@ -60,7 +60,6 @@ export default memo(function PanelInspector({ panel }: Props) {
   const endContinuous = () => useProjectStore.getState().endContinuousCommit();
 
   const gutter = panel.style?.gutter;
-  const borderStyle = panel.style?.borderStyle;
   const hasImage = panel.imageUrl !== null;
   const panelPercent = xToPanelPercent(panel.x, panel.width);
 

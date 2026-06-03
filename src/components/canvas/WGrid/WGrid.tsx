@@ -1,6 +1,7 @@
 "use client";
 import { useLayoutEffect, useRef, useState } from "react";
 import type { CanvasTheme } from "@/types/canvas";
+import { useProjectStore } from "@/stores/projectStore";
 
 interface WGridProps {
   gridSize: number;
@@ -21,21 +22,27 @@ function lineColors(theme: CanvasTheme): { minor: string; major: string } {
 export default function WGrid({ gridSize, canvasTheme }: WGridProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState<number | undefined>(undefined);
+  const panelCount = useProjectStore((s) => s.project?.panels.length ?? 0);
 
   useLayoutEffect(() => {
     const parent = ref.current?.parentElement;
     if (!parent) return;
+    let rafId = 0;
     const update = () => setHeight(parent.scrollHeight);
+    const scheduleUpdate = () => { rafId = requestAnimationFrame(update); };
     update();
-    const resizeObserver = new ResizeObserver(update);
+    const resizeObserver = new ResizeObserver(scheduleUpdate);
     resizeObserver.observe(parent);
-    const mutationObserver = new MutationObserver(update);
+    const mutationObserver = new MutationObserver(scheduleUpdate);
     mutationObserver.observe(parent, { childList: true, subtree: true });
+    parent.addEventListener("load", scheduleUpdate, true);
     return () => {
+      cancelAnimationFrame(rafId);
       resizeObserver.disconnect();
       mutationObserver.disconnect();
+      parent.removeEventListener("load", scheduleUpdate, true);
     };
-  }, [gridSize]);
+  }, [gridSize, panelCount]);
 
   if (gridSize < 1) return null;
 

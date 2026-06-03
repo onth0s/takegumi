@@ -77,6 +77,15 @@ export default function StatusBar() {
   const selectTextGroup = useUIStore((s) => s.selectTextGroup);
   const selectTextBlock = useUIStore((s) => s.selectTextBlock);
 
+  const handleRename = useCallback(
+    (name: string) => {
+      updateProject((draft) => {
+        draft.name = name;
+      }, "discrete");
+    },
+    [updateProject]
+  );
+
   if (!project) return null;
 
   const panelCount = project.panels.length;
@@ -99,15 +108,6 @@ export default function StatusBar() {
     selectedGroup && selectedBlockId
       ? selectedGroup.blocks.find((b) => b.id === selectedBlockId) ?? null
       : null;
-
-  const handleRename = useCallback(
-    (name: string) => {
-      updateProject((draft) => {
-        draft.name = name;
-      }, "discrete");
-    },
-    [updateProject]
-  );
 
   return (
     <div className="flex items-center h-12 gap-4 px-4 text-xs text-text-secondary border-t border-border-subtle bg-surface-elevated select-none">
