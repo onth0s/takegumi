@@ -3,21 +3,24 @@
 import { memo, useCallback } from "react";
 import type { WTextGroup, WTextGroupStyle } from "@/types/canvas";
 import {
+  DEFAULT_PANEL_WIDTH,
   DEFAULT_WTG_BACKGROUND_COLOR,
   DEFAULT_WTG_BORDER_RADIUS,
+  DEFAULT_WTG_BORDER_WIDTH,
   DEFAULT_WTG_OPACITY,
   DEFAULT_WTG_SHAPE_TYPE,
+  GROUP_PADDING,
 } from "@/constants/canvasDefaults";
 import { useProjectStore } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
 import { createTextBlock } from "@/utils/createProject";
-import { findTextGroup } from "@/utils/findInProject";
+import { findPanel, findTextGroup } from "@/utils/findInProject";
+import { SmartSlider, ScrubInput, SegmentedControl, ColorControl, ToggleSwitch } from "@/components/shared/UI";
 import {
-  FieldRow,
+  AlignmentControl,
   InspectorButton,
-  InspectorInput,
   InspectorSection,
-  InspectorSelect,
+  FieldRowHorizontal,
 } from "./InspectorFields";
 
 interface Props {
@@ -27,6 +30,7 @@ interface Props {
 
 export default memo(function TextGroupInspector({ panelId, group }: Props) {
   const updateProject = useProjectStore((s) => s.updateProject);
+  const selectTextBlock = useUIStore((s) => s.selectTextBlock);
 
   const mutateGroup = useCallback(
     (recipe: (g: WTextGroup) => void, commitType: "discrete" | "continuous" = "continuous") => {
@@ -63,117 +67,140 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
     }, "discrete");
   }, [mutateGroup]);
 
+  const endContinuous = () => useProjectStore.getState().endContinuousCommit();
+
+  const project = useProjectStore((s) => s.project);
+  const parentPanel = project ? findPanel(project, panelId) : null;
+  const panelWidth = parentPanel?.width ?? DEFAULT_PANEL_WIDTH;
+
+  const handleAlign = useCallback(
+    (dir: "left" | "center" | "right") => {
+      mutateGroup((g) => {
+        if (dir === "left") g.x = GROUP_PADDING;
+        else if (dir === "center") g.x = Math.round(panelWidth / 2);
+        else g.x = panelWidth - GROUP_PADDING;
+      }, "discrete");
+    },
+    [mutateGroup, panelWidth]
+  );
+
+  const alignOffsets = {
+    left: GROUP_PADDING,
+    center: Math.round(panelWidth / 2),
+    right: panelWidth - GROUP_PADDING,
+  };
+  const currentAlign: "left" | "center" | "right" =
+    Math.abs(group.x - alignOffsets.left) <= 2 ? "left" :
+    Math.abs(group.x - alignOffsets.center) <= 2 ? "center" :
+    Math.abs(group.x - alignOffsets.right) <= 2 ? "right" : "center";
+
   const shapeType = group.style.shapeType ?? DEFAULT_WTG_SHAPE_TYPE;
   const backgroundColor = group.style.backgroundColor ?? DEFAULT_WTG_BACKGROUND_COLOR;
   const opacity = group.style.opacity ?? DEFAULT_WTG_OPACITY;
   const borderRadius = group.style.borderRadius ?? DEFAULT_WTG_BORDER_RADIUS;
+  const borderWidth = group.style.borderWidth ?? DEFAULT_WTG_BORDER_WIDTH;
   const hasTail = group.tailAnchor !== null;
+  const tailX = group.tailAnchor?.x ?? group.x;
+  const tailY = group.tailAnchor?.y ?? group.y + 80;
 
   return (
     <div className="flex flex-col gap-6">
-      <InspectorSection title="Text Group">
-        <FieldRow label="X">
-          <InspectorInput
-            type="number"
-            value={Math.round(group.x)}
-            onChange={(e) => {
-              mutateGroup((g) => { g.x = Number(e.target.value); });
-            }}
-            onBlur={() => useProjectStore.getState().endContinuousCommit()}
+      <InspectorSection title="Position">
+        <div className="grid grid-cols-2 gap-2">
+          <ScrubInput label="X" value={Math.round(group.x)} step={1} fineStep={1} min={0} max={9999} suffix="px"
+            onChange={(v) => mutateGroup((g) => { g.x = v; })}
+            onCommit={endContinuous}
           />
-        </FieldRow>
-        <FieldRow label="Y">
-          <InspectorInput
-            type="number"
-            value={Math.round(group.y)}
-            onChange={(e) => {
-              mutateGroup((g) => { g.y = Number(e.target.value); });
-            }}
-            onBlur={() => useProjectStore.getState().endContinuousCommit()}
+          <ScrubInput label="Y" value={Math.round(group.y)} step={1} fineStep={1} min={0} max={9999} suffix="px"
+            onChange={(v) => mutateGroup((g) => { g.y = v; })}
+            onCommit={endContinuous}
           />
-        </FieldRow>
-        <FieldRow label="Shape">
-          <InspectorSelect
-            value={shapeType}
-            onChange={(e) => {
-              mutateGroup(
-                (g) => {
-                  g.style.shapeType = e.target.value as WTextGroupStyle["shapeType"];
-                },
-                "discrete"
-              );
-            }}
-          >
-            <option value="rounded-rectangle">Rounded rectangle</option>
-            <option value="pill">Pill</option>
-            <option value="action-burst">Action burst</option>
-          </InspectorSelect>
-        </FieldRow>
-        <FieldRow label="Background">
-          <InspectorInput
-            type="color"
-            value={backgroundColor}
-            onChange={(e) => {
-              mutateGroup((g) => { g.style.backgroundColor = e.target.value; });
-            }}
-            onBlur={() => useProjectStore.getState().endContinuousCommit()}
-          />
-        </FieldRow>
-        <FieldRow label={`Opacity (${Math.round(opacity * 100)}%)`}>
-          <InspectorInput
-            type="range"
-            min={0}
-            max={1}
-            step={0.05}
-            value={opacity}
-            onChange={(e) => {
-              mutateGroup((g) => { g.style.opacity = Number(e.target.value); });
-            }}
-            onMouseUp={() => useProjectStore.getState().endContinuousCommit()}
-          />
-        </FieldRow>
-        <FieldRow label="Border radius">
-          <InspectorInput
-            type="number"
-            min={0}
-            value={borderRadius}
-            onChange={(e) => {
-              mutateGroup((g) => { g.style.borderRadius = Number(e.target.value); });
-            }}
-            onBlur={() => useProjectStore.getState().endContinuousCommit()}
-          />
-        </FieldRow>
-        <FieldRow label="Speech tail">
-          <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
-            <input
-              type="checkbox"
-              checked={hasTail}
-              onChange={(e) => {
-                mutateGroup(
-                  (g) => {
-                    g.tailAnchor = e.target.checked
-                      ? { x: g.x, y: g.y + 80 }
-                      : null;
-                  },
-                  "discrete"
-                );
-              }}
-              className="accent-accent"
-            />
-            Show tail anchor
-          </label>
-        </FieldRow>
-        <p className="text-xs text-text-tertiary">
-          {group.blocks.length} text block{group.blocks.length !== 1 ? "s" : ""}
-        </p>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs text-text-secondary">Align</span>
+          <AlignmentControl value={currentAlign} onChange={handleAlign} />
+        </div>
       </InspectorSection>
 
-      <InspectorSection title="Actions">
+      <InspectorSection title="Appearance">
+        <SegmentedControl label="Shape"
+          options={[
+            { value: "rounded-rectangle", label: "Rounded" },
+            { value: "pill", label: "Pill" },
+            { value: "action-burst", label: "Burst" },
+            { value: "rect", label: "Rect" },
+          ]}
+          value={shapeType}
+          onChange={(v) => mutateGroup((g) => { g.style.shapeType = v as WTextGroupStyle["shapeType"]; }, "discrete")}
+        />
+        <ColorControl label="Background" value={backgroundColor}
+          onChange={(v) => mutateGroup((g) => { g.style.backgroundColor = v; })}
+          onCommit={endContinuous}
+        />
+        <SmartSlider label={`Opacity (${Math.round(opacity * 100)}%)`}
+          value={opacity} min={0} max={1} step={0.05} fineStep={0.01}
+          ctrlSteps={[0, 0.25, 0.5, 0.75, 1]}
+          onChange={(v) => mutateGroup((g) => { g.style.opacity = v; })}
+          onCommit={endContinuous}
+        />
+        <div className="grid grid-cols-2 gap-2">
+          <ScrubInput label="Border radius" value={borderRadius} step={1} fineStep={1} min={0} max={200} suffix="px"
+            onChange={(v) => mutateGroup((g) => { g.style.borderRadius = v; })}
+            onCommit={endContinuous}
+          />
+          <ScrubInput label="Border width" value={borderWidth} step={1} fineStep={1} min={0} max={50} suffix="px"
+            onChange={(v) => mutateGroup((g) => { g.style.borderWidth = v; })}
+            onCommit={endContinuous}
+          />
+        </div>
+      </InspectorSection>
+
+      <InspectorSection title="Speech Tail" defaultOpen={hasTail}>
+        <FieldRowHorizontal label="Show tail">
+          <ToggleSwitch checked={hasTail}
+            onChange={(v) => mutateGroup((g) => {
+              g.tailAnchor = v ? { x: g.x, y: g.y + 80 } : null;
+            }, "discrete")}
+          />
+        </FieldRowHorizontal>
+        {hasTail && (
+          <div className="grid grid-cols-2 gap-2">
+            <ScrubInput label="Anchor X" value={Math.round(tailX)} step={1} fineStep={1} min={0} max={9999} suffix="px"
+              onChange={(v) => mutateGroup((g) => { g.tailAnchor = { x: v, y: g.tailAnchor?.y ?? tailY }; })}
+              onCommit={endContinuous}
+            />
+            <ScrubInput label="Anchor Y" value={Math.round(tailY)} step={1} fineStep={1} min={0} max={9999} suffix="px"
+              onChange={(v) => mutateGroup((g) => { g.tailAnchor = { x: g.tailAnchor?.x ?? tailX, y: v }; })}
+              onCommit={endContinuous}
+            />
+          </div>
+        )}
+      </InspectorSection>
+
+      <InspectorSection title={`Blocks (${group.blocks.length})`} defaultOpen={false}>
+        <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
+          {group.blocks.map((block, idx) => (
+            <button
+              key={block.id}
+              type="button"
+              onClick={() => selectTextBlock(panelId, group.id, block.id)}
+              className="text-xs text-left px-2 py-1 rounded hover:bg-surface-hover text-text-secondary truncate"
+            >
+              {idx + 1}. {block.text.slice(0, 40) || "(empty)"}
+            </button>
+          ))}
+          {group.blocks.length === 0 && (
+            <span className="text-xs text-text-tertiary">No blocks</span>
+          )}
+        </div>
+      </InspectorSection>
+
+      <div className="border-t border-border-subtle pt-4 space-y-2">
         <InspectorButton onClick={handleAddBlock}>Add text block</InspectorButton>
         <InspectorButton variant="danger" onClick={handleDelete}>
           Delete text group
         </InspectorButton>
-      </InspectorSection>
+      </div>
     </div>
   );
 });

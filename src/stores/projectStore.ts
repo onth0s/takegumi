@@ -17,6 +17,7 @@ import {
   type CommitType,
   type HistoryState,
 } from "@/stores/projectHistory";
+import { useUIStore } from "@/stores/uiStore";
 import { clearAllPanelImages, deletePanelImage } from "@/utils/panelImageStorage";
 import { syncProjectInList } from "@/utils/projectList";
 
@@ -43,6 +44,9 @@ interface ProjectState extends HistoryState {
   redo: () => void;
   clearHistory: () => void;
   endContinuousCommit: () => void;
+
+  /** Convenience getter — total text blocks across all panels. */
+  getTotalTextBlockCount: () => number;
 
   /** Wipe all persisted project data, history, and panel image blobs. */
   resetAll: () => Promise<void>;
@@ -90,9 +94,11 @@ export const useProjectStore = create<ProjectState>()(
             future: [],
           };
         });
+        useUIStore.getState().resetRevision();
       },
 
       deleteProject: (projectId) => {
+        const wasActive = get().project?.id === projectId;
         set((state) => {
           const flushed = flushContinuousCommit(state);
           const currentProjects = state.projects || [];
@@ -116,11 +122,13 @@ export const useProjectStore = create<ProjectState>()(
             future: activeProjectDeleted ? [] : flushed.future,
           };
         });
+        if (wasActive) useUIStore.getState().resetRevision();
       },
 
       updateProject: (recipe, commitType = "discrete", elementId) => {
         const state = get();
         if (!state.project) return;
+        useUIStore.getState().incrementRevision();
 
         const nextProject = produce(state.project, (draft) => {
           recipe(draft);
@@ -253,6 +261,16 @@ export const useProjectStore = create<ProjectState>()(
         });
       },
 
+      getTotalTextBlockCount: () => {
+        const project = get().project;
+        if (!project) return 0;
+        return project.panels.reduce(
+          (sum, p) => sum + p.textGroups.reduce(
+            (gs, g) => gs + g.blocks.length, 0
+          ), 0
+        );
+      },
+
       resetAll: async () => {
         get().clearHistory();
         set({
@@ -260,6 +278,7 @@ export const useProjectStore = create<ProjectState>()(
           projects: [],
           ...emptyHistoryState(),
         });
+        useUIStore.getState().resetRevision();
         await useProjectStore.persist.clearStorage();
         await clearAllPanelImages();
       },

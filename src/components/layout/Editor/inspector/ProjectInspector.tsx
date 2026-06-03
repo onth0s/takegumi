@@ -2,14 +2,17 @@
 
 import { memo, useCallback } from "react";
 import type { WProject, CanvasTheme } from "@/types/canvas";
+import {
+  DEFAULT_PANEL_WIDTH,
+  DEFAULT_PANEL_HEIGHT,
+} from "@/constants/canvasDefaults";
 import { useProjectStore } from "@/stores/projectStore";
+import { ScrubInput, SegmentedControl, ToggleSwitch } from "@/components/shared/UI";
 import {
   FieldRow,
   FieldRowHorizontal,
   InspectorInput,
   InspectorSection,
-  InspectorSelect,
-  InspectorToggle,
 } from "./InspectorFields";
 
 interface Props {
@@ -18,6 +21,8 @@ interface Props {
 
 export default memo(function ProjectInspector({ project }: Props) {
   const updateProject = useProjectStore((s) => s.updateProject);
+
+  const endContinuous = () => useProjectStore.getState().endContinuousCommit();
 
   const handleNameChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,10 +62,10 @@ export default memo(function ProjectInspector({ project }: Props) {
   );
 
   const handleThemeChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
+    (v: string) => {
       updateProject((draft) => {
-        draft.canvasTheme = e.target.value as CanvasTheme;
-      }, "continuous");
+        draft.canvasTheme = v as CanvasTheme;
+      }, "discrete");
     },
     [updateProject]
   );
@@ -73,26 +78,18 @@ export default memo(function ProjectInspector({ project }: Props) {
             type="text"
             value={project.name}
             onChange={handleNameChange}
-            onBlur={() => useProjectStore.getState().endContinuousCommit()}
+            onBlur={endContinuous}
           />
         </FieldRow>
       </InspectorSection>
 
       <InspectorSection title="Grid">
         <FieldRowHorizontal label="Show Grid">
-          <InspectorToggle
-            checked={project.grid.showGrid}
-            onChange={handleShowGridChange}
-          />
+          <ToggleSwitch checked={project.grid.showGrid} onChange={handleShowGridChange} />
         </FieldRowHorizontal>
-
         <FieldRowHorizontal label="Snap to Grid">
-          <InspectorToggle
-            checked={project.grid.snapEnabled}
-            onChange={handleSnapEnabledChange}
-          />
+          <ToggleSwitch checked={project.grid.snapEnabled} onChange={handleSnapEnabledChange} />
         </FieldRowHorizontal>
-
         <FieldRow label="Size (px)">
           <InspectorInput
             type="number"
@@ -100,16 +97,34 @@ export default memo(function ProjectInspector({ project }: Props) {
             max={100}
             value={project.grid.size}
             onChange={handleGridSizeChange}
-            onBlur={() => useProjectStore.getState().endContinuousCommit()}
+            onBlur={endContinuous}
           />
         </FieldRow>
+      </InspectorSection>
 
-        <FieldRow label="Canvas Theme">
-          <InspectorSelect value={project.canvasTheme} onChange={handleThemeChange}>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </InspectorSelect>
-        </FieldRow>
+      <InspectorSection title="Canvas">
+        <SegmentedControl label="Theme"
+          options={[
+            { value: "light", label: "Light" },
+            { value: "dark", label: "Dark" },
+          ]}
+          value={project.canvasTheme}
+          onChange={handleThemeChange}
+        />
+      </InspectorSection>
+
+      <InspectorSection title="Defaults" defaultOpen={false}>
+        <div className="grid grid-cols-2 gap-2">
+          <ScrubInput label="Panel width" value={DEFAULT_PANEL_WIDTH} step={1} fineStep={1} min={50} max={2048} suffix="px"
+            onChange={() => {}}
+            onCommit={() => {}}
+          />
+          <ScrubInput label="Panel height" value={DEFAULT_PANEL_HEIGHT} step={1} fineStep={1} min={50} max={2048} suffix="px"
+            onChange={() => {}}
+            onCommit={() => {}}
+          />
+        </div>
+        <p className="text-xs text-text-tertiary">Default dimensions for new panels. Edit in canvasDefaults.ts</p>
       </InspectorSection>
     </div>
   );

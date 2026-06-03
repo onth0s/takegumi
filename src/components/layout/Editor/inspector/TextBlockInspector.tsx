@@ -6,15 +6,17 @@ import {
   DEFAULT_WTB_COLOR,
   DEFAULT_WTB_FONT_SIZE,
   DEFAULT_WTB_FONT_WEIGHT,
+  DEFAULT_WTB_OPACITY,
+  DEFAULT_WTB_BACKGROUND_OPACITY,
   DEFAULT_WTB_TEXT_ALIGN,
 } from "@/constants/canvasDefaults";
 import { useProjectStore } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
 import { findTextBlock } from "@/utils/findInProject";
+import { SmartSlider, ScrubInput, SmartNumberInput, SegmentedControl, ColorControl } from "@/components/shared/UI";
 import {
   FieldRow,
   InspectorButton,
-  InspectorInput,
   InspectorSection,
   InspectorSelect,
   InspectorTextarea,
@@ -58,82 +60,102 @@ export default memo(function TextBlockInspector({ panelId, groupId, block }: Pro
     useUIStore.getState().setSelectedTextBlockId(null);
   }, [updateProject, panelId, groupId, block.id]);
 
+  const endContinuous = () => useProjectStore.getState().endContinuousCommit();
+
   const fontSize = block.style.fontSize ?? DEFAULT_WTB_FONT_SIZE;
   const color = block.style.color ?? DEFAULT_WTB_COLOR;
   const fontWeight = block.style.fontWeight ?? DEFAULT_WTB_FONT_WEIGHT;
   const textAlign = block.style.textAlign ?? DEFAULT_WTB_TEXT_ALIGN;
+  const blockOpacity = block.style.opacity ?? DEFAULT_WTB_OPACITY;
+  const bgColor = block.style.backgroundColor;
+  const bgOpacity = block.style.backgroundOpacity ?? DEFAULT_WTB_BACKGROUND_OPACITY;
+  const lineHeight = block.style.lineHeight;
+  const fontFamily = block.style.fontFamily;
 
   return (
     <div className="flex flex-col gap-6">
-      <InspectorSection title="Text Block">
-        <FieldRow label="Content">
+      <InspectorSection title="Content">
+        <FieldRow label="Text">
           <InspectorTextarea
             value={block.text}
-            onChange={(e) => {
-              mutateBlock((b) => { b.text = e.target.value; });
-            }}
-            onBlur={() => useProjectStore.getState().endContinuousCommit()}
+            onChange={(e) => mutateBlock((b) => { b.text = e.target.value; })}
+            onBlur={endContinuous}
           />
         </FieldRow>
-        <FieldRow label="Font size">
-          <InspectorInput
-            type="number"
-            min={8}
-            value={fontSize}
-            onChange={(e) => {
-              mutateBlock((b) => { b.style.fontSize = Number(e.target.value); });
-            }}
-            onBlur={() => useProjectStore.getState().endContinuousCommit()}
-          />
-        </FieldRow>
-        <FieldRow label="Color">
-          <InspectorInput
-            type="color"
-            value={color}
-            onChange={(e) => {
-              mutateBlock((b) => { b.style.color = e.target.value; });
-            }}
-            onBlur={() => useProjectStore.getState().endContinuousCommit()}
-          />
-        </FieldRow>
-        <FieldRow label="Font weight">
-          <InspectorSelect
-            value={fontWeight}
-            onChange={(e) => {
-              mutateBlock((b) => { b.style.fontWeight = e.target.value; }, "discrete");
-            }}
-          >
-            <option value="400">Regular (400)</option>
-            <option value="500">Medium (500)</option>
-            <option value="600">Semibold (600)</option>
-            <option value="700">Bold (700)</option>
-            <option value="800">Extra bold (800)</option>
-          </InspectorSelect>
-        </FieldRow>
-        <FieldRow label="Alignment">
-          <InspectorSelect
-            value={textAlign}
-            onChange={(e) => {
-              mutateBlock(
-                (b) => {
-                  b.style.textAlign = e.target.value as "left" | "center" | "right";
-                },
-                "discrete"
-              );
-            }}
-          >
-            <option value="left">Left</option>
-            <option value="center">Center</option>
-            <option value="right">Right</option>
-          </InspectorSelect>
-        </FieldRow>
+        <ScrubInput label="Font size" value={fontSize} step={1} fineStep={1} min={1} max={500} suffix="px"
+          onChange={(v) => mutateBlock((b) => { b.style.fontSize = v; })}
+          onCommit={endContinuous}
+        />
       </InspectorSection>
 
-      <InspectorSection title="Actions">
+      <InspectorSection title="Alignment">
+        <SegmentedControl
+          options={[
+            { value: "left", label: "Left" },
+            { value: "center", label: "Center" },
+            { value: "right", label: "Right" },
+          ]}
+          value={textAlign}
+          onChange={(v) => mutateBlock((b) => { b.style.textAlign = v as "left" | "center" | "right"; }, "discrete")}
+        />
+      </InspectorSection>
+
+      <InspectorSection title="Typography">
+        <ColorControl label="Color" value={color}
+          presets={["#ffffff", "#000000", "#dddddd", "#c4a35a", "#c45a5a"]}
+          onChange={(v) => mutateBlock((b) => { b.style.color = v; })}
+          onCommit={endContinuous}
+        />
+        <SmartNumberInput label="Font weight" value={Number(fontWeight)} step={100} fineStep={50} min={100} max={900}
+          ctrlSteps={[400, 500, 600, 700, 800]}
+          onChange={(v) => mutateBlock((b) => { b.style.fontWeight = String(v); })}
+          onCommit={endContinuous}
+        />
+        <ScrubInput label="Line height" value={lineHeight ?? 1.2} step={0.1} fineStep={0.05} min={0.5} max={3} suffix="×"
+          onChange={(v) => mutateBlock((b) => { b.style.lineHeight = v; })}
+          onCommit={endContinuous}
+        />
+        <FieldRow label="Font family">
+          <InspectorSelect value={fontFamily ?? ""}
+            onChange={(e) => mutateBlock((b) => { b.style.fontFamily = e.target.value || undefined; }, "discrete")}
+          >
+            <option value="">System default</option>
+            <option value="Arial">Arial</option>
+            <option value="Helvetica">Helvetica</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Courier New">Courier New</option>
+            <option value="Verdana">Verdana</option>
+          </InspectorSelect>
+        </FieldRow>
+        <SmartSlider label={`Opacity (${Math.round(blockOpacity * 100)}%)`}
+          value={blockOpacity} min={0} max={1} step={0.05} fineStep={0.01}
+          ctrlSteps={[0, 0.25, 0.5, 0.75, 1]}
+          onChange={(v) => mutateBlock((b) => { b.style.opacity = v; })}
+          onCommit={endContinuous}
+        />
+      </InspectorSection>
+
+      <InspectorSection title="Background" defaultOpen={!!bgColor}>
+        <ColorControl label="Color" value={bgColor ?? "#000000"}
+          onChange={(v) => mutateBlock((b) => { b.style.backgroundColor = v; })}
+          onCommit={endContinuous}
+        />
+        {bgColor && (
+          <SmartSlider label={`Bg opacity (${Math.round(bgOpacity * 100)}%)`}
+            value={bgOpacity} min={0} max={1} step={0.05} fineStep={0.01}
+            ctrlSteps={[0, 0.25, 0.5, 0.75, 1]}
+            onChange={(v) => mutateBlock((b) => { b.style.backgroundOpacity = v; })}
+            onCommit={endContinuous}
+          />
+        )}
+      </InspectorSection>
+
+      <div className="border-t border-border-subtle pt-4">
         <InspectorButton variant="danger" onClick={handleDelete}>
           Delete text block
         </InspectorButton>
-      </InspectorSection>
+      </div>
     </div>
   );
 });

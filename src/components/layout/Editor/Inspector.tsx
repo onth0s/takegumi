@@ -8,13 +8,18 @@ import {
   findTextBlock,
   findTextGroup,
 } from "@/utils/findInProject";
-import { EmptyInspectorState } from "./inspector/InspectorFields";
+import {
+  DEFAULT_PANEL_WIDTH,
+  DEFAULT_PANEL_HEIGHT,
+} from "@/constants/canvasDefaults";
+import { SegmentedControl, ScrubInput } from "@/components/shared/UI";
+import { EmptyInspectorState, InspectorSection } from "./inspector/InspectorFields";
 import PanelInspector from "./inspector/PanelInspector";
 import ProjectInspector from "./inspector/ProjectInspector";
 import TextBlockInspector from "./inspector/TextBlockInspector";
 import TextGroupInspector from "./inspector/TextGroupInspector";
 
-type ProjectTab = "controls" | "styling";
+type ProjectTab = "canvas" | "defaults" | "info";
 
 function inspectorTitle(
   selectedBlockId: string | null,
@@ -32,7 +37,7 @@ export default function Inspector() {
   const selectedPanelId = useUIStore((s) => s.selectedWPanelId);
   const selectedGroupId = useUIStore((s) => s.selectedWTextGroupId);
   const selectedBlockId = useUIStore((s) => s.selectedWTextBlockId);
-  const [projectTab, setProjectTab] = useState<ProjectTab>("controls");
+  const [projectTab, setProjectTab] = useState<ProjectTab>("canvas");
 
   const title = inspectorTitle(selectedBlockId, selectedGroupId, selectedPanelId);
   const isProjectView = project && !selectedPanelId && !selectedGroupId && !selectedBlockId;
@@ -57,12 +62,44 @@ export default function Inspector() {
       content = <PanelInspector panel={panel} />;
     }
   } else if (project && isProjectView) {
-    content =
-      projectTab === "controls" ? (
-        <ProjectInspector project={project} />
-      ) : (
-        <div className="text-text-tertiary">Global Styling coming soon</div>
+    if (projectTab === "canvas") {
+      content = <ProjectInspector project={project} />;
+    } else if (projectTab === "defaults") {
+      content = (
+        <div className="flex flex-col gap-6">
+          <InspectorSection title="Panel Defaults">
+            <div className="grid grid-cols-2 gap-2">
+              <ScrubInput label="Width" value={DEFAULT_PANEL_WIDTH} step={1} fineStep={1} min={50} max={2048} suffix="px"
+                onChange={() => {}} onCommit={() => {}}
+              />
+              <ScrubInput label="Height" value={DEFAULT_PANEL_HEIGHT} step={1} fineStep={1} min={50} max={2048} suffix="px"
+                onChange={() => {}} onCommit={() => {}}
+              />
+            </div>
+            <p className="text-xs text-text-tertiary">Default dimensions for new panels. Edit in canvasDefaults.ts</p>
+          </InspectorSection>
+        </div>
       );
+    } else {
+      const groupCount = project.panels.reduce((sum, p) => sum + p.textGroups.length, 0);
+      const blockCount = project.panels.reduce(
+        (sum, p) => sum + p.textGroups.reduce((s, g) => s + g.blocks.length, 0),
+        0
+      );
+      content = (
+        <div className="flex flex-col gap-6">
+          <InspectorSection title="Project Info">
+            <div className="text-xs space-y-1 text-text-tertiary">
+              <p>Created: {new Date(project.createdAt).toLocaleDateString()}</p>
+              <p>Last edited: {new Date(project.updatedAt).toLocaleDateString()}</p>
+              <p>Panels: {project.panels.length}</p>
+              <p>Text groups: {groupCount}</p>
+              <p>Text blocks: {blockCount}</p>
+            </div>
+          </InspectorSection>
+        </div>
+      );
+    }
   }
 
   return (
@@ -71,27 +108,16 @@ export default function Inspector() {
         {title}
       </div>
       {isProjectView && (
-        <div className="flex border-b border-border-subtle shrink-0">
-          <button
-            className={`flex-1 px-4 py-2 text-xs font-medium transition-colors border-b-2 ${
-              projectTab === "controls"
-                ? "text-text-primary border-accent"
-                : "text-text-tertiary border-transparent hover:text-text-secondary"
-            }`}
-            onClick={() => setProjectTab("controls")}
-          >
-            Project Controls
-          </button>
-          <button
-            className={`flex-1 px-4 py-2 text-xs font-medium transition-colors border-b-2 ${
-              projectTab === "styling"
-                ? "text-text-primary border-accent"
-                : "text-text-tertiary border-transparent hover:text-text-secondary"
-            }`}
-            onClick={() => setProjectTab("styling")}
-          >
-            Global Styling
-          </button>
+        <div className="px-3 py-2 border-b border-border-subtle shrink-0">
+          <SegmentedControl
+            value={projectTab}
+            onChange={(v) => setProjectTab(v as ProjectTab)}
+            options={[
+              { value: "canvas", label: "Canvas" },
+              { value: "defaults", label: "Defaults" },
+              { value: "info", label: "Info" },
+            ]}
+          />
         </div>
       )}
       <div className="flex-1 overflow-y-auto p-4">{content}</div>

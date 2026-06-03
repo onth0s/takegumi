@@ -15,6 +15,9 @@ interface UIState {
 
   alignmentGuides: AlignmentGuide[];
 
+  /** Monotonically increments on every project mutation for dirty-state tracking. */
+  revision: number;
+
   setSelectedPanelId: (id: string | null) => void;
   setSelectedTextGroupId: (id: string | null) => void;
   setSelectedTextBlockId: (id: string | null) => void;
@@ -27,6 +30,9 @@ interface UIState {
   selectPanel: (id: string) => void;
   selectTextGroup: (panelId: string, groupId: string) => void;
   selectTextBlock: (panelId: string, groupId: string, blockId: string) => void;
+
+  incrementRevision: () => void;
+  resetRevision: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -36,6 +42,7 @@ export const useUIStore = create<UIState>((set) => ({
   contextMenu: null,
   activeSidebarTab: "inspector",
   alignmentGuides: [],
+  revision: 0,
 
   setSelectedPanelId: (id) => set({ selectedWPanelId: id }),
   setSelectedTextGroupId: (id) => set({ selectedWTextGroupId: id }),
@@ -72,4 +79,7 @@ export const useUIStore = create<UIState>((set) => ({
       selectedWTextGroupId: groupId,
       selectedWTextBlockId: blockId,
     }),
+
+  incrementRevision: () => set((state) => ({ revision: state.revision + 1 })),
+  resetRevision: () => set({ revision: 0 }),
 }));

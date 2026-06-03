@@ -1,13 +1,27 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useId, cloneElement, isValidElement } from "react";
+import ToggleSwitch from "@/components/shared/UI/ToggleSwitch";
 
-export function InspectorSection({ title, children }: { title: string; children: ReactNode }) {
+export function InspectorSection({ title, children, defaultOpen = true }: { title: string; children: ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
     <section className="flex flex-col gap-3">
-      <h3 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">{title}</h3>
-      {children}
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-text-tertiary w-full text-left"
+      >
+        <svg
+          width="10" height="10" viewBox="0 0 10 10"
+          className={`shrink-0 transition-transform duration-150 ${open ? "" : "-rotate-90"}`}
+        >
+          <path d="M3 2 L7 5 L3 8" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        {title}
+      </button>
+      {open && children}
     </section>
   );
 }
@@ -81,36 +95,43 @@ export function FieldRowHorizontal({ label, children }: { label: string; childre
   );
 }
 
-/** Simple toggle (checkbox) styled as a switch. */
-export function InspectorToggle({
-  checked,
+export function AlignmentControl({
+  value,
   onChange,
-  "aria-labelledby": ariaLabelledby,
 }: {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-  "aria-labelledby"?: string;
+  value: "left" | "center" | "right";
+  onChange: (value: "left" | "center" | "right") => void;
 }) {
+  const options = [
+    { value: "left" as const, label: "Left" },
+    { value: "center" as const, label: "Center" },
+    { value: "right" as const, label: "Right" },
+  ];
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-labelledby={ariaLabelledby}
-      onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border border-border-default transition-colors duration-150 outline-none focus-visible:ring-1 focus-visible:ring-accent/50 ${
-        checked ? "bg-accent" : "bg-surface"
-      }`}
-    >
-      <span
-        className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transform transition-transform duration-150 ${
-          checked ? "translate-x-4" : "translate-x-0.5"
-        }`}
-        style={{ marginTop: "1.5px" }}
-      />
-    </button>
+    <div className="flex rounded-md overflow-hidden border border-border-subtle">
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => onChange(opt.value)}
+          className={`flex-1 px-2 py-1 text-xs font-medium transition-colors ${
+            value === opt.value
+              ? "bg-accent text-white"
+              : "bg-surface text-text-secondary hover:bg-surface-hover"
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
   );
 }
+
+export function FieldLabel({ children }: { children: ReactNode }) {
+  return <span className="text-xs text-text-secondary">{children}</span>;
+}
+
+export { ToggleSwitch as InspectorToggle };
 
 export function EmptyInspectorState() {
   return (

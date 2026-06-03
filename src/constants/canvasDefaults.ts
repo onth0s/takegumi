@@ -33,6 +33,15 @@ export const BACKDROP_PAD_Y = 16;
 
 export const LOCAL_IMAGE_PREFIX = "local://";
 
+// ─── Canvas / viewport dimensions ─────────────────────────────────────────────
+
+/** Max width of the canvas content area (`max-w-[960px]` in CSS). */
+export const CANVAS_MAX_WIDTH = 960;
+/** Padding inside the canvas area (`p-[40px]` in CSS). */
+export const CANVAS_PADDING = 40;
+/** Default padding from parent edges for text groups. */
+export const GROUP_PADDING = 20;
+
 // ─── Snap threshold ───────────────────────────────────────────────────────────
 
 /** Proximity threshold for snap-to-grid (clamped at runtime to gridSize / 2). */
