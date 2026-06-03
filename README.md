@@ -13,6 +13,7 @@ The name **Takegumi** (竹組み) refers to the Japanese art of bamboo-framing o
 * **Alpha-Preserved Text Compositing**: A two-layer rendering pipeline that isolates semi-transparent text block backgrounds to prevent visual opacity build-up across adjacent blocks.
 * **Per-Block Backdrop Control**: Each `WTextBlock` can independently define its own background (color, opacity) or opt out entirely for SFX text that floats directly on the panel artwork.
 * **Markdown Script Parser** [Planned]: Automates project setup by converting plain text scripts with panel demarcations (`[[1]]`, `[[2]]`) and speaker lines (`_Speaker_: dialogue`) into fully populated layouts.
+* **Animation Editor** [Planned]: A timeline-based panel for configuring WTextBlock transitions (fade, slide, scale) and panel sequencing. Accessed via an icon in the StatusBar. Will integrate with Remotion export pipeline.
 ---
 ## 🎨 The Visual & Rendering Engine
 ### 1. Dynamic SVG Synthetic Borders (`useWBorder`)
@@ -119,6 +120,14 @@ To maintain blazing-fast rendering speeds and keep saved projects lightweight, T
 
 To prevent mismatch warnings when Next.js compares server-rendered layouts with persisted client storage, the system employs the custom [useHydration] hook. The editor interface delays rendering persistent state elements until hydration has successfully resolved in the client browser.
 
+### 5. Precision Modifiers (Smart Interaction)
+
+Throughout the editor's numeric controls (sliders, scrub inputs, spinners):
+* **Drag / Arrow keys**: adjust by the default step.
+* **Shift+drag / Shift+arrow**: fine-tuning — step divided by 10 (never sub-pixel; all values are rounded).
+* **Ctrl+drag / Ctrl+arrow**: stepped mode — value snaps to predefined increments (e.g. whole 25% opacity stops, common font sizes).
+* **Scrub inputs** (click-and-drag a numeric label): provide rapid horizontal scrubbing. Click the number to type an exact value.
+
 ---
 ## 📝 Content & Workflow Systems
 ### 1. Markdown Script Parser [Planned]
@@ -157,3 +166,10 @@ Further Schema Specifications are to be found as YAML files in `/gnd` (ground di
 * **Drag-and-Drop Operations**: `@dnd-kit` (Core, Sortable, and Utilities)
 * **Virtualization Engine**: `@tanstack/react-virtual` for dynamic, variable-height windowing while maintaining 60fps scrolling across infinite vertical layouts
 * **Video Rendering Engine**: `remotion` & `@remotion/player` to programmatically orchestrate video rendering for Short Video Format (SVF) exports directly in the client browser
+
+---
+## 🔲 Interface
+
+### StatusBar
+
+The bar at the bottom of the editor shows project context (name, panel/block counts, dirty indicator), a selection breadcrumb for the current canvas entity hierarchy, and a dock for future tools (animation editor, zoom, render queue). Double-click the project name to rename. Click a breadcrumb segment to jump the selection to that entity. The undo stack depth is shown in text form (e.g. `Undo (3)`).
