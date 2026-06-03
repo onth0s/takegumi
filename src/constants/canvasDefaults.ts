@@ -17,13 +17,6 @@ export {
   DEFAULT_WTB_BACKGROUND_OPACITY,
 } from "./_yaml-defaults.generated";
 
-// ─── Panel dimensions ─────────────────────────────────────────────────────────
-
-export const DEFAULT_PANEL_WIDTH = 640;
-export const DEFAULT_PANEL_HEIGHT = 480;
-/** Reference width for imported images — 50% of {@link DEFAULT_PANEL_WIDTH}. */
-export const IMPORT_PANEL_WIDTH = 320;
-
 // ─── WTextGroup backdrop padding (useWPath) ───────────────────────────────────
 
 export const BACKDROP_PAD_X = 24;
@@ -42,6 +35,13 @@ export const CANVAS_PADDING = 40;
 /** Default padding from parent edges for text groups. */
 export const GROUP_PADDING = 20;
 
+// ─── Panel dimensions ─────────────────────────────────────────────────────────
+
+export const DEFAULT_PANEL_WIDTH = CANVAS_MAX_WIDTH / 2;
+export const DEFAULT_PANEL_HEIGHT = 480;
+/** Reference width for imported images — same as default panel width. */
+export const IMPORT_PANEL_WIDTH = CANVAS_MAX_WIDTH / 2;
+
 // ─── Panel position helpers ───────────────────────────────────────────────────
 
 /** Clamp a value to [min, max]. */
@@ -50,24 +50,21 @@ function valClamp(v: number, lo: number, hi: number): number {
 }
 
 /**
- * Convert a panel's x-offset (from the content-area left edge, in px) to a 0-100
- * percentage. 0 % means flush with the content-area left edge, 100 % flush with
- * the right edge.
+ * Convert a panel's x-offset (from the canvas left edge, in px) to a 0-100
+ * percentage. 0 % means flush with the left edge, 100 % flush with the right edge.
  */
 export function xToPanelPercent(x: number, panelWidth: number): number {
-  const contentWidth = CANVAS_MAX_WIDTH - 2 * CANVAS_PADDING;
-  const maxX = contentWidth - panelWidth;
+  const maxX = CANVAS_MAX_WIDTH - panelWidth;
   if (maxX <= 0) return 50;
   return Math.round(valClamp((x / maxX) * 100, 0, 100));
 }
 
 /**
- * Convert a 0-100 percentage to a pixel x-offset from the content-area left edge.
+ * Convert a 0-100 percentage to a pixel x-offset from the canvas left edge.
  */
 export function percentToPanelX(percent: number, panelWidth: number): number {
-  const contentWidth = CANVAS_MAX_WIDTH - 2 * CANVAS_PADDING;
-  const maxX = contentWidth - panelWidth;
-  return Math.round(valClamp((percent / 100) * maxX, 0, contentWidth));
+  const maxX = CANVAS_MAX_WIDTH - panelWidth;
+  return Math.round(valClamp((percent / 100) * maxX, 0, CANVAS_MAX_WIDTH));
 }
 
 /**
@@ -84,6 +81,19 @@ export function computeDefaultPanelPercent(existingPanels: { x: number; width: n
   if (Math.abs(prevPercent - 50) < 1) return 50;
   if (prevPercent < 50) return Math.min(100, Math.round(prevPercent + 10));
   return Math.max(0, Math.round(prevPercent - 10));
+}
+
+// ─── Panel width helpers ───────────────────────────────────────────────────────
+
+/** Minimum panel width as a percentage of canvas width. */
+export const MIN_PANEL_WIDTH_PERCENT = 10;
+
+export function widthToPercent(px: number): number {
+  return Math.round(valClamp((px / CANVAS_MAX_WIDTH) * 100, MIN_PANEL_WIDTH_PERCENT, 100));
+}
+
+export function percentToWidth(percent: number): number {
+  return Math.round(valClamp((percent / 100) * CANVAS_MAX_WIDTH, (MIN_PANEL_WIDTH_PERCENT / 100) * CANVAS_MAX_WIDTH, CANVAS_MAX_WIDTH));
 }
 
 // ─── Snap threshold ───────────────────────────────────────────────────────────

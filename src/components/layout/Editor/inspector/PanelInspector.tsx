@@ -7,7 +7,7 @@ import { useUIStore } from "@/stores/uiStore";
 import { createTextGroup } from "@/utils/createProject";
 import { deletePanelImage } from "@/utils/panelImageStorage";
 import { findPanel } from "@/utils/findInProject";
-import { xToPanelPercent, percentToPanelX } from "@/constants/canvasDefaults";
+import { CANVAS_MAX_WIDTH, xToPanelPercent, percentToPanelX, widthToPercent, percentToWidth } from "@/constants/canvasDefaults";
 import { ScrubInput, SmartSlider } from "@/components/shared/UI";
 import {
   InspectorButton,
@@ -87,8 +87,8 @@ export default memo(function PanelInspector({ panel }: Props) {
             onChange={(v) => mutatePanel((p) => { p.x = percentToPanelX(v, p.width); }, "continuous")}
             onCommit={endContinuous}
           />
-          <ScrubInput label="Y" value={Math.round(panel.y)} step={1} fineStep={1} min={0} max={9999} suffix="px"
-            onChange={(v) => mutatePanel((p) => { p.y = v; }, "continuous")}
+          <ScrubInput label="Y" value={Math.round(panel.y)} step={1} fineStep={1} min={-9999} max={9999} suffix="px"
+            onChange={(v) => mutatePanel((p) => { p.y = Math.round(v); }, "continuous")}
             onCommit={endContinuous}
           />
           <div className="flex items-center justify-between gap-2">
@@ -99,13 +99,24 @@ export default memo(function PanelInspector({ panel }: Props) {
       </InspectorSection>
 
       <InspectorSection title="Dimensions">
-        <div className="grid grid-cols-2 gap-2">
-          <ScrubInput label="Width" value={panel.width} step={1} fineStep={1} min={50} max={2048} suffix="px"
-            onChange={(v) => mutatePanel((p) => { p.width = v; }, "continuous")}
-            onCommit={endContinuous}
-          />
-          <ScrubInput label="Height" value={panel.height} step={1} fineStep={1} min={50} max={2048} suffix="px"
-            onChange={(v) => mutatePanel((p) => { p.height = v; }, "continuous")}
+        <div className="flex flex-col gap-3">
+          <SmartSlider label={`Width: ${widthToPercent(panel.width)}%`} value={widthToPercent(panel.width)} min={10} max={100} step={1} fineStep={1}
+            ctrlSteps={[10, 25, 50, 75, 100]}
+            onChange={(v) => mutatePanel((p) => {
+              const newWidth = percentToWidth(v);
+              const oldWidth = p.width;
+              const maxX = CANVAS_MAX_WIDTH - oldWidth;
+              const percent = maxX > 0 ? (p.x / maxX) * 100 : 50;
+              if (percent <= 2) {
+                p.x = 0;
+              } else if (percent >= 98) {
+                p.x = CANVAS_MAX_WIDTH - newWidth;
+              } else {
+                const center = p.x + oldWidth / 2;
+                p.x = Math.round(center - newWidth / 2);
+              }
+              p.width = newWidth;
+            }, "continuous")}
             onCommit={endContinuous}
           />
         </div>

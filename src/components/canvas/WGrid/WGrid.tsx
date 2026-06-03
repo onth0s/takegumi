@@ -27,9 +27,14 @@ export default function WGrid({ gridSize, canvasTheme }: WGridProps) {
     if (!parent) return;
     const update = () => setHeight(parent.scrollHeight);
     update();
-    const observer = new ResizeObserver(update);
-    observer.observe(parent);
-    return () => observer.disconnect();
+    const resizeObserver = new ResizeObserver(update);
+    resizeObserver.observe(parent);
+    const mutationObserver = new MutationObserver(update);
+    mutationObserver.observe(parent, { childList: true, subtree: true });
+    return () => {
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+    };
   }, [gridSize]);
 
   if (gridSize < 1) return null;

@@ -52,7 +52,7 @@ export default function WProject({ project }: Props) {
   return (
     <div
       onClick={handleCanvasClick}
-      className={`relative w-full max-w-[960px] h-full overflow-y-auto no-scrollbar flex flex-col gap-[40px] p-[40px] ${
+      className={`relative w-full max-w-[960px] h-full overflow-y-auto no-scrollbar flex flex-col gap-[40px] pt-[40px] ${
         project.canvasTheme === "dark" ? "bg-black" : "bg-white"
       }`}
     >
@@ -63,14 +63,13 @@ export default function WProject({ project }: Props) {
       {project.panels.map((panel) => (
         <div
           key={panel.id}
-          className="self-start shrink-0"
-          style={{ marginLeft: panel.x }}
+          style={{ alignSelf: 'flex-start', marginLeft: panel.x, marginTop: panel.y }}
         >
           <WPanel panel={panel} />
         </div>
       ))}
 
-      <div className={`grid grid-cols-[560px_1fr] gap-[20px] w-full shrink-0 ${project.panels.length > 0 ? "mt-auto" : ""}`}>
+      <div className={`grid grid-cols-[560px_1fr] gap-[20px] shrink-0 px-[40px] ${project.panels.length > 0 ? "mt-auto" : ""}`}>
         <ImageDropZone
           id="viewport-drop-zone"
           variant="editor"

@@ -31,21 +31,21 @@ export default function WPanel({ panel }: Props) {
       onClick={handleClick}
       className={`relative shadow-md overflow-visible shrink-0 cursor-pointer ${
         isSelected ? "ring-2 ring-accent" : "hover:ring-1 hover:ring-border-default"
-      } ${hasImage ? "animate-panel-fade-in bg-transparent" : "bg-surface-elevated"}`}
-      style={{ width: `${panel.width}px`, height: `${panel.height}px` }}
+      } ${hasImage ? "animate-panel-fade-in" : "bg-surface-elevated"}`}
+      style={{ width: `${panel.width}px` }}
     >
-      {/* Background image layer */}
+      {/* Background image layer — normal flow determines height */}
       {hasImage ? (
         <WPanelImage
           imageUrl={panel.imageUrl}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="w-full block"
         />
       ) : (
-        <div className="absolute inset-0 bg-placeholder" />
+        <div className="min-h-[150px] bg-placeholder" />
       )}
 
       {/* Text group overlay — absolutely positioned within panel coordinate space */}
-      <div className="relative w-full h-full">
+      <div className="absolute inset-0">
         {panel.textGroups.map((group) => (
           <WTextGroup key={group.id} panelId={panel.id} group={group} />
         ))}
