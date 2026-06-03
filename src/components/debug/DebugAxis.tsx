@@ -2,35 +2,38 @@
 import { useState, useCallback, useRef } from "react";
 import { useSnapping } from "@/hooks/useSnapping";
 
-const CROSSHAIR_SIZE = 24;
+const ARM_LENGTH = 40;
 const DOT_RADIUS = 4;
+const HIT_SIZE = 28;
 
 export default function DebugAxis() {
   const { snapValue, snapEnabled, effectiveThreshold, gridSize } = useSnapping();
   const [pos, setPos] = useState({ x: 400, y: 300 });
   const dragging = useRef(false);
   const origin = useRef({ x: 0, y: 0 });
+  const rawPos = useRef({ x: 400, y: 300 });
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     dragging.current = true;
     origin.current = { x: e.clientX, y: e.clientY };
+    rawPos.current = { ...pos };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pos.x, pos.y]);
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
       if (!dragging.current) return;
       const dx = e.clientX - origin.current.x;
       const dy = e.clientY - origin.current.y;
-      setPos((prev) => {
-        const rawX = prev.x + dx;
-        const rawY = prev.y + dy;
-        origin.current = { x: e.clientX, y: e.clientY };
-        if (snapEnabled) {
-          return { x: snapValue(rawX), y: snapValue(rawY) };
-        }
-        return { x: rawX, y: rawY };
-      });
+      origin.current = { x: e.clientX, y: e.clientY };
+      rawPos.current.x += dx;
+      rawPos.current.y += dy;
+      if (snapEnabled) {
+        setPos({ x: snapValue(rawPos.current.x), y: snapValue(rawPos.current.y) });
+      } else {
+        setPos({ x: rawPos.current.x, y: rawPos.current.y });
+      }
     },
     [snapEnabled, snapValue]
   );
@@ -41,6 +44,7 @@ export default function DebugAxis() {
 
   const isSnapped = snapEnabled && pos.x % gridSize === 0 && pos.y % gridSize === 0;
   const dotColor = isSnapped ? "#22c55e" : "#6b7280";
+  const halfArm = ARM_LENGTH;
 
   return (
     <div
@@ -50,62 +54,61 @@ export default function DebugAxis() {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
     >
-      {/* Horizontal line */}
-      <svg
-        width={600}
-        height={CROSSHAIR_SIZE}
-        className="absolute pointer-events-none"
-        style={{ left: -300, top: -CROSSHAIR_SIZE / 2 }}
-      >
-        <line
-          x1={0} y1={CROSSHAIR_SIZE / 2}
-          x2={300 - DOT_RADIUS - 2} y2={CROSSHAIR_SIZE / 2}
-          stroke={dotColor}
-          strokeWidth={1}
-          opacity={0.6}
-        />
-        <line
-          x1={300 + DOT_RADIUS + 2} y1={CROSSHAIR_SIZE / 2}
-          x2={600} y2={CROSSHAIR_SIZE / 2}
-          stroke={dotColor}
-          strokeWidth={1}
-          opacity={0.6}
-        />
-      </svg>
+      {/* Invisible hit target */}
+      <div
+        className="absolute pointer-events-auto"
+        style={{
+          left: -HIT_SIZE / 2,
+          top: -HIT_SIZE / 2,
+          width: HIT_SIZE,
+          height: HIT_SIZE,
+          borderRadius: "50%",
+        }}
+      />
 
-      {/* Vertical line */}
+      {/* Axis lines — single SVG */}
       <svg
-        width={CROSSHAIR_SIZE}
-        height={400}
+        width={ARM_LENGTH * 2}
+        height={ARM_LENGTH * 2}
         className="absolute pointer-events-none"
-        style={{ left: -CROSSHAIR_SIZE / 2, top: -200 }}
+        style={{ left: -halfArm, top: -halfArm }}
       >
+        {/* Horizontal line */}
         <line
-          x1={CROSSHAIR_SIZE / 2} y1={0}
-          x2={CROSSHAIR_SIZE / 2} y2={200 - DOT_RADIUS - 2}
+          x1={0} y1={halfArm}
+          x2={halfArm - DOT_RADIUS - 2} y2={halfArm}
           stroke={dotColor}
           strokeWidth={1}
-          opacity={0.6}
+          opacity={0.7}
         />
         <line
-          x1={CROSSHAIR_SIZE / 2} y1={200 + DOT_RADIUS + 2}
-          x2={CROSSHAIR_SIZE / 2} y2={400}
+          x1={halfArm + DOT_RADIUS + 2} y1={halfArm}
+          x2={ARM_LENGTH * 2} y2={halfArm}
           stroke={dotColor}
           strokeWidth={1}
-          opacity={0.6}
+          opacity={0.7}
         />
-      </svg>
 
-      {/* Center dot */}
-      <svg
-        width={DOT_RADIUS * 2 + 4}
-        height={DOT_RADIUS * 2 + 4}
-        className="absolute pointer-events-none"
-        style={{ left: -(DOT_RADIUS + 2), top: -(DOT_RADIUS + 2) }}
-      >
+        {/* Vertical line */}
+        <line
+          x1={halfArm} y1={0}
+          x2={halfArm} y2={halfArm - DOT_RADIUS - 2}
+          stroke={dotColor}
+          strokeWidth={1}
+          opacity={0.7}
+        />
+        <line
+          x1={halfArm} y1={halfArm + DOT_RADIUS + 2}
+          x2={halfArm} y2={ARM_LENGTH * 2}
+          stroke={dotColor}
+          strokeWidth={1}
+          opacity={0.7}
+        />
+
+        {/* Center dot */}
         <circle
-          cx={DOT_RADIUS + 2}
-          cy={DOT_RADIUS + 2}
+          cx={halfArm}
+          cy={halfArm}
           r={DOT_RADIUS}
           fill={dotColor}
         />
@@ -115,10 +118,10 @@ export default function DebugAxis() {
       <div
         className="absolute pointer-events-none text-[10px] font-mono leading-none"
         style={{
-          left: 14,
-          top: 14,
+          left: halfArm + 6,
+          top: halfArm + 6,
           color: dotColor,
-          background: "rgba(0,0,0,0.65)",
+          background: "rgba(0,0,0,0.7)",
           padding: "2px 5px",
           borderRadius: 3,
           whiteSpace: "nowrap",
@@ -126,7 +129,7 @@ export default function DebugAxis() {
       >
         {pos.x},{pos.y}
         {snapEnabled && (
-          <span className="ml-1 opacity-50">@{effectiveThreshold}px</span>
+          <span className="ml-1 opacity-60">@{effectiveThreshold}px</span>
         )}
       </div>
     </div>

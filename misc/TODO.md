@@ -1,1 +1,0 @@
-* On WPanel select there's two borders somehow. Just keep the golden looking one. 
