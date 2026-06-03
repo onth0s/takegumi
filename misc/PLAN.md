@@ -1,236 +1,246 @@
-# Implementation Plan: Per-Block Backgrounds (Design A)
+# Grid Snapping System — Implementation Plan
 
-## Goal
+## Overview
 
-Add `backgroundColor` to `WTextBlock.style` so each text block within a `WTextGroup` can independently control its own backdrop — a colored bubble, or no backdrop at all (SFX mode). The existing unified group backdrop is preserved as the default for blocks that do not override it.
-
----
-
-## Approved Design Decisions
-
-| # | Decision | Rationale |
-|---|----------|-----------|
-| 1 | **Option A — "Split" rendering** | Blocks without explicit `backgroundColor` inherit the group backdrop (unified envelope). Blocks WITH `backgroundColor` get their own individual SVG backdrop and are excluded from the group envelope. A falsy `backgroundColor` means no backdrop at all. |
-| 2 | **Falsy = no backdrop** | `undefined`, `null`, `""`, or `"transparent"` → no backdrop rendered for that block. Simple, and gracefully handles corrupted input. |
-| 3 | **Inherit shape from group** | Per-block backdrops use the group's `shapeType` and `borderRadius` as defaults. These may become independently configurable later. |
-| 4 | **New shape: `"rect"`** | Add a fourth `shapeType` value — a plain rectangle with no roundedness and no border. `"rect"` produces a simple axis-aligned rect path. |
-| 5 | **`block.style.backgroundOpacity`** | New property on WTB for per-block background opacity, independent of the block's text `opacity`. The alpha-preserving pipeline applies this to the backdrop layer only. |
-| 6 | **Tail anchor → per-WTB** | The tail anchor target should be specifiable per block, not just per group. A group-level anchor applies when no block overrides it. |
-| 7 | **Self-contained per-block rendering** | Each `WTextBlock` component renders its own SVG backdrop when `backgroundColor` is set, receiving shape/style params from the parent group. No need for a shared `useWPath` for individual blocks. |
-| 8 | **Future: unified layer merging** | The compositing pipeline should eventually detect adjacent WTBs in the same group that share identical `backgroundColor` + `backgroundOpacity` and merge them into a single unified SVG backdrop layer. This plan does not implement this; it is noted for later optimization. |
+Implement the "Global Grid Snapping & Smart Guides" system described in README.md section 2. This covers a snapping math engine, a visual SVG grid overlay (`WGrid`), a draggable debug axis for manual verification, and the Inspector/project-model plumbing to control it all.
 
 ---
 
-## Implementation Steps (ordered)
+## Phase 1 — Data Model & Constants
 
-> **Status**: ✅ Phases 1–4 complete (Jun 2026). Phase 5 deferred.
+### 1.1 New type: `WProjectGrid`
 
-### Phase 1 — Schema & Types ✅
-
-#### Step 1.1: `gnd/schemas/canvas.yaml`
-
-Add to `WTextBlock.style`:
-
-```yaml
-backgroundColor:
-  type: string
-  description: >
-    Backdrop fill color for this block. When falsy (undefined/null/empty/"transparent"),
-    no backdrop is rendered — the block is text-only (SFX mode).
-    When set, an individual SVG backdrop is rendered for this block using the
-    parent group's shapeType/borderRadius as defaults.
-  nullable: true
-backgroundOpacity:
-  type: number
-  minimum: 0
-  maximum: 1
-  default: 1
-  description: >
-    Opacity of this block's individual backdrop (if backgroundColor is set).
-    Applied to the backdrop SVG layer only — text remains at its own opacity.
-```
-
-Also add `"rect"` to the `shapeType` enum in `WTextGroup.style`:
-
-```yaml
-shapeType:
-  type: string
-  enum: [pill, rounded-rectangle, action-burst, rect]
-  default: rounded-rectangle
-```
-
-Add `tailAnchorBlockId` to `WTextGroup`:
-
-```yaml
-tailAnchorBlockId:
-  type: string
-  nullable: true
-  description: >
-    If set, the tail anchor points toward this specific WTB within the group.
-    The anchor coordinates are relative to this block's bounding box center.
-    Falls back to the group center when null.
-```
-
-#### Step 1.2: `src/types/canvas.ts`
-
-Add to `WTextBlockStyle`:
+**File:** `src/types/canvas.ts`
 
 ```ts
-backgroundColor?: string;
-backgroundOpacity?: number;
-```
+export type CanvasTheme = "light" | "dark";
 
-Update `WTextGroupStyle`:
-
-```ts
-shapeType?: "pill" | "rounded-rectangle" | "action-burst" | "rect";
-```
-
-Add to `WTextGroup`:
-
-```ts
-tailAnchorBlockId?: string | null;
-```
-
-#### Step 1.3: `src/constants/canvasDefaults.ts`
-
-Add:
-
-```ts
-export const DEFAULT_WTB_BACKGROUND_OPACITY = 1;
-```
-
-`DEFAULT_WTB_BACKGROUND_COLOR` is intentionally omitted — falsy means "no backdrop."
-
-Add `"rect"` to any shape-type discriminant union defaults as needed.
-
----
-
-### Phase 2 — Path Utilities ✅
-
-#### Step 2.1: `src/utils/pathGenerators.ts`
-
-Add `rectPath` generator:
-
-```ts
-export function rectPath(w: number, h: number): string {
-  return `M 0 0 H ${w} V ${h} H 0 Z`;
+export interface WProjectGrid {
+  /** Grid cell size in pixels (default: 10). */
+  size: number;
+  /** Master toggle for snap-to-grid (default: true). */
+  snapEnabled: boolean;
+  /** Show/hide the grid overlay (default: true). */
+  showGrid: boolean;
 }
 ```
 
-Update `BackdropShapeType`:
+### 1.2 New field on `WProject`
+
+Add two properties to `WProject`:
 
 ```ts
-export type BackdropShapeType = "pill" | "rounded-rectangle" | "action-burst" | "rect";
-```
-
-Update `getBackdropPath` to handle `"rect"`:
-
-```ts
-if (shapeType === "rect") return rectPath(width, height);
-```
-
-Also add a utility to measure individual block dimensions:
-
-```ts
-/** Computed dimensions of a single WTB's backdrop envelope.
- *  Currently just the block's intrinsic text width/height + padding.
- *  Later might account for the group's shapeType geometry adjustments. */
-export interface BlockBackdropDimensions {
-  width: number;
-  height: number;
+export interface WProject {
+  // … existing fields …
+  grid: WProjectGrid;
+  /** "light" → WProject bg is white, Viewport/WGrid are dark.
+   *  "dark"  → WProject bg is black, Viewport/WGrid are light. */
+  canvasTheme: CanvasTheme;
 }
 ```
 
-(This may evolve, but the block's own content size + padding is sufficient for now.)
+### 1.3 Schema & defaults
+
+| File | Change |
+|---|---|
+| `src/constants/canvasDefaults.ts` | Add `DEFAULT_GRID_SIZE = 10`, `DEFAULT_GRID_SNAP_ENABLED = true`, `DEFAULT_GRID_SHOW_GRID = true`, `SNAP_PROXIMITY_THRESHOLD = 4`, `DEFAULT_CANVAS_THEME = "light"` |
+| `src/utils/createProject.ts` | Seed `grid: { size: 10, snapEnabled: true, showGrid: true }` and `canvasTheme: "light"` in `createBlankProject()` |
+| `gnd/schemas/canvas.yaml` | Mirror `grid` + `canvasTheme` on `WProject` |
+
+### 1.4 Threshold sanitisation
+
+`SNAP_PROXIMITY_THRESHOLD` is a constant (4px). At runtime the effective threshold is clamped:
+
+```
+effectiveThreshold = Math.min(SNAP_PROXIMITY_THRESHOLD, gridSize / 2)
+```
+
+This guarantees a coordinate can never be within range of two adjacent grid lines simultaneously (which would cause oscillation/ambiguity). When `gridSize ≤ 8`, the effective threshold shrinks proportionally.
 
 ---
 
-### Phase 3 — Rendering (WTextGroup + WTextBlock) ✅
+## Phase 2 — Pure Snap Math
 
-#### Step 3.1: `src/components/canvas/WTextBlock/WTextBlock.tsx`
+**File:** `src/utils/snapMath.ts` (zero dependencies, pure functions)
 
-The component becomes self-contained for its backdrop. It receives additional props:
+| Export | Signature | Behaviour |
+|---|---|---|
+| `snapValue` | `(value: number, gridSize: number) => number` | Rounds `value` to nearest `gridSize` increment: `Math.round(value / gridSize) * gridSize` |
+| `snapRect` | `(rect: Rect, gridSize: number) => Rect` | Snaps `x, y, width, height` independently |
+| `isWithinThreshold` | `(a: number, b: number, threshold: number) => boolean` | `Math.abs(a - b) <= threshold` |
+| `getClosestGridLine` | `(value: number, gridSize: number) => { line: number; delta: number }` | Returns the nearest grid line and the signed distance from `value` |
+
+---
+
+## Phase 3 — `useSnapping` Hook
+
+**File:** `src/hooks/useSnapping.ts`
+
+Reads `project.grid` from `useProjectStore`, computes `effectiveThreshold`, and exposes:
 
 ```ts
-interface Props {
-  panelId: string;
-  groupId: string;
-  block: WTextBlockType;
-  groupShapeType: BackdropShapeType;
-  groupBorderRadius: number;
-  groupOpacity: number;
+interface UseSnappingResult {
+  snapValue: (v: number) => number;
+  snapRect: (rect: Rect) => Rect;
+  gridSize: number;
+  snapEnabled: boolean;
+  effectiveThreshold: number;
 }
 ```
 
-Logic:
-- If `block.style.backgroundColor` is falsy → render text only (no SVG backdrop) — SFX mode.
-- If `block.style.backgroundColor` is truthy:
-  - Measure own content via a ref + ResizeObserver
-  - Render an SVG backdrop path sized to content + padding using `getBackdropPath`, filled with `block.style.backgroundColor` and opacity `block.style.backgroundOpacity ?? DEFAULT_WTB_BACKGROUND_OPACITY`
-  - The backdrop is rendered behind the text, in Layer 1 style
-- Text renders at `block.style.opacity` (default 1) — Layer 2
-- The `groupOpacity` is applied to the backdrop SVG only (not text), maintaining the alpha-preserving pipeline
-
-#### Step 3.2: `src/components/canvas/WTextGroup/WTextGroup.tsx`
-
-Simplify the rendering:
-
-- Remove the unified SVG backdrop from WTextGroup (it was a single path covering all blocks).
-- Instead, pass shape/opacity props down to each `WTextBlock`.
-- The group container retains positioning (`left`, `top` based on group `x`, `y`).
-- The group container dimensions are now computed as the bounding box of all child blocks (each of which may have its own size).
-- Tail anchor rendering: if `tailAnchorBlockId` is set, compute the tail from the specified block's bounding box perimeter to the `tailAnchor` coordinates. Otherwise, compute from the group container perimeter (current behavior).
-
-The separation of concerns:
-- `WTextGroup` = positioning container + tail anchor logic + shape style provider
-- `WTextBlock` = individual backdrop rendering + text rendering
-
-#### Step 3.3: New or adjusted hook
-
-Since each `WTextBlock` now manages its own backdrop, we may not need modifications to `useWPath` at the group level. However, `useWPath` is still useful for the group-level tail anchor computation (when no `tailAnchorBlockId` is set). Consider keeping it for that purpose.
-
-A new lightweight hook `useWTBBackdrop` could encapsulate per-block dimension measurement → path generation, but inline logic in `WTextBlock.tsx` may suffice initially.
+If `!snapEnabled`, `snapValue` / `snapRect` return the input unchanged (passthrough).
 
 ---
 
-### Phase 4 — Documentation ✅
+## Phase 4 — `WGrid` Component
 
-#### Step 4.1: `README.md`
+**File:** `src/components/canvas/WGrid/WGrid.tsx`
 
-Update the **Alpha-Preserving Text Compositing** section to describe per-block backgrounds:
+### Purpose
+An SVG overlay that draws vertical/horizontal grid lines across the full Viewport area. Uses an SVG `<pattern>` for zero-DOM-overhead tiling — a single `<rect>` fills the viewport.
 
-```
-### 3. Alpha-Preserving Text Compositing
-To support semi-transparent background colors on speech bubbles without accumulating
-opacity when multiple bounding boxes intersect, the rendering pipeline splits into
-two layers:
+### Props
 
-- **Layer 1 (Backgrounds Only)**: Renders SVG backdrop paths at the block level
-  (when `WTextBlock.style.backgroundColor` is set) or at the group level (when blocks
-  inherit the group backdrop). Background opacity is applied via
-  `block.style.backgroundOpacity` or the parent `WTextGroup.style.opacity`.
-- **Layer 2 (Foregrounds Only)**: Renders text characters at 100% solid opacity
-  (subject to `block.style.opacity` for fade effects).
-
-This split ensures that:
-- Text remains perfectly legible regardless of backdrop transparency.
-- Semi-transparent backdrops on adjacent blocks do not doubly stack opacity.
-- SFX blocks (no backdrop, `backgroundColor` is falsy) render text directly
-  on the panel artwork without any intervening layer.
+```ts
+interface WGridProps {
+  gridSize: number;
+  canvasTheme: CanvasTheme;
+}
 ```
 
-Also add a note in the **Key Features** list about per-block backgrounds and SFX support.
+### Grid line colour logic
 
-#### Step 4.2: `misc/PLAN.md` (this file)
+Derived from `canvasTheme`:
 
-Complete when all phases are done — mark items as complete.
+| Token | Light theme | Dark theme |
+|---|---|---|
+| Viewport / WGrid background | Dark (current `bg-grid`) | Light/inverted |
+| Minor line | `rgba(0,0,0,0.12)` | `rgba(255,255,255,0.15)` |
+| Major line (every 4th) | `rgba(0,0,0,0.22)` | `rgba(255,255,255,0.28)` |
+
+### Major line subdivision
+
+Every 4th line (indices 0, 4, 8, 12…) is drawn with slightly higher opacity and thickness. 4 divides evenly from any grid size: major grid interval = `gridSize × 4`.
+
+### Implementation
+
+- Wraps the Viewport's inner container as a positioned parent
+- `<svg>` with `pointer-events: none`, `position: absolute`, `inset: 0`
+- Uses `<defs><pattern id="grid" …>` for the repeating unit
+- One `<rect>` fills the viewport with the pattern
+- A `ResizeObserver` updates the SVG viewBox when viewport dimensions change
+- The pattern draws two types of lines in one pattern cell:
+  - Minor: the basic `gridSize × gridSize` cell lines
+  - Major: every 4th cell boundary — overlaid via a second check in the pattern or a separate `<rect>` with a `4×`-sized pattern
 
 ---
 
-### Phase 5 — Future Considerations (not implemented now)
+## Phase 5 — `DebugAxis` Component
 
-1. **Layer merging optimization**: When adjacent WTBs in the same group share identical `backgroundColor` + `backgroundOpacity`, merge their individual backdrops into a single SVG path to reduce DOM nodes and improve compositing performance.
-2. **Per-block shape override**: Allow `WTextBlock.shapeType` to override the group's shape type for a single block.
-3. **Tail anchor along block perimeter**: More granular tail attachment points per block (top, right, bottom, left edges, not just nearest point).
-4. **Multi-color gradient backdrops**: Extend `backgroundColor` to accept gradient definitions.
+**File:** `src/components/debug/DebugAxis.tsx`
+
+### Purpose
+A draggable crosshair used to manually verify snapping works. **Only rendered in development** (`process.env.NODE_ENV === 'development'`).
+
+### Behaviour
+- Rendered as a thin horizontal + vertical line crossing at a draggable intersection point
+- Dragged via native pointer events (`onPointerDown`, `onPointerMove`, `onPointerUp`)
+- Coordinates flow through `useSnapping` during drag — snapped in real time
+- Visual indicator: green dot when snapped to grid, grey dot when free
+- Small floating label near the intersection showing `(x, y)` coordinates
+- **Not persisted** — ephemeral `useState` for position, starts at center of viewport
+
+### Why this exists
+Panels are flexbox-positioned (not absolute) and WTextGroups are positioned but not yet draggable. This gives us an immediate test harness to validate the snap engine before wiring it to production drag interactions.
+
+---
+
+## Phase 6 — ProjectInspector Additions
+
+**File:** `src/components/layout/Editor/inspector/ProjectInspector.tsx`
+
+Add a "Grid" section after the existing "Project" section:
+
+| Control | Binds to | Type |
+|---|---|---|
+| Show Grid | `project.grid.showGrid` | Checkbox/toggle |
+| Snap to Grid | `project.grid.snapEnabled` | Checkbox/toggle |
+| Grid Size | `project.grid.size` | Number input, min=2, max=100, step=1 |
+| Canvas Theme | `project.canvasTheme` | Toggle or select: Light / Dark |
+
+Uses the same `updateProject("continuous")` + `endContinuousCommit()` pattern as the existing `handleNameChange`.
+
+---
+
+## Phase 7 — Viewport Integration
+
+**File:** `src/components/layout/Editor/Viewport.tsx`
+
+Structural changes:
+
+```tsx
+<div className="flex-1 h-full overflow-hidden" style={{ background: viewportBg }}>
+  <div className="relative w-full h-full">
+    {project.grid.showGrid && (
+      <WGrid gridSize={project.grid.size} canvasTheme={project.canvasTheme} />
+    )}
+    <div className="flex items-center justify-center w-full h-full">
+      <WProject project={project} />
+    </div>
+    {process.env.NODE_ENV === 'development' && (
+      <DebugAxis gridSize={project.grid.size} snapEnabled={project.grid.snapEnabled} />
+    )}
+  </div>
+</div>
+```
+
+- Replace the hard-coded `bg-grid` class with a dynamic background that flips based on `canvasTheme`
+- WGrid is rendered only when `project.grid.showGrid` is `true` (default: `true`)
+- WProject's own `bg-white` class is replaced by a dynamic `canvasTheme`-driven class
+
+---
+
+## Phase 8 — WProject Dynamic Background
+
+**File:** `src/components/canvas/WProject/WProject.tsx`
+
+Replace `bg-white` with a class driven by `canvasTheme`:
+
+| `canvasTheme` | WProject bg | Viewport bg | WGrid line color |
+|---|---|---|---|
+| `"light"` | `bg-white` | Dark (`bg-grid` or equivalent) | Dark |
+| `"dark"` | `bg-black` | Light (inverted dot pattern) | Light |
+
+The `bg-grid` utility in `globals.css` currently hard-codes white dots. It will be adapted or complemented with a `bg-grid-inverse` utility, or the dot colour can be driven via a CSS variable set by `canvasTheme`.
+
+---
+
+## 9. Implementation Order
+
+| Step | Files | What |
+|---|---|---|
+| 1 | `canvas.ts`, `canvasDefaults.ts`, `createProject.ts`, `canvas.yaml` | Model: add `WProjectGrid`, `canvasTheme`, defaults |
+| 2 | `src/utils/snapMath.ts` | Pure snap functions + threshold clamp |
+| 3 | `src/hooks/useSnapping.ts` | Hook wrapping snapMath with project config |
+| 4 | `src/components/canvas/WGrid/WGrid.tsx`, `WGrid/index.ts` | SVG pattern-based grid overlay |
+| 5 | `src/components/debug/DebugAxis.tsx` | Draggable test axis (dev-only) |
+| 6 | `ProjectInspector.tsx` | Grid section with toggles + theme selector |
+| 7 | `WProject.tsx` | Dynamic bg based on `canvasTheme` |
+| 8 | `Viewport.tsx` | Wire WGrid, DebugAxis, dynamic Viewport bg |
+| 9 | `globals.css` | Add inverse grid utility if needed |
+| 10 | `src/components/canvas/index.ts` | Export WGrid from barrel |
+| 11 | Verify | Open project → grid ON by default; drag axis snaps to 10px increments; toggle show/snap/theme works |
+
+---
+
+## 10. Verification Checklist
+
+- [ ] Fresh blank project: grid overlay visible by default (10px cells)
+- [ ] Debug axis appears in dev mode, draggable, snaps to grid when enabled
+- [ ] Green/red indicator on debug axis confirms snapped / free state
+- [ ] "Show Grid" off → overlay hidden; on → visible
+- [ ] "Snap to Grid" off → axis moves freely; on → snaps
+- [ ] Grid Size change → lines redraw, snap aligns to new size
+- [ ] Canvas Theme "light" → WProject white, Viewport dark, grid lines dark
+- [ ] Canvas Theme "dark" → WProject black, Viewport light, grid lines light
+- [ ] Grid Size ≤ 8: effective threshold shrinks; no ambiguous double-snap

@@ -12,6 +12,10 @@ import {
   DEFAULT_WTB_COLOR,
   DEFAULT_WTB_TEXT_ALIGN,
   DEFAULT_WTB_OPACITY,
+  DEFAULT_GRID_SIZE,
+  DEFAULT_GRID_SNAP_ENABLED,
+  DEFAULT_GRID_SHOW_GRID,
+  DEFAULT_CANVAS_THEME,
 } from "@/constants/canvasDefaults";
 import { uid } from "@/utils/uid";
 
@@ -83,6 +87,12 @@ export function createBlankProject(name = "Untitled Project"): WProject {
     id: uid(),
     name,
     panels: [],
+    grid: {
+      size: DEFAULT_GRID_SIZE,
+      snapEnabled: DEFAULT_GRID_SNAP_ENABLED,
+      showGrid: DEFAULT_GRID_SHOW_GRID,
+    },
+    canvasTheme: DEFAULT_CANVAS_THEME,
     createdAt: now,
     updatedAt: now,
   };

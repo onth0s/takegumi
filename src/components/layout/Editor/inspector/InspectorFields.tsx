@@ -66,6 +66,44 @@ export function InspectorButton({
   );
 }
 
+/** Horizontal row — label on left, control on right. */
+export function FieldRowHorizontal({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label className="flex items-center justify-between gap-3">
+      <span className="text-xs text-text-secondary">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+/** Simple toggle (checkbox) styled as a switch. */
+export function InspectorToggle({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border border-border-default transition-colors duration-150 outline-none focus-visible:ring-1 focus-visible:ring-accent/50 ${
+        checked ? "bg-accent" : "bg-surface"
+      }`}
+    >
+      <span
+        className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transform transition-transform duration-150 ${
+          checked ? "translate-x-4" : "translate-x-0.5"
+        }`}
+        style={{ marginTop: "1.5px" }}
+      />
+    </button>
+  );
+}
+
 export function EmptyInspectorState() {
   return (
     <p className="text-sm text-text-tertiary leading-relaxed">

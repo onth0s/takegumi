@@ -2,14 +2,14 @@
  * Pure SVG path generation utilities for speech bubbles and backdrops.
  */
 
-/**
- * Generates a standard rounded rectangle path.
- */
 /** Generates a plain rectangle path (no roundedness, no border). */
 export function rectPath(w: number, h: number): string {
   return `M 0 0 H ${w} V ${h} H 0 Z`;
 }
 
+/**
+ * Generates a standard rounded rectangle path.
+ */
 export function roundedRectPath(w: number, h: number, r: number): string {
   const radius = Math.min(r, w / 2, h / 2);
   return [

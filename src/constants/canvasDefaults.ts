@@ -30,6 +30,19 @@ export const DEFAULT_WTB_TEXT_ALIGN = "center" as const;
 export const DEFAULT_WTB_OPACITY = 1;
 export const DEFAULT_WTB_BACKGROUND_OPACITY = 1;
 
+// ─── Grid & theme ──────────────────────────────────────────────────────────────
+
+/** Default grid cell size in pixels. */
+export const DEFAULT_GRID_SIZE = 10;
+/** Master toggle for snap-to-grid. */
+export const DEFAULT_GRID_SNAP_ENABLED = true;
+/** Show/hide the grid overlay by default. */
+export const DEFAULT_GRID_SHOW_GRID = true;
+/** Proximity threshold for snap-to-grid (clamped at runtime to gridSize / 2). */
+export const SNAP_PROXIMITY_THRESHOLD = 4;
+/** Default canvas theme. */
+export const DEFAULT_CANVAS_THEME = "light";
+
 // ─── Local image blob URLs ────────────────────────────────────────────────────
 
 export const LOCAL_IMAGE_PREFIX = "local://";

@@ -1,1 +1,1 @@
-- When clicking on the X on the [Recents.tsx](../src/components/layout/Home/Recents.tsx), it "flashes" momentarily. What's up with that? 
+* On WPanel select there's two borders somehow. Just keep the golden looking one. 

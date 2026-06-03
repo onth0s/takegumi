@@ -66,12 +66,27 @@ export interface WPanel {
   style?: WPanelStyle;
 }
 
+// ─── Grid & Theme ──────────────────────────────────────────────────────────────
+
+export type CanvasTheme = "light" | "dark";
+
+export interface WProjectGrid {
+  /** Grid cell size in pixels. */
+  size: number;
+  /** Master toggle for snap-to-grid. */
+  snapEnabled: boolean;
+  /** Show/hide the grid overlay. */
+  showGrid: boolean;
+}
+
 // ─── WProject ─────────────────────────────────────────────────────────────────
 
 export interface WProject {
   id: string;
   name: string;
   panels: WPanel[];
+  grid: WProjectGrid;
+  canvasTheme: CanvasTheme;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,7 +1,13 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { produce } from "immer";
-import type { WProject } from "@/types/canvas";
+import type { WProject, WProjectGrid, CanvasTheme } from "@/types/canvas";
+import {
+  DEFAULT_GRID_SIZE,
+  DEFAULT_GRID_SNAP_ENABLED,
+  DEFAULT_GRID_SHOW_GRID,
+  DEFAULT_CANVAS_THEME,
+} from "@/constants/canvasDefaults";
 import { projectStoreDb } from "@/storage";
 import {
   CONTINUOUS_COMMIT_DEBOUNCE_MS,
@@ -40,6 +46,20 @@ interface ProjectState extends HistoryState {
 
   /** Wipe all persisted project data, history, and panel image blobs. */
   resetAll: () => Promise<void>;
+}
+
+/** Fill in missing schema fields on projects loaded from a previous version. */
+function migrateProject(project: WProject): WProject {
+  const defaultGrid: WProjectGrid = {
+    size: DEFAULT_GRID_SIZE,
+    snapEnabled: DEFAULT_GRID_SNAP_ENABLED,
+    showGrid: DEFAULT_GRID_SHOW_GRID,
+  };
+  return {
+    ...project,
+    grid: project.grid ?? defaultGrid,
+    canvasTheme: (project as WProject & { canvasTheme?: CanvasTheme }).canvasTheme ?? DEFAULT_CANVAS_THEME,
+  };
 }
 
 const indexedDBStorage = createJSONStorage<PersistedProjectState>(() => ({
@@ -251,6 +271,17 @@ export const useProjectStore = create<ProjectState>()(
         project: state.project,
         projects: state.projects || [],
       }),
+      merge: (persisted, current) => {
+        const p = persisted as PersistedProjectState | undefined;
+        if (!p?.project) return { ...current, ...p };
+
+        return {
+          ...current,
+          ...p,
+          project: migrateProject(p.project),
+          projects: (p.projects ?? []).map(migrateProject),
+        };
+      },
     }
   )
 );

@@ -1,9 +1,10 @@
 "use client";
 import { useEffect } from "react";
-import { WProject } from "@/components/canvas";
+import { WProject, WGrid } from "@/components/canvas";
 import { useProjectStore } from "@/stores/projectStore";
 import { useHydration } from "@/hooks/useHydration";
 import { createBlankProject } from "@/utils/createProject";
+import DebugAxis from "@/components/debug/DebugAxis";
 
 export default function Viewport() {
   const hydrated = useHydration();
@@ -27,9 +28,23 @@ export default function Viewport() {
 
   if (!project) return null;
 
+  const isDarkTheme = project.canvasTheme === "dark";
+
   return (
-    <div className="flex-1 h-full overflow-hidden bg-grid flex items-center justify-center">
-      <WProject project={project} />
+    <div
+      className={`flex-1 h-full overflow-hidden ${
+        isDarkTheme ? "bg-neutral-50 bg-grid-light" : "bg-grid"
+      }`}
+    >
+      <div className="relative w-full h-full">
+        {project.grid.showGrid && (
+          <WGrid gridSize={project.grid.size} canvasTheme={project.canvasTheme} />
+        )}
+        <div className="flex items-center justify-center w-full h-full">
+          <WProject project={project} />
+        </div>
+        {process.env.NODE_ENV === "development" && <DebugAxis />}
+      </div>
     </div>
   );
 }

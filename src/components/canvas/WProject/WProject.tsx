@@ -50,7 +50,9 @@ export default function WProject({ project }: Props) {
   return (
     <div
       onClick={handleCanvasClick}
-      className="w-4/5 bg-white h-full overflow-y-auto no-scrollbar flex flex-col gap-8 p-8"
+      className={`w-4/5 h-full overflow-y-auto no-scrollbar flex flex-col gap-8 p-8 ${
+        project.canvasTheme === "dark" ? "bg-black" : "bg-white"
+      }`}
     >
       {project.panels.map((panel, i) => (
         <div

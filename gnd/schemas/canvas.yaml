@@ -14,6 +14,29 @@ WProject:
       type: array
       items:
         $ref: '#/WPanel'
+    grid:
+      type: object
+      description: Grid snapping & overlay configuration
+      properties:
+        size:
+          type: number
+          default: 10
+          description: Grid cell size in pixels
+        snapEnabled:
+          type: boolean
+          default: true
+          description: Master toggle for snap-to-grid
+        showGrid:
+          type: boolean
+          default: true
+          description: Show/hide the grid overlay
+    canvasTheme:
+      type: string
+      enum: [light, dark]
+      default: light
+      description: >
+        "light" -> WProject bg is white, Viewport/WGrid are dark.
+        "dark"  -> WProject bg is black, Viewport/WGrid are light.
     createdAt:
       type: string
       format: date-time
