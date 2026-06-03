@@ -38,7 +38,7 @@ export default function WPanel({ panel }: Props) {
       transition={transition}
       onClick={handleClick}
       className={`relative shadow-md overflow-visible shrink-0 cursor-pointer ${
-        isSelected ? "ring-2 ring-accent ring-offset-2 ring-offset-background" : ""
+        isSelected ? "ring-2 ring-accent" : ""
       } ${hasImage ? "bg-transparent" : "bg-surface-elevated"}`}
       style={{ width: `${panel.width}px`, height: `${panel.height}px` }}
     >
