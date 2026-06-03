@@ -23,7 +23,9 @@ Add `backgroundColor` to `WTextBlock.style` so each text block within a `WTextGr
 
 ## Implementation Steps (ordered)
 
-### Phase 1 — Schema & Types
+> **Status**: ✅ Phases 1–4 complete (Jun 2026). Phase 5 deferred.
+
+### Phase 1 — Schema & Types ✅
 
 #### Step 1.1: `gnd/schemas/canvas.yaml`
 
@@ -104,7 +106,7 @@ Add `"rect"` to any shape-type discriminant union defaults as needed.
 
 ---
 
-### Phase 2 — Path Utilities
+### Phase 2 — Path Utilities ✅
 
 #### Step 2.1: `src/utils/pathGenerators.ts`
 
@@ -144,7 +146,7 @@ export interface BlockBackdropDimensions {
 
 ---
 
-### Phase 3 — Rendering (WTextGroup + WTextBlock)
+### Phase 3 — Rendering (WTextGroup + WTextBlock) ✅
 
 #### Step 3.1: `src/components/canvas/WTextBlock/WTextBlock.tsx`
 
@@ -192,7 +194,7 @@ A new lightweight hook `useWTBBackdrop` could encapsulate per-block dimension me
 
 ---
 
-### Phase 4 — Documentation
+### Phase 4 — Documentation ✅
 
 #### Step 4.1: `README.md`
 

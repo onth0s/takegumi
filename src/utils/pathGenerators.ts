@@ -5,6 +5,11 @@
 /**
  * Generates a standard rounded rectangle path.
  */
+/** Generates a plain rectangle path (no roundedness, no border). */
+export function rectPath(w: number, h: number): string {
+  return `M 0 0 H ${w} V ${h} H 0 Z`;
+}
+
 export function roundedRectPath(w: number, h: number, r: number): string {
   const radius = Math.min(r, w / 2, h / 2);
   return [
@@ -58,7 +63,7 @@ export function actionBurstPath(w: number, h: number): string {
   return points.join(" ");
 }
 
-export type BackdropShapeType = "pill" | "rounded-rectangle" | "action-burst";
+export type BackdropShapeType = "pill" | "rounded-rectangle" | "action-burst" | "rect";
 
 /** Dispatches to the correct backdrop path generator for a shape type. */
 export function getBackdropPath(
@@ -70,6 +75,7 @@ export function getBackdropPath(
   if (width <= 0 || height <= 0) return "";
   if (shapeType === "pill") return pillPath(width, height);
   if (shapeType === "action-burst") return actionBurstPath(width, height);
+  if (shapeType === "rect") return rectPath(width, height);
   return roundedRectPath(width, height, borderRadius);
 }
 

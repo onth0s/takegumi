@@ -28,6 +28,7 @@ export const DEFAULT_WTB_FONT_WEIGHT = "700";
 export const DEFAULT_WTB_COLOR = "#ffffff";
 export const DEFAULT_WTB_TEXT_ALIGN = "center" as const;
 export const DEFAULT_WTB_OPACITY = 1;
+export const DEFAULT_WTB_BACKGROUND_OPACITY = 1;
 
 // ─── Local image blob URLs ────────────────────────────────────────────────────
 

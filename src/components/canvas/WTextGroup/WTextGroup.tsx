@@ -32,17 +32,19 @@ export default function WTextGroup({ panelId, group }: Props) {
     [panelId, group.id, selectTextGroup]
   );
 
-  const opacity = group.style.opacity ?? DEFAULT_WTG_OPACITY;
+  const groupOpacity = group.style.opacity ?? DEFAULT_WTG_OPACITY;
   const borderWidth = group.style.borderWidth ?? DEFAULT_WTG_BORDER_WIDTH;
-  const strokeColor = borderWidth > 0 ? DEFAULT_WTG_BACKGROUND_COLOR : "none";
-
   const fillColor = group.style.backgroundColor ?? DEFAULT_WTG_BACKGROUND_COLOR;
+  const strokeColor = borderWidth > 0 ? fillColor : "none";
+
+  const groupShapeType = group.style.shapeType;
+  const groupBorderRadius = group.style.borderRadius;
 
   return (
     <div
       onClick={handleClick}
       className={`absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer ${
-        isSelected ? "ring-2 ring-accent rounded-sm" : ""
+        isSelected ? "ring-2 ring-accent" : ""
       }`}
       style={{
         left: `${group.x}px`,
@@ -51,15 +53,14 @@ export default function WTextGroup({ panelId, group }: Props) {
         height: height > 0 ? `${height}px` : "auto",
       }}
     >
-      {/* Layer 1 (Backgrounds Only): Renders background shape under group opacity */}
+      {/* Layer 1: Group backdrop + tail (unified envelope) */}
       {width > 0 && height > 0 && (
         <svg
           className="absolute inset-0 pointer-events-none overflow-visible"
           width={width}
           height={height}
-          style={{ opacity }}
+          style={{ opacity: groupOpacity }}
         >
-          {/* Backdrop path */}
           {backdropPath && (
             <path
               d={backdropPath}
@@ -68,7 +69,6 @@ export default function WTextGroup({ panelId, group }: Props) {
               strokeWidth={borderWidth}
             />
           )}
-          {/* Tail path */}
           {tailPathString && (
             <path
               d={tailPathString}
@@ -80,13 +80,21 @@ export default function WTextGroup({ panelId, group }: Props) {
         </svg>
       )}
 
-      {/* Layer 2 (Foregrounds Only): Opaque text lines */}
+      {/* Layer 2: Text blocks (each may render its own backdrop over the group envelope) */}
       <div
         ref={contentRef}
         className="relative z-10 flex flex-col gap-1 text-center select-none"
       >
         {group.blocks.map((block) => (
-          <WTextBlock key={block.id} panelId={panelId} groupId={group.id} block={block} />
+          <WTextBlock
+            key={block.id}
+            panelId={panelId}
+            groupId={group.id}
+            block={block}
+            groupShapeType={groupShapeType}
+            groupBorderRadius={groupBorderRadius}
+            groupOpacity={groupOpacity}
+          />
         ))}
       </div>
     </div>

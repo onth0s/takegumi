@@ -90,7 +90,7 @@ WTextGroup:
           default: 0
         shapeType:
           type: string
-          enum: [pill, rounded-rectangle, action-burst]
+          enum: [pill, rounded-rectangle, action-burst, rect]
           default: rounded-rectangle
     tailAnchor:
       type: object
@@ -102,6 +102,12 @@ WTextGroup:
         y:
           type: number
           description: Relative anchor target Y
+    tailAnchorBlockId:
+      type: string
+      nullable: true
+      description: >
+        When set, the tail anchor attaches to this block's perimeter instead of
+        the group container's.
     blocks:
       type: array
       items:
@@ -145,6 +151,18 @@ WTextBlock:
           maximum: 1
           default: 1
           description: Text opacity (independent of WTextGroup backdrop opacity)
+        backgroundColor:
+          type: string
+          nullable: true
+          description: >
+            Backdrop fill color. Falsy values (null, "", "transparent") mean no
+            backdrop — the block renders as text-only (SFX mode).
+        backgroundOpacity:
+          type: number
+          minimum: 0
+          maximum: 1
+          default: 1
+          description: Opacity of this block's individual backdrop layer
     transition:
       type: object
       description: "@planned Remotion playback transitions — not implemented yet"

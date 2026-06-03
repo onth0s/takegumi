@@ -10,7 +10,8 @@ The name **Takegumi** (竹組み) refers to the Japanese art of bamboo-framing o
 * **Macro Sequence Grid Overview**: A responsive thumbnail dashboard mapping the structural narrative at a glance.
 * **Immersive Playback Player**: A full-featured test player built for instant review.
 * **Synthetic Border Carving**: A dynamic border engine that computes panel borders and cleanly carves out gaps wherever text bubbles overlap them, ensuring a clean, modern graphic novel aesthetic.
-* **Alpha-Preserved Text Compositing**: A two-layer rendering pipeline that isolates semi-transparent text bubble backgrounds to prevent visual opacity build-up.
+* **Alpha-Preserved Text Compositing**: A two-layer rendering pipeline that isolates semi-transparent text block backgrounds to prevent visual opacity build-up across adjacent blocks.
+* **Per-Block Backdrop Control**: Each `WTextBlock` can independently define its own background (color, opacity) or opt out entirely for SFX text that floats directly on the panel artwork.
 * **Markdown Script Parser**: Automates project setup by converting plain text scripts with panel demarcations (`[[1]]`, `[[2]]`) and speaker lines (`_Speaker_: dialogue`) into fully populated layouts.
 ---
 ## 🎨 The Visual & Rendering Engine
@@ -32,10 +33,15 @@ By lifting both the panel borders and the dialogue bubbles into vector space, Ta
 * **Border Path Subtraction**: The computed text bubble paths are fed directly into the border engine, which automatically subtracts the intersecting geometry of the text bubble path from the border path, programmatically generating clean visual gaps where text overlaps panel boundaries.
 * **Artwork Preservation**: The underlying panel artwork is completely untouched by this clipping process. Speech bubbles are layered above the panel using standard visual stacking (z-index), ensuring that semi-transparent bubble backgrounds display the panel artwork underneath properly without double-rendering or clipping the image itself. This maintains absolute computational accuracy during high-performance layout manipulation or continuous canvas scrolling.
 ### 3. Alpha-Preserving Text Compositing
-To support semi-transparent background colors on speech bubbles without accumulating opacity when multiple bounding boxes intersect, [WTextGroup.tsx] splits rendering into two layers:
-* **Layer 1 (Backgrounds Only)**: Renders only the background boxes under a parent-level group opacity style.
-* **Layer 2 (Foregrounds Only)**: Renders only text characters, borders, and shadows at 100% solid opacity.
-This structure ensures text remains perfectly legible and shadows do not look double-rendered or muddy.
+To support semi-transparent background colors on speech bubbles without accumulating opacity when multiple bounding boxes intersect, the rendering pipeline splits into two layers:
+
+- **Layer 1 (Backgrounds Only)**: Each `WTextBlock` with an explicit `backgroundColor` renders its own SVG backdrop path, filled with that color and modulated by `backgroundOpacity` together with the parent `WTextGroup`'s group opacity. Blocks without an explicit background inherit the group's unified backdrop envelope.
+- **Layer 2 (Foregrounds Only)**: Renders text characters at 100% solid opacity (subject to `block.style.opacity` for fade effects).
+
+This split ensures that:
+- Text remains perfectly legible regardless of backdrop transparency.
+- Semi-transparent backdrops on adjacent blocks do not doubly stack opacity.
+- **SFX blocks** (falsy `backgroundColor`) render text directly on the panel artwork without any intervening layer — ideal for sound effects, floating labels, and caption-free overlays.
 ---
 ## 🧠 Layout & State Mechanics
 ### 1. State-Level History System (Undo / Redo Archetype)
@@ -133,8 +139,8 @@ _Another Speaker_: Dialogue on Panel 2.
 Takegumi operates on a normalized state structure:
 * **WProject**: The root document representing a single chapter or webtoon draft.
 * **WPanel**: An individual graphic framework holding a background image as well as optional WTextGroups.
-* **WTextGroup**: An opacity-unified envelope linking multiple WTextBlocks.
-* **WTextBlock**: An individual block containing text content, styling configurations, and transition parameters.
+* **WTextGroup**: An opacity-unified envelope linking multiple WTextBlocks. The group provides shared shape defaults (`shapeType`: `pill`, `rounded-rectangle`, `action-burst`, or `rect`; `borderRadius`) inherited by its child blocks.
+* **WTextBlock**: An individual block containing text content, styling, and transition parameters. Each block may independently define its own `backgroundColor` and `backgroundOpacity` — set a color for an individual bubble, or leave it falsy for no background at all (SFX mode).
 Further Schema Specifications are to be found as YAML files in `/gnd` (ground directory, acting as the single source of truth).
 ---
 ## 🛠 Tech Stack

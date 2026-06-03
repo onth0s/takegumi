@@ -8,6 +8,8 @@ export interface WTextBlockStyle {
   lineHeight?: number;
   textAlign?: "left" | "center" | "right";
   opacity?: number;
+  backgroundColor?: string;
+  backgroundOpacity?: number;
 }
 
 /** @deprecated Playback transitions — not implemented until Remotion export (misc/PLAN.md). */
@@ -31,7 +33,7 @@ export interface WTextGroupStyle {
   backgroundColor?: string;
   borderRadius?: number;
   borderWidth?: number;
-  shapeType?: "pill" | "rounded-rectangle" | "action-burst";
+  shapeType?: "pill" | "rounded-rectangle" | "action-burst" | "rect";
 }
 
 export interface WTextGroup {
@@ -40,6 +42,7 @@ export interface WTextGroup {
   y: number;
   style: WTextGroupStyle;
   tailAnchor: { x: number; y: number } | null;
+  tailAnchorBlockId?: string | null;
   blocks: WTextBlock[];
 }
 
