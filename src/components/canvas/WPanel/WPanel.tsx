@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback } from "react";
-import { motion } from "motion/react";
 import type { WPanel as WPanelType } from "@/types/canvas";
 import { useUIStore } from "@/stores/uiStore";
 import WTextGroup from "../WTextGroup";
@@ -27,19 +26,12 @@ export default function WPanel({ panel }: Props) {
 
   const hasImage = !!panel.imageUrl;
 
-  const initial = hasImage ? { opacity: 0 } : undefined;
-  const animate = hasImage ? { opacity: 1 } : undefined;
-  const transition = hasImage ? { duration: 0.4, ease: "easeOut" as const } : undefined;
-
   return (
-    <motion.div
-      initial={initial}
-      animate={animate}
-      transition={transition}
+    <div
       onClick={handleClick}
       className={`relative shadow-md overflow-visible shrink-0 cursor-pointer ${
         isSelected ? "ring-2 ring-accent" : ""
-      } ${hasImage ? "bg-transparent" : "bg-surface-elevated"}`}
+      } ${hasImage ? "animate-panel-fade-in bg-transparent" : "bg-surface-elevated"}`}
       style={{ width: `${panel.width}px`, height: `${panel.height}px` }}
     >
       {/* Background image layer */}
@@ -58,6 +50,6 @@ export default function WPanel({ panel }: Props) {
           <WTextGroup key={group.id} panelId={panel.id} group={group} />
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -23,7 +23,7 @@ export default function Center() {
         newProject.panels = panels;
         setProject(newProject);
         router.push("/workspace");
-      });
+      }).catch((err) => console.error("Failed to process images:", err));
     },
     [setProject, router]
   );

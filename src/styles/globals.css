@@ -81,3 +81,12 @@ body {
   }
 }
 
+@keyframes panel-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@utility animate-panel-fade-in {
+  animation: panel-fade-in 0.4s ease-out;
+}
+

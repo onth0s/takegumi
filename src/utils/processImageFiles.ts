@@ -38,7 +38,8 @@ export async function processImageFiles(files: FileList | File[]): Promise<WPane
           };
 
           img.onerror = () => {
-            complete(createBlankPanel());
+            URL.revokeObjectURL(tempUrl);
+            resolve(createBlankPanel());
           };
         })
     )

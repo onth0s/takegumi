@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "generate:defaults": "node scripts/generate-defaults.mjs",
+    "predev": "npm run generate:defaults",
     "dev": "set NODE_OPTIONS=--disable-warning=DEP0205 --localstorage-file=node_modules/.localstorage && next dev",
+    "prebuild": "npm run generate:defaults",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -25,6 +28,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
+    "js-yaml": "^4.2.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

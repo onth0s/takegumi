@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { memo, useCallback } from "react";
 import type { WPanel } from "@/types/canvas";
 import { useProjectStore } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
@@ -18,7 +18,7 @@ interface Props {
   panel: WPanel;
 }
 
-export default function PanelInspector({ panel }: Props) {
+export default memo(function PanelInspector({ panel }: Props) {
   const updateProject = useProjectStore((s) => s.updateProject);
   const clearSelection = useUIStore((s) => s.clearSelection);
 
@@ -96,4 +96,4 @@ export default function PanelInspector({ panel }: Props) {
       </InspectorSection>
     </div>
   );
-}
+});

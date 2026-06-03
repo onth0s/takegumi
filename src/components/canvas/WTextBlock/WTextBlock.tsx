@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState, useEffect } from "react";
+import { useCallback, useRef } from "react";
 import type { WTextBlock as WTextBlockType } from "@/types/canvas";
 import type { BackdropShapeType } from "@/utils/pathGenerators";
 import { getBackdropPath } from "@/utils/pathGenerators";
@@ -15,6 +15,7 @@ import {
   DEFAULT_WTG_SHAPE_TYPE,
 } from "@/constants/canvasDefaults";
 import { useUIStore } from "@/stores/uiStore";
+import { useElementDimensions } from "@/hooks/useElementDimensions";
 
 interface Props {
   panelId: string;
@@ -34,21 +35,7 @@ export default function WTextBlock({
   groupOpacity,
 }: Props) {
   const contentRef = useRef<HTMLDivElement>(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-
-  useEffect(() => {
-    const el = contentRef.current;
-    if (!el) return;
-
-    const update = () => {
-      setDimensions({ width: el.clientWidth, height: el.clientHeight });
-    };
-    update();
-
-    const observer = new ResizeObserver(() => update());
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [block.text]);
+  const dimensions = useElementDimensions(contentRef, [block.text]);
 
   const selectedBlockId = useUIStore((s) => s.selectedWTextBlockId);
   const selectTextBlock = useUIStore((s) => s.selectTextBlock);

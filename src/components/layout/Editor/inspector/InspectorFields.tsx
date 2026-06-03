@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useId, cloneElement, isValidElement } from "react";
 
 export function InspectorSection({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -12,10 +13,11 @@ export function InspectorSection({ title, children }: { title: string; children:
 }
 
 export function FieldRow({ label, children }: { label: string; children: ReactNode }) {
+  const id = useId();
   return (
-    <label className="flex flex-col gap-1">
+    <label htmlFor={id} className="flex flex-col gap-1">
       <span className="text-xs text-text-secondary">{label}</span>
-      {children}
+      {isValidElement(children) ? cloneElement(children as React.ReactElement<{ id?: string }>, { id }) : children}
     </label>
   );
 }
@@ -68,10 +70,13 @@ export function InspectorButton({
 
 /** Horizontal row — label on left, control on right. */
 export function FieldRowHorizontal({ label, children }: { label: string; children: ReactNode }) {
+  const labelId = useId();
   return (
     <label className="flex items-center justify-between gap-3">
-      <span className="text-xs text-text-secondary">{label}</span>
-      {children}
+      <span id={labelId} className="text-xs text-text-secondary">{label}</span>
+      {isValidElement(children)
+        ? cloneElement(children as React.ReactElement<{ "aria-labelledby"?: string }>, { "aria-labelledby": labelId })
+        : children}
     </label>
   );
 }
@@ -80,15 +85,18 @@ export function FieldRowHorizontal({ label, children }: { label: string; childre
 export function InspectorToggle({
   checked,
   onChange,
+  "aria-labelledby": ariaLabelledby,
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
+  "aria-labelledby"?: string;
 }) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
+      aria-labelledby={ariaLabelledby}
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border border-border-default transition-colors duration-150 outline-none focus-visible:ring-1 focus-visible:ring-accent/50 ${
         checked ? "bg-accent" : "bg-surface"

@@ -40,7 +40,7 @@ export default function WProject({ project }: Props) {
             draft.panels.push(p);
           });
         });
-      });
+      }).catch((err) => console.error("Failed to process images:", err));
     },
     [updateProject]
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { memo, useCallback } from "react";
 import type { WTextGroup, WTextGroupStyle } from "@/types/canvas";
 import {
   DEFAULT_WTG_BACKGROUND_COLOR,
@@ -25,7 +25,7 @@ interface Props {
   group: WTextGroup;
 }
 
-export default function TextGroupInspector({ panelId, group }: Props) {
+export default memo(function TextGroupInspector({ panelId, group }: Props) {
   const updateProject = useProjectStore((s) => s.updateProject);
 
   const mutateGroup = useCallback(
@@ -176,4 +176,4 @@ export default function TextGroupInspector({ panelId, group }: Props) {
       </InspectorSection>
     </div>
   );
-}
+});
