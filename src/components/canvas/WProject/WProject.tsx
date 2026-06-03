@@ -30,7 +30,7 @@ export default function WProject({ project }: Props) {
 
   const handleCreateBlankPanel = useCallback(() => {
     updateProject((draft) => {
-      draft.panels.push(createBlankPanel());
+      draft.panels.push(createBlankPanel(undefined, draft.panels));
     });
   }, [updateProject]);
 
@@ -60,16 +60,11 @@ export default function WProject({ project }: Props) {
         <WGrid gridSize={project.grid.size} canvasTheme={project.canvasTheme} />
       )}
       {process.env.NODE_ENV === "development" && <DebugAxis />}
-      {project.panels.map((panel, i) => (
+      {project.panels.map((panel) => (
         <div
           key={panel.id}
-          className={
-            project.panels.length === 1
-              ? "self-center"
-              : i % 2 === 0
-                ? "self-start"
-                : "self-end"
-          }
+          className="self-start shrink-0"
+          style={{ marginLeft: panel.x }}
         >
           <WPanel panel={panel} />
         </div>

@@ -16,6 +16,8 @@ import {
   DEFAULT_GRID_SNAP_ENABLED,
   DEFAULT_GRID_SHOW_GRID,
   DEFAULT_CANVAS_THEME,
+  computeDefaultPanelPercent,
+  percentToPanelX,
 } from "@/constants/canvasDefaults";
 import { uid } from "@/utils/uid";
 
@@ -63,14 +65,30 @@ export function createTextGroup(x: number, y: number, overrides?: Partial<WTextG
  * that every key in `overrides` belongs to WPanel, so there is no silent field
  * mismatch. The spread lets callers (e.g. "duplicate panel") selectively override
  * id, imageUrl, position, etc. without reconstructing the full object.
+ *
+ * When `existingPanels` is provided, the panel's x-position is derived from the
+ * layout of prior panels (see {@link computeDefaultPanelPercent}) instead of
+ * defaulting to centered. Explicitly passing `x` in `overrides` still takes
+ * precedence.
  */
-export function createBlankPanel(overrides?: Partial<WPanel>): WPanel {
+export function createBlankPanel(overrides?: Partial<WPanel>, existingPanels?: WPanel[]): WPanel {
   const width = overrides?.width ?? DEFAULT_PANEL_WIDTH;
   const height = overrides?.height ?? DEFAULT_PANEL_HEIGHT;
+
+  let x: number;
+  if (overrides?.x !== undefined) {
+    x = overrides.x;
+  } else if (existingPanels) {
+    const percent = computeDefaultPanelPercent(existingPanels);
+    x = percentToPanelX(percent, width);
+  } else {
+    x = percentToPanelX(50, width);
+  }
+
   return {
     id: uid(),
     imageUrl: null,
-    x: 0,
+    x,
     y: 0,
     width,
     height,

@@ -7,8 +7,8 @@ import { useUIStore } from "@/stores/uiStore";
 import { createTextGroup } from "@/utils/createProject";
 import { deletePanelImage } from "@/utils/panelImageStorage";
 import { findPanel } from "@/utils/findInProject";
-import { CANVAS_MAX_WIDTH, CANVAS_PADDING } from "@/constants/canvasDefaults";
-import { ScrubInput } from "@/components/shared/UI";
+import { xToPanelPercent, percentToPanelX } from "@/constants/canvasDefaults";
+import { ScrubInput, SmartSlider } from "@/components/shared/UI";
 import {
   InspectorButton,
   InspectorSection,
@@ -62,45 +62,39 @@ export default memo(function PanelInspector({ panel }: Props) {
   const gutter = panel.style?.gutter;
   const borderStyle = panel.style?.borderStyle;
   const hasImage = panel.imageUrl !== null;
-  const effectiveWidth = CANVAS_MAX_WIDTH - 2 * CANVAS_PADDING;
+  const panelPercent = xToPanelPercent(panel.x, panel.width);
 
   const handleAlign = useCallback(
     (dir: "left" | "center" | "right") => {
       mutatePanel((p) => {
-        if (dir === "left") p.x = CANVAS_PADDING;
-        else if (dir === "center") p.x = Math.round((effectiveWidth - p.width) / 2) + CANVAS_PADDING;
-        else p.x = effectiveWidth - p.width + CANVAS_PADDING;
+        const percent = dir === "left" ? 0 : dir === "center" ? 50 : 100;
+        p.x = percentToPanelX(percent, p.width);
       });
     },
-    [mutatePanel, effectiveWidth]
+    [mutatePanel]
   );
 
-  const snapOffsets = {
-    left: CANVAS_PADDING,
-    center: Math.round((effectiveWidth - panel.width) / 2) + CANVAS_PADDING,
-    right: effectiveWidth - panel.width + CANVAS_PADDING,
-  };
   const currentAlign: "left" | "center" | "right" =
-    Math.abs(panel.x - snapOffsets.left) <= 2 ? "left" :
-    Math.abs(panel.x - snapOffsets.center) <= 2 ? "center" :
-    Math.abs(panel.x - snapOffsets.right) <= 2 ? "right" : "center";
+    panelPercent <= 2 ? "left" :
+    panelPercent >= 98 ? "right" : "center";
 
   return (
     <div className="flex flex-col gap-6">
       <InspectorSection title="Position">
-        <div className="grid grid-cols-2 gap-2">
-          <ScrubInput label="X" value={Math.round(panel.x)} step={1} fineStep={1} min={0} max={9999} suffix="px"
-            onChange={(v) => mutatePanel((p) => { p.x = v; }, "continuous")}
+        <div className="flex flex-col gap-3">
+          <SmartSlider label={`Position: ${panelPercent}%`} value={panelPercent} min={0} max={100} step={1} fineStep={1}
+            ctrlSteps={[0, 25, 50, 75, 100]}
+            onChange={(v) => mutatePanel((p) => { p.x = percentToPanelX(v, p.width); }, "continuous")}
             onCommit={endContinuous}
           />
           <ScrubInput label="Y" value={Math.round(panel.y)} step={1} fineStep={1} min={0} max={9999} suffix="px"
             onChange={(v) => mutatePanel((p) => { p.y = v; }, "continuous")}
             onCommit={endContinuous}
           />
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xs text-text-secondary">Align</span>
-          <AlignmentControl value={currentAlign} onChange={handleAlign} />
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs text-text-secondary">Align</span>
+            <AlignmentControl value={currentAlign} onChange={handleAlign} />
+          </div>
         </div>
       </InspectorSection>
 
