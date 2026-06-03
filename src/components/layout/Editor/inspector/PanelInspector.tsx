@@ -110,6 +110,8 @@ export default memo(function PanelInspector({ panel }: Props) {
                 p.x = 0;
               } else if (percent >= 98) {
                 p.x = CANVAS_MAX_WIDTH - newWidth;
+              } else if (Math.abs(percent - 50) <= 2) {
+                p.x = percentToPanelX(50, newWidth);
               } else {
                 const center = p.x + oldWidth / 2;
                 p.x = Math.round(center - newWidth / 2);
