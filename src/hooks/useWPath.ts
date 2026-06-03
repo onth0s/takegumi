@@ -1,4 +1,4 @@
-import { useState, useEffect, RefObject, useMemo } from "react";
+import { RefObject, useMemo } from "react";
 import type { WTextGroup } from "@/types/canvas";
 import {
   BACKDROP_PAD_X,
@@ -7,6 +7,7 @@ import {
   DEFAULT_WTG_SHAPE_TYPE,
 } from "@/constants/canvasDefaults";
 import { getBackdropPath, tailPath } from "@/utils/pathGenerators";
+import { useElementDimensions } from "./useElementDimensions";
 
 export interface WPathResult {
   backdropPath: string;
@@ -16,36 +17,12 @@ export interface WPathResult {
 }
 
 export function useWPath(group: WTextGroup, contentRef: RefObject<HTMLElement | null>): WPathResult {
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-
   const blocksKey = useMemo(
     () => group.blocks.map((b) => `${b.id}:${b.text}`).join("\0"),
     [group.blocks]
   );
 
-  useEffect(() => {
-    const el = contentRef.current;
-    if (!el) return;
-
-    const updateDimensions = () => {
-      setDimensions({
-        width: el.clientWidth + BACKDROP_PAD_X,
-        height: el.clientHeight + BACKDROP_PAD_Y,
-      });
-    };
-
-    updateDimensions();
-
-    const observer = new ResizeObserver(() => {
-      updateDimensions();
-    });
-    observer.observe(el);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [blocksKey, contentRef]);
-
+  const dimensions = useElementDimensions(contentRef, [blocksKey, contentRef], BACKDROP_PAD_X, BACKDROP_PAD_Y);
   const { width, height } = dimensions;
   const shape = group.style.shapeType ?? DEFAULT_WTG_SHAPE_TYPE;
   const r = group.style.borderRadius ?? DEFAULT_WTG_BORDER_RADIUS;

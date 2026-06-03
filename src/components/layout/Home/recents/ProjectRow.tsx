@@ -28,6 +28,11 @@ export default function ProjectRow({
       tabIndex={0}
       onClick={onSelect}
       onKeyDown={(e) => e.key === "Enter" && onSelect()}
+      onMouseLeave={() => {
+        if (confirmingDeleteId === project.id) {
+          setConfirmingDeleteId(null);
+        }
+      }}
       className="group relative w-full text-left rounded-lg hover:bg-surface-hover hover:bg-accent/5 transition-colors duration-150 cursor-pointer border border-transparent hover:border-accent/10"
     >
       <div className="flex items-center gap-3 px-3 h-14">

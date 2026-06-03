@@ -6,13 +6,13 @@ The name **Takegumi** (竹組み) refers to the Japanese art of bamboo-framing o
 
 ---
 ## ✨ Key Features
-* **Continuous Vertical Canvas**: Simulates a mobile-native webtoon reading flow with intuitive `@dnd-kit`-powered drag-and-drop panel reordering, image file drops, and interactive click-to-upload workflows.
-* **Macro Sequence Grid Overview**: A responsive thumbnail dashboard mapping the structural narrative at a glance.
-* **Immersive Playback Player**: A full-featured test player built for instant review.
+* **Continuous Vertical Canvas**: Simulates a mobile-native webtoon reading flow with intuitive drag-and-drop panel reordering (powered by `@dnd-kit` — [Planned](https://github.com/clauderic/dnd-kit)), image file drops, and interactive click-to-upload workflows.
+* **Macro Sequence Grid Overview** [Planned]: A responsive thumbnail dashboard mapping the structural narrative at a glance.
+* **Immersive Playback Player** [Planned]: A full-featured test player built for instant review.
 * **Synthetic Border Carving**: A dynamic border engine that computes panel borders and cleanly carves out gaps wherever text bubbles overlap them, ensuring a clean, modern graphic novel aesthetic.
 * **Alpha-Preserved Text Compositing**: A two-layer rendering pipeline that isolates semi-transparent text block backgrounds to prevent visual opacity build-up across adjacent blocks.
 * **Per-Block Backdrop Control**: Each `WTextBlock` can independently define its own background (color, opacity) or opt out entirely for SFX text that floats directly on the panel artwork.
-* **Markdown Script Parser**: Automates project setup by converting plain text scripts with panel demarcations (`[[1]]`, `[[2]]`) and speaker lines (`_Speaker_: dialogue`) into fully populated layouts.
+* **Markdown Script Parser** [Planned]: Automates project setup by converting plain text scripts with panel demarcations (`[[1]]`, `[[2]]`) and speaker lines (`_Speaker_: dialogue`) into fully populated layouts.
 ---
 ## 🎨 The Visual & Rendering Engine
 ### 1. Dynamic SVG Synthetic Borders (`useWBorder`)
@@ -121,7 +121,7 @@ To prevent mismatch warnings when Next.js compares server-rendered layouts with 
 
 ---
 ## 📝 Content & Workflow Systems
-### 1. Markdown Script Parser
+### 1. Markdown Script Parser [Planned]
 To speed up layout creation, you can write or import a standard text script in Markdown. Takegumi reads it via `src/utils/parseScript.ts` and sets up panels automatically.
 #### Syntax & Format Example
 ```markdown
@@ -144,12 +144,16 @@ Takegumi operates on a normalized state structure:
 Further Schema Specifications are to be found as YAML files in `/gnd` (ground directory, acting as the single source of truth).
 ---
 ## 🛠 Tech Stack
+
+### Current
 * **Core Framework**: Next.js 16 + App Router
 * **Rendering Library**: React 19
 * **State Management**: Zustand 5 equipped with `immer` for immutable state mutation and `persist` for LocalStorage synchronization
 * **Styling Engine**: Tailwind CSS v4 configured with CSS variables and design tokens in [globals.css]
-* **Drag-and-Drop Operations**: `@dnd-kit` (Core, Sortable, and Utilities)
 * **Micro-interactions & Fluid UI**: `motion` utilized via `motion/react` for high-performance, hardware-accelerated layout and gesture transitions
 * **Storage Medium**: IndexedDB with `localForage`
+
+### Planned
+* **Drag-and-Drop Operations**: `@dnd-kit` (Core, Sortable, and Utilities)
 * **Virtualization Engine**: `@tanstack/react-virtual` for dynamic, variable-height windowing while maintaining 60fps scrolling across infinite vertical layouts
 * **Video Rendering Engine**: `remotion` & `@remotion/player` to programmatically orchestrate video rendering for Short Video Format (SVF) exports directly in the client browser

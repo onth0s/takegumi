@@ -23,11 +23,3 @@ export function findTextBlock(
   return group?.blocks.find((b) => b.id === blockId);
 }
 
-export function findPanelIdForGroup(project: WProject, groupId: string): string | null {
-  for (const panel of project.panels) {
-    if (panel.textGroups.some((g) => g.id === groupId)) {
-      return panel.id;
-    }
-  }
-  return null;
-}

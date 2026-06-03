@@ -45,7 +45,7 @@ export default function ProjectDeleteControl({
       className={buttonClassName}
       title="Delete project"
     >
-      <img src="/SVG/delete.svg" className="w-2.5 h-2.5" alt="X" />
+      <img src="/SVG/delete.svg" className="w-2.5 h-2.5" alt="Delete project" />
     </button>
   );
 }

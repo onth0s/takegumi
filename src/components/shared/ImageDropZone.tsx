@@ -40,6 +40,7 @@ export default function ImageDropZone({
       role="button"
       tabIndex={0}
       id={id}
+      aria-label="Drop images here or click to browse"
       onClick={onOpen}
       onKeyDown={onKeyDown}
       onDragOver={onDragOver}

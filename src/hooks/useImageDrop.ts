@@ -45,7 +45,7 @@ export function useImageDrop(onFiles: (files: FileList) => void) {
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === "Enter") openFilePicker();
+      if (e.key === "Enter" || e.key === " ") openFilePicker();
     },
     [openFilePicker]
   );

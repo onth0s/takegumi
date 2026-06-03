@@ -88,8 +88,8 @@ export default function Recents() {
           <div className="flex gap-1">
             <button
               onClick={() => setViewMode("grid")}
+              aria-label="Thumbnail view"
               className={`p-1 rounded cursor-pointer transition-colors duration-150 ${viewMode === "grid" ? "bg-accent/15 text-accent" : "text-text-tertiary hover:bg-accent/5 hover:text-text-secondary"}`}
-              title="Thumbnail view"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="7" height="7"></rect>
@@ -100,8 +100,8 @@ export default function Recents() {
             </button>
             <button
               onClick={() => setViewMode("list")}
+              aria-label="List view"
               className={`p-1 rounded cursor-pointer transition-colors duration-150 ${viewMode === "list" ? "bg-accent/15 text-accent" : "text-text-tertiary hover:bg-accent/5 hover:text-text-secondary"}`}
-              title="List view"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="8" y1="6" x2="21" y2="6"></line>
@@ -160,6 +160,9 @@ export default function Recents() {
       </div>
 
       <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize sidebar"
         className="w-1.5 shrink-0 cursor-col-resize bg-transparent hover:bg-accent/20 active:bg-accent/35 transition-colors duration-150"
         onMouseDown={onMouseDown}
       />

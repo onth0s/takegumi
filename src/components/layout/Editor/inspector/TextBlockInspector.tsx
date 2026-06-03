@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { memo, useCallback } from "react";
 import type { WTextBlock } from "@/types/canvas";
 import {
   DEFAULT_WTB_COLOR,
@@ -26,7 +26,7 @@ interface Props {
   block: WTextBlock;
 }
 
-export default function TextBlockInspector({ panelId, groupId, block }: Props) {
+export default memo(function TextBlockInspector({ panelId, groupId, block }: Props) {
   const updateProject = useProjectStore((s) => s.updateProject);
 
   const mutateBlock = useCallback(
@@ -136,4 +136,4 @@ export default function TextBlockInspector({ panelId, groupId, block }: Props) {
       </InspectorSection>
     </div>
   );
-}
+});

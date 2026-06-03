@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { memo, useCallback } from "react";
 import type { WProject, CanvasTheme } from "@/types/canvas";
 import { useProjectStore } from "@/stores/projectStore";
 import {
@@ -16,7 +16,7 @@ interface Props {
   project: WProject;
 }
 
-export default function ProjectInspector({ project }: Props) {
+export default memo(function ProjectInspector({ project }: Props) {
   const updateProject = useProjectStore((s) => s.updateProject);
 
   const handleNameChange = useCallback(
@@ -113,4 +113,4 @@ export default function ProjectInspector({ project }: Props) {
       </InspectorSection>
     </div>
   );
-}
+});
