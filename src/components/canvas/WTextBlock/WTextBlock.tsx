@@ -71,7 +71,7 @@ export default function WTextBlock({
     <div
       onClick={handleClick}
       className={`relative flex items-center justify-center cursor-pointer${
-        isSelected ? " ring-2 ring-accent" : ""
+        isSelected ? " ring-2 ring-accent" : " hover:ring-1 hover:ring-border-default"
       }`}
       data-block-id={block.id}
     >

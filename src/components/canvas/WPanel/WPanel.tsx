@@ -30,7 +30,7 @@ export default function WPanel({ panel }: Props) {
     <div
       onClick={handleClick}
       className={`relative shadow-md overflow-visible shrink-0 cursor-pointer ${
-        isSelected ? "ring-2 ring-accent" : ""
+        isSelected ? "ring-2 ring-accent" : "hover:ring-1 hover:ring-border-default"
       } ${hasImage ? "animate-panel-fade-in bg-transparent" : "bg-surface-elevated"}`}
       style={{ width: `${panel.width}px`, height: `${panel.height}px` }}
     >

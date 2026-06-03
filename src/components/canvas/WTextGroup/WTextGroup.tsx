@@ -44,7 +44,7 @@ export default function WTextGroup({ panelId, group }: Props) {
     <div
       onClick={handleClick}
       className={`absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer ${
-        isSelected ? "ring-2 ring-accent" : ""
+        isSelected ? "ring-2 ring-accent" : "hover:ring-1 hover:ring-border-default"
       }`}
       style={{
         left: `${group.x}px`,
