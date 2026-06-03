@@ -1,5 +1,5 @@
 "use client";
-import { useRef } from "react";
+import { useRef, useCallback } from "react";
 import type { WTextGroup as WTextGroupType } from "@/types/canvas";
 import {
   DEFAULT_WTG_BACKGROUND_COLOR,
@@ -7,15 +7,30 @@ import {
   DEFAULT_WTG_OPACITY,
 } from "@/constants/canvasDefaults";
 import { useWPath } from "@/hooks/useWPath";
+import { useUIStore } from "@/stores/uiStore";
 import WTextBlock from "../WTextBlock";
 
 interface Props {
+  panelId: string;
   group: WTextGroupType;
 }
 
-export default function WTextGroup({ group }: Props) {
+export default function WTextGroup({ panelId, group }: Props) {
   const contentRef = useRef<HTMLDivElement>(null);
   const { backdropPath, tailPathString, width, height } = useWPath(group, contentRef);
+
+  const selectedGroupId = useUIStore((s) => s.selectedWTextGroupId);
+  const selectedBlockId = useUIStore((s) => s.selectedWTextBlockId);
+  const selectTextGroup = useUIStore((s) => s.selectTextGroup);
+  const isSelected = selectedGroupId === group.id && !selectedBlockId;
+
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      selectTextGroup(panelId, group.id);
+    },
+    [panelId, group.id, selectTextGroup]
+  );
 
   const opacity = group.style.opacity ?? DEFAULT_WTG_OPACITY;
   const borderWidth = group.style.borderWidth ?? DEFAULT_WTG_BORDER_WIDTH;
@@ -25,7 +40,10 @@ export default function WTextGroup({ group }: Props) {
 
   return (
     <div
-      className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
+      onClick={handleClick}
+      className={`absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer ${
+        isSelected ? "ring-2 ring-accent rounded-sm" : ""
+      }`}
       style={{
         left: `${group.x}px`,
         top: `${group.y}px`,
@@ -68,7 +86,7 @@ export default function WTextGroup({ group }: Props) {
         className="relative z-10 flex flex-col gap-1 text-center select-none"
       >
         {group.blocks.map((block) => (
-          <WTextBlock key={block.id} block={block} />
+          <WTextBlock key={block.id} panelId={panelId} groupId={group.id} block={block} />
         ))}
       </div>
     </div>

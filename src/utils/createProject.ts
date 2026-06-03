@@ -16,7 +16,7 @@ import {
 import { uid } from "@/utils/uid";
 
 /** Default WTextBlock — a single "Text Block" entry for a fresh panel. */
-function createDefaultBlock(): WTextBlock {
+export function createTextBlock(overrides?: Partial<WTextBlock>): WTextBlock {
   return {
     id: uid(),
     text: "Text Block",
@@ -27,6 +27,7 @@ function createDefaultBlock(): WTextBlock {
       textAlign: DEFAULT_WTB_TEXT_ALIGN,
       opacity: DEFAULT_WTB_OPACITY,
     },
+    ...overrides,
   };
 }
 
@@ -34,7 +35,7 @@ function createDefaultBlock(): WTextBlock {
  * Default WTextGroup — one group pre-seeded with a single default block.
  * `x` and `y` must always be passed explicitly (relative to the parent panel).
  */
-function createDefaultTextGroup(x: number, y: number): WTextGroup {
+export function createTextGroup(x: number, y: number, overrides?: Partial<WTextGroup>): WTextGroup {
   return {
     id: uid(),
     x,
@@ -47,7 +48,8 @@ function createDefaultTextGroup(x: number, y: number): WTextGroup {
       shapeType: DEFAULT_WTG_SHAPE_TYPE,
     },
     tailAnchor: null,
-    blocks: [createDefaultBlock()],
+    blocks: [createTextBlock()],
+    ...overrides,
   };
 }
 
@@ -68,7 +70,7 @@ export function createBlankPanel(overrides?: Partial<WPanel>): WPanel {
     y: 0,
     width,
     height,
-    textGroups: [createDefaultTextGroup(width / 2, height / 2)],
+    textGroups: [createTextGroup(width / 2, height / 2)],
     style: {},
     ...overrides,
   };

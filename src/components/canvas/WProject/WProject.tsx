@@ -2,6 +2,7 @@
 import { useCallback } from "react";
 import type { WProject as WProjectType } from "@/types/canvas";
 import { useProjectStore } from "@/stores/projectStore";
+import { useUIStore } from "@/stores/uiStore";
 import { createBlankPanel } from "@/utils/createProject";
 import { processImageFiles } from "@/utils/processImageFiles";
 import { useImageDrop } from "@/hooks/useImageDrop";
@@ -14,6 +15,16 @@ interface Props {
 
 export default function WProject({ project }: Props) {
   const updateProject = useProjectStore((s) => s.updateProject);
+  const clearSelection = useUIStore((s) => s.clearSelection);
+
+  const handleCanvasClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.target === e.currentTarget) {
+        clearSelection();
+      }
+    },
+    [clearSelection]
+  );
 
   const handleCreateBlankPanel = useCallback(() => {
     updateProject((draft) => {
@@ -37,7 +48,10 @@ export default function WProject({ project }: Props) {
   const drop = useImageDrop(handleFiles);
 
   return (
-    <div className="w-4/5 bg-background h-full overflow-y-auto no-scrollbar flex flex-col gap-8 p-8">
+    <div
+      onClick={handleCanvasClick}
+      className="w-4/5 bg-background h-full overflow-y-auto no-scrollbar flex flex-col gap-8 p-8"
+    >
       {project.panels.map((panel, i) => (
         <div
           key={panel.id}
