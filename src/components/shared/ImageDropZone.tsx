@@ -2,7 +2,7 @@
 
 const VARIANT_LAYOUT: Record<"home" | "editor", string> = {
   home: "flex-[6.5] h-64 rounded-xl bg-background px-6 text-center",
-  editor: "flex-[6.5] h-52 rounded-2xl px-8",
+  editor: "h-[200px] rounded-2xl px-[30px]",
 };
 
 interface Props {
@@ -46,7 +46,7 @@ export default function ImageDropZone({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
       className={[
-        "group flex flex-col items-center justify-center gap-2",
+        "group flex flex-col items-center justify-center gap-[10px]",
         "border-2 border-dashed cursor-pointer",
         "transition-colors duration-200 outline-none",
         "focus-visible:ring-1 focus-visible:ring-accent/50",
