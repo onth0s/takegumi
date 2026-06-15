@@ -100,3 +100,24 @@ export function percentToWidth(percent: number): number {
 
 /** Proximity threshold for snap-to-grid (clamped at runtime to gridSize / 2). */
 export const SNAP_PROXIMITY_THRESHOLD = 4;
+
+// ─── Panel Y snap helper ───────────────────────────────────────────────────────
+
+/**
+ * Snap a raw Y value to the nearest grid multiple.
+ *
+ * Returns `Math.round(y)` unchanged when:
+ * - `snapEnabled` is false (global snap off), or
+ * - `freeY` is true (per-panel override).
+ *
+ * Otherwise rounds to the nearest `gridSize` multiple.
+ */
+export function snapY(
+  y: number,
+  gridSize: number,
+  snapEnabled: boolean,
+  freeY: boolean | undefined,
+): number {
+  if (!snapEnabled || freeY) return Math.round(y);
+  return Math.round(y / gridSize) * gridSize;
+}

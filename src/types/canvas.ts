@@ -51,6 +51,8 @@ export interface WTextGroup {
 export interface WPanelStyle {
   gutter?: number;
   borderStyle?: string;
+  /** When true, the Y position is not rounded to the grid even if grid snap is on. */
+  freeY?: boolean;
 }
 
 export interface WPanel {

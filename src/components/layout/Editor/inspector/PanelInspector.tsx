@@ -7,11 +7,12 @@ import { useUIStore } from "@/stores/uiStore";
 import { createTextGroup } from "@/utils/createProject";
 import { deletePanelImage } from "@/utils/panelImageStorage";
 import { findPanel } from "@/utils/findInProject";
-import { CANVAS_MAX_WIDTH, xToPanelPercent, percentToPanelX, widthToPercent, percentToWidth } from "@/constants/canvasDefaults";
+import { CANVAS_MAX_WIDTH, xToPanelPercent, percentToPanelX, widthToPercent, percentToWidth, snapY } from "@/constants/canvasDefaults";
 import { ScrubInput, SmartSlider } from "@/components/shared/UI";
 import {
   InspectorButton,
   InspectorSection,
+  InspectorToggle,
   AlignmentControl,
 } from "./InspectorFields";
 
@@ -59,7 +60,10 @@ export default memo(function PanelInspector({ panel }: Props) {
 
   const endContinuous = () => useProjectStore.getState().endContinuousCommit();
 
+  const grid = useProjectStore((s) => s.project?.grid);
   const gutter = panel.style?.gutter;
+  const freeY = panel.style?.freeY ?? false;
+  const isSnapping = (grid?.snapEnabled ?? false) && !freeY;
   const hasImage = panel.imageUrl !== null;
   const panelPercent = xToPanelPercent(panel.x, panel.width);
 
@@ -86,10 +90,26 @@ export default memo(function PanelInspector({ panel }: Props) {
             onChange={(v) => mutatePanel((p) => { p.x = percentToPanelX(v, p.width); }, "continuous")}
             onCommit={endContinuous}
           />
-          <ScrubInput label="Y" value={Math.round(panel.y)} step={1} fineStep={1} min={-9999} max={9999} suffix="px"
-            onChange={(v) => mutatePanel((p) => { p.y = Math.round(v); }, "continuous")}
+          <ScrubInput label="Y" value={Math.round(panel.y)} step={isSnapping ? (grid?.size ?? 1) : 1} fineStep={1} min={-9999} max={9999} suffix="px"
+            onChange={(v) => mutatePanel((p) => { p.y = snapY(v, grid?.size ?? 1, grid?.snapEnabled ?? false, p.style?.freeY); }, "continuous")}
             onCommit={endContinuous}
           />
+          {grid?.snapEnabled && (
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-text-secondary">Free Y</span>
+              <InspectorToggle
+                checked={freeY}
+                onChange={(checked) =>
+                  mutatePanel((p) => {
+                    p.style = { ...p.style, freeY: checked || undefined };
+                    if (!checked && grid.snapEnabled) {
+                      p.y = snapY(p.y, grid.size, true, false);
+                    }
+                  })
+                }
+              />
+            </div>
+          )}
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs text-text-secondary">Align</span>
             <AlignmentControl value={currentAlign} onChange={handleAlign} />
