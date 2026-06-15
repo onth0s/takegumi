@@ -18,6 +18,9 @@ export const metadata: Metadata = {
   title: "Takegumi",
   description:
     "View and edit illustrated webtoon panels with text overlays, styling and animations. Designed for Webtoon content with Short Video Format export support.",
+  icons: {
+    icon: "/SVG/Takegumi.svg",
+  },
 };
 
 export default function RootLayout({

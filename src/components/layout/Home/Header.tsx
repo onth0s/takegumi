@@ -1,8 +1,13 @@
 export default function Header() {
   return (
     <div className="flex flex-col items-center text-center gap-4">
-      <h1 className="text-4xl font-light tracking-wider text-accent">
-        竹 Takegumi
+      <h1 className="text-5xl font-light tracking-wider text-accent flex items-center gap-3">
+        <img
+          src="/SVG/Takegumi.svg"
+          alt="Takegumi Logo"
+          className="w-26 h-auto"
+        />
+        <span>Takegumi</span>
       </h1>
       <p className="text-base text-text-secondary leading-relaxed max-w-md">
         Webtoon content creation with SVF export —{" "}
