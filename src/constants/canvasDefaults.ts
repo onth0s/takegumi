@@ -6,6 +6,7 @@ export {
   DEFAULT_CANVAS_THEME,
   DEFAULT_WTG_OPACITY,
   DEFAULT_WTG_BACKGROUND_COLOR,
+  DEFAULT_WTG_WIDTH,
   DEFAULT_WTG_BORDER_RADIUS,
   DEFAULT_WTG_BORDER_WIDTH,
   DEFAULT_WTG_SHAPE_TYPE,
@@ -100,6 +101,27 @@ export function percentToWidth(percent: number): number {
 
 /** Proximity threshold for snap-to-grid (clamped at runtime to gridSize / 2). */
 export const SNAP_PROXIMITY_THRESHOLD = 4;
+
+// ─── Panel X snap helper ───────────────────────────────────────────────────────
+
+/**
+ * Snap a raw X value to the nearest grid multiple.
+ *
+ * Returns `Math.round(x)` unchanged when:
+ * - `snapEnabled` is false (global snap off), or
+ * - `freeX` is true (per-panel override).
+ *
+ * Otherwise rounds to the nearest `gridSize` multiple.
+ */
+export function snapX(
+  x: number,
+  gridSize: number,
+  snapEnabled: boolean,
+  freeX: boolean | undefined,
+): number {
+  if (!snapEnabled || freeX) return Math.round(x);
+  return Math.round(x / gridSize) * gridSize;
+}
 
 // ─── Panel Y snap helper ───────────────────────────────────────────────────────
 

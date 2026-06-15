@@ -29,6 +29,7 @@ const PATH_TO_CONST = {
   "WProject.canvasTheme":               "DEFAULT_CANVAS_THEME",
   "WTextGroup.style.opacity":           "DEFAULT_WTG_OPACITY",
   "WTextGroup.style.backgroundColor":   "DEFAULT_WTG_BACKGROUND_COLOR",
+  "WTextGroup.style.width":             "DEFAULT_WTG_WIDTH",
   "WTextGroup.style.borderRadius":      "DEFAULT_WTG_BORDER_RADIUS",
   "WTextGroup.style.borderWidth":       "DEFAULT_WTG_BORDER_WIDTH",
   "WTextGroup.style.shapeType":         "DEFAULT_WTG_SHAPE_TYPE",

@@ -31,6 +31,8 @@ export interface WTextBlock {
 export interface WTextGroupStyle {
   opacity?: number;
   backgroundColor?: string;
+  width?: number;
+  freeWidth?: boolean;
   borderRadius?: number;
   borderWidth?: number;
   shapeType?: "pill" | "rounded-rectangle" | "action-burst" | "rect";
@@ -51,6 +53,8 @@ export interface WTextGroup {
 export interface WPanelStyle {
   gutter?: number;
   borderStyle?: string;
+  /** When true, the X position is not rounded to the grid even if grid snap is on. */
+  freeX?: boolean;
   /** When true, the Y position is not rounded to the grid even if grid snap is on. */
   freeY?: boolean;
   /** When true, the Width is not rounded to the grid even if grid snap is on. */

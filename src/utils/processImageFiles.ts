@@ -16,9 +16,9 @@ async function finalizePanel(panel: WPanel, file: Blob): Promise<WPanel> {
  * {@link IMPORT_PANEL_WIDTH}. Panels are created sequentially so each
  * inherits a position that alternates relative to the previous one.
  */
-export async function processImageFiles(files: FileList | File[]): Promise<WPanel[]> {
+export async function processImageFiles(files: FileList | File[], existingPanels: WPanel[] = []): Promise<WPanel[]> {
   const fileArray = Array.from(files);
-  const panels: WPanel[] = [];
+  const panels: WPanel[] = [...existingPanels];
 
   for (const file of fileArray) {
     const panel = await new Promise<WPanel>((resolve) => {
@@ -45,5 +45,5 @@ export async function processImageFiles(files: FileList | File[]): Promise<WPane
     panels.push(panel);
   }
 
-  return panels;
+  return panels.slice(existingPanels.length);
 }

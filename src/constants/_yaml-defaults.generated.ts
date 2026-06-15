@@ -18,6 +18,8 @@ export const DEFAULT_CANVAS_THEME = "light";
 export const DEFAULT_WTG_OPACITY = 0.5;
 /** style.backgroundColor */
 export const DEFAULT_WTG_BACKGROUND_COLOR = "#000000";
+/** style.width */
+export const DEFAULT_WTG_WIDTH = 200;
 /** style.borderRadius */
 export const DEFAULT_WTG_BORDER_RADIUS = 8;
 /** style.borderWidth */

@@ -4,6 +4,7 @@ import {
   DEFAULT_PANEL_HEIGHT,
   DEFAULT_WTG_BACKGROUND_COLOR,
   DEFAULT_WTG_OPACITY,
+  DEFAULT_WTG_WIDTH,
   DEFAULT_WTG_BORDER_RADIUS,
   DEFAULT_WTG_BORDER_WIDTH,
   DEFAULT_WTG_SHAPE_TYPE,
@@ -49,6 +50,7 @@ export function createTextGroup(x: number, y: number, overrides?: Partial<WTextG
     style: {
       opacity: DEFAULT_WTG_OPACITY,
       backgroundColor: DEFAULT_WTG_BACKGROUND_COLOR,
+      width: DEFAULT_WTG_WIDTH,
       borderRadius: DEFAULT_WTG_BORDER_RADIUS,
       borderWidth: DEFAULT_WTG_BORDER_WIDTH,
       shapeType: DEFAULT_WTG_SHAPE_TYPE,

@@ -7,7 +7,7 @@ import { useUIStore } from "@/stores/uiStore";
 import { createTextGroup } from "@/utils/createProject";
 import { deletePanelImage } from "@/utils/panelImageStorage";
 import { findPanel } from "@/utils/findInProject";
-import { CANVAS_MAX_WIDTH, xToPanelPercent, percentToPanelX, widthToPercent, percentToWidth, snapY, snapWidth } from "@/constants/canvasDefaults";
+import { CANVAS_MAX_WIDTH, xToPanelPercent, percentToPanelX, widthToPercent, percentToWidth, snapX, snapY, snapWidth } from "@/constants/canvasDefaults";
 import { ScrubInput, SmartSlider } from "@/components/shared/UI";
 import {
   InspectorButton,
@@ -62,8 +62,10 @@ export default memo(function PanelInspector({ panel }: Props) {
 
   const grid = useProjectStore((s) => s.project?.grid);
   const gutter = panel.style?.gutter;
+  const freeX = panel.style?.freeX ?? false;
   const freeY = panel.style?.freeY ?? false;
-  const isSnapping = (grid?.snapEnabled ?? false) && !freeY;
+  const isSnappingX = (grid?.snapEnabled ?? false) && !freeX;
+  const isSnappingY = (grid?.snapEnabled ?? false) && !freeY;
   const freeWidth = panel.style?.freeWidth ?? false;
   const hasImage = panel.imageUrl !== null;
   const panelPercent = xToPanelPercent(panel.x, panel.width);
@@ -72,10 +74,18 @@ export default memo(function PanelInspector({ panel }: Props) {
     (dir: "left" | "center" | "right") => {
       mutatePanel((p) => {
         const percent = dir === "left" ? 0 : dir === "center" ? 50 : 100;
+        if (grid?.snapEnabled && !p.style?.freeWidth) {
+          const effectiveGridSize = dir === "center" ? grid.size * 2 : grid.size;
+          const snapped = snapWidth(p.width, effectiveGridSize, true, false);
+          if (p.width > 0 && snapped !== p.width) {
+            p.height = Math.round(p.height * (snapped / p.width));
+            p.width = snapped;
+          }
+        }
         p.x = percentToPanelX(percent, p.width);
       });
     },
-    [mutatePanel]
+    [mutatePanel, grid?.snapEnabled, grid?.size]
   );
 
   const currentAlign: "left" | "center" | "right" =
@@ -88,10 +98,19 @@ export default memo(function PanelInspector({ panel }: Props) {
         <div className="flex flex-col gap-3">
           <SmartSlider label={`Position: ${panelPercent}%`} value={panelPercent} min={0} max={100} step={1} fineStep={1}
             ctrlSteps={[0, 25, 50, 75, 100]}
-            onChange={(v) => mutatePanel((p) => { p.x = percentToPanelX(v, p.width); }, "continuous")}
+            onChange={(v) => mutatePanel((p) => {
+              const rawX = percentToPanelX(v, p.width);
+              p.x = snapX(rawX, grid?.size ?? 1, grid?.snapEnabled ?? false, p.style?.freeX);
+            }, "continuous")}
             onCommit={endContinuous}
           />
-          <ScrubInput label="Y" value={Math.round(panel.y)} step={isSnapping ? (grid?.size ?? 1) : 1} fineStep={1} min={-9999} max={9999} suffix="px"
+          <ScrubInput label="X" value={Math.round(panel.x)} step={isSnappingX ? (grid?.size ?? 1) : 1} fineStep={1} min={-9999} max={9999} suffix="px"
+            onChange={(v) => mutatePanel((p) => {
+              p.x = snapX(v, grid?.size ?? 1, grid?.snapEnabled ?? false, p.style?.freeX);
+            }, "continuous")}
+            onCommit={endContinuous}
+          />
+          <ScrubInput label="Y" value={Math.round(panel.y)} step={isSnappingY ? (grid?.size ?? 1) : 1} fineStep={1} min={-9999} max={9999} suffix="px"
             onChange={(v) => mutatePanel((p, draft) => {
               const newY = snapY(v, grid?.size ?? 1, grid?.snapEnabled ?? false, p.style?.freeY);
               const deltaY = newY - p.y;
@@ -108,20 +127,36 @@ export default memo(function PanelInspector({ panel }: Props) {
             onCommit={endContinuous}
           />
           {grid?.snapEnabled && (
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs text-text-secondary">Free Y</span>
-              <InspectorToggle
-                checked={freeY}
-                onChange={(checked) =>
-                  mutatePanel((p) => {
-                    p.style = { ...p.style, freeY: checked || undefined };
-                    if (!checked && grid.snapEnabled) {
-                      p.y = snapY(p.y, grid.size, true, false);
-                    }
-                  })
-                }
-              />
-            </div>
+            <>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs text-text-secondary">Free X</span>
+                <InspectorToggle
+                  checked={freeX}
+                  onChange={(checked) =>
+                    mutatePanel((p) => {
+                      p.style = { ...p.style, freeX: checked || undefined };
+                      if (!checked && grid.snapEnabled) {
+                        p.x = snapX(p.x, grid.size, true, false);
+                      }
+                    })
+                  }
+                />
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs text-text-secondary">Free Y</span>
+                <InspectorToggle
+                  checked={freeY}
+                  onChange={(checked) =>
+                    mutatePanel((p) => {
+                      p.style = { ...p.style, freeY: checked || undefined };
+                      if (!checked && grid.snapEnabled) {
+                        p.y = snapY(p.y, grid.size, true, false);
+                      }
+                    })
+                  }
+                />
+              </div>
+            </>
           )}
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs text-text-secondary">Align</span>
@@ -136,25 +171,35 @@ export default memo(function PanelInspector({ panel }: Props) {
             ctrlSteps={[10, 25, 50, 75, 100]}
             onChange={(v) => mutatePanel((p) => {
               const rawWidth = percentToWidth(v);
-              const newWidth = snapWidth(rawWidth, grid?.size ?? 1, grid?.snapEnabled ?? false, p.style?.freeWidth);
               const oldWidth = p.width;
+              
+              const maxX = CANVAS_MAX_WIDTH - oldWidth;
+              const percent = maxX > 0 ? (p.x / maxX) * 100 : 50;
+              const isCentered = Math.abs(percent - 50) <= 2;
+              
+              const effectiveGridSize = isCentered ? (grid?.size ?? 1) * 2 : (grid?.size ?? 1);
+              const newWidth = snapWidth(rawWidth, effectiveGridSize, grid?.snapEnabled ?? false, p.style?.freeWidth);
               
               // Scale height proportionally to maintain aspect ratio
               if (oldWidth > 0) {
                 p.height = Math.round(p.height * (newWidth / oldWidth));
               }
 
-              const maxX = CANVAS_MAX_WIDTH - oldWidth;
-              const percent = maxX > 0 ? (p.x / maxX) * 100 : 50;
               if (percent <= 2) {
                 p.x = 0;
               } else if (percent >= 98) {
                 p.x = CANVAS_MAX_WIDTH - newWidth;
-              } else if (Math.abs(percent - 50) <= 2) {
+              } else if (isCentered) {
                 p.x = percentToPanelX(50, newWidth);
               } else {
                 const center = p.x + oldWidth / 2;
-                p.x = Math.round(center - newWidth / 2);
+                let nextX = center - newWidth / 2;
+                if (grid?.snapEnabled && !p.style?.freeX) {
+                  nextX = snapX(nextX, grid.size, true, false);
+                } else {
+                  nextX = Math.round(nextX);
+                }
+                p.x = nextX;
               }
               p.width = newWidth;
             }, "continuous")}
@@ -170,13 +215,29 @@ export default memo(function PanelInspector({ panel }: Props) {
                     p.style = { ...p.style, freeWidth: checked || undefined };
                     if (!checked && grid.snapEnabled) {
                       const oldWidth = p.width;
-                      const snapped = snapWidth(oldWidth, grid.size, true, false);
                       const maxX = CANVAS_MAX_WIDTH - oldWidth;
                       const pct = maxX > 0 ? (p.x / maxX) * 100 : 50;
+                      const isCentered = Math.abs(pct - 50) <= 2;
+                      const effectiveGridSize = isCentered ? grid.size * 2 : grid.size;
+                      const snapped = snapWidth(oldWidth, effectiveGridSize, true, false);
+                      
+                      // Scale height proportionally to maintain aspect ratio
+                      if (oldWidth > 0 && snapped !== oldWidth) {
+                        p.height = Math.round(p.height * (snapped / oldWidth));
+                      }
+
                       if (pct <= 2) p.x = 0;
                       else if (pct >= 98) p.x = CANVAS_MAX_WIDTH - snapped;
-                      else if (Math.abs(pct - 50) <= 2) p.x = percentToPanelX(50, snapped);
-                      else p.x = Math.round(p.x + oldWidth / 2 - snapped / 2);
+                      else if (isCentered) p.x = percentToPanelX(50, snapped);
+                      else {
+                        let nextX = p.x + oldWidth / 2 - snapped / 2;
+                        if (grid.snapEnabled && !p.style?.freeX) {
+                          nextX = snapX(nextX, grid.size, true, false);
+                        } else {
+                          nextX = Math.round(nextX);
+                        }
+                        p.x = nextX;
+                      }
                       p.width = snapped;
                     }
                   })

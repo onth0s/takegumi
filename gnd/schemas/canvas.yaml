@@ -79,6 +79,9 @@ WPanel:
         borderStyle:
           type: string
           description: Synthetic border style token
+        freeX:
+          type: boolean
+          description: When true, X position is not snapped to grid
         freeY:
           type: boolean
           description: When true, Y position is not snapped to grid
@@ -111,6 +114,13 @@ WTextGroup:
           type: string
           description: Backdrop fill color (opacity applied separately via style.opacity)
           default: "#000000"
+        width:
+          type: number
+          default: 200
+          description: Custom width in pixels
+        freeWidth:
+          type: boolean
+          description: When true, width is not snapped to grid
         borderRadius:
           type: number
           default: 8

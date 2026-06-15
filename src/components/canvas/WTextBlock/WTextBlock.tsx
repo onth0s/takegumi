@@ -51,7 +51,12 @@ export default function WTextBlock({
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      selectTextBlock(panelId, groupId, block.id);
+      const selectedGroupId = useUIStore.getState().selectedWTextGroupId;
+      if (selectedGroupId === groupId) {
+        selectTextBlock(panelId, groupId, block.id);
+      } else {
+        useUIStore.getState().selectTextGroup(panelId, groupId);
+      }
     },
     [panelId, groupId, block.id, selectTextBlock]
   );
@@ -77,7 +82,7 @@ export default function WTextBlock({
   return (
     <div
       onClick={handleClick}
-      className={`relative flex items-center justify-center cursor-pointer${
+      className={`relative cursor-pointer${
         isSelected ? " ring-2 ring-accent" : " hover:ring-1 hover:ring-border-default"
       }`}
       data-block-id={block.id}

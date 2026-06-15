@@ -1,8 +1,6 @@
 import { RefObject, useMemo } from "react";
 import type { WTextGroup } from "@/types/canvas";
 import {
-  BACKDROP_PAD_X,
-  BACKDROP_PAD_Y,
   DEFAULT_WTG_BORDER_RADIUS,
   DEFAULT_WTG_SHAPE_TYPE,
 } from "@/constants/canvasDefaults";
@@ -24,7 +22,7 @@ export function useWPath(group: WTextGroup, contentRef: RefObject<HTMLElement | 
     [group.blocks]
   );
 
-  const dimensions = useElementDimensions(contentRef, [blocksKey, contentRef], BACKDROP_PAD_X, BACKDROP_PAD_Y);
+  const dimensions = useElementDimensions(contentRef, [blocksKey, contentRef], 0, 0);
   const { width, height } = dimensions;
   const shape = group.style.shapeType ?? DEFAULT_WTG_SHAPE_TYPE;
   const r = group.style.borderRadius ?? DEFAULT_WTG_BORDER_RADIUS;

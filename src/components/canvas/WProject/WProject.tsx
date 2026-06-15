@@ -37,7 +37,7 @@ export default function WProject({ project }: Props) {
 
   const handleFiles = useCallback(
     (files: FileList) => {
-      processImageFiles(files).then((panels) => {
+      processImageFiles(files, project.panels).then((panels) => {
         updateProject((draft) => {
           panels.forEach((p) => {
             draft.panels.push(p);
@@ -45,7 +45,7 @@ export default function WProject({ project }: Props) {
         });
       }).catch((err) => console.error("Failed to process images:", err));
     },
-    [updateProject]
+    [updateProject, project.panels]
   );
 
   const drop = useImageDrop(handleFiles);

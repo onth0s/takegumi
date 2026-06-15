@@ -9,6 +9,7 @@ import {
   DEFAULT_WTG_BORDER_WIDTH,
   DEFAULT_WTG_OPACITY,
   DEFAULT_WTG_SHAPE_TYPE,
+  DEFAULT_WTG_WIDTH,
   GROUP_PADDING,
 } from "@/constants/canvasDefaults";
 import { useProjectStore } from "@/stores/projectStore";
@@ -33,7 +34,7 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
   const selectTextBlock = useUIStore((s) => s.selectTextBlock);
 
   const mutateGroup = useCallback(
-    (recipe: (g: WTextGroup) => void, commitType: "discrete" | "continuous" = "continuous") => {
+    (recipe: (g: WTextGroup) => void, commitType: "discrete" | "continuous" = "discrete") => {
       updateProject(
         (draft) => {
           const g = findTextGroup(draft, panelId, group.id);
@@ -104,6 +105,15 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
   const tailX = group.tailAnchor?.x ?? group.x;
   const tailY = group.tailAnchor?.y ?? group.y + 80;
 
+  const widthVal = group.style.width ?? DEFAULT_WTG_WIDTH;
+  const freeWidth = group.style.freeWidth ?? false;
+  const isSnappingWidth = (project?.grid?.snapEnabled ?? false) && !freeWidth;
+
+  const snapGroupWidth = useCallback((w: number, size: number, enabled: boolean, free: boolean | undefined) => {
+    if (!enabled || free) return Math.round(Math.max(40, w));
+    return Math.round(Math.max(40, Math.round(w / size) * size));
+  }, []);
+
   return (
     <div className="flex flex-col gap-6">
       <InspectorSection title="Position">
@@ -120,6 +130,33 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
         <div className="flex items-center justify-between gap-2">
           <span className="text-xs text-text-secondary">Align</span>
           <AlignmentControl value={currentAlign} onChange={handleAlign} />
+        </div>
+      </InspectorSection>
+
+      <InspectorSection title="Dimensions">
+        <div className="flex flex-col gap-3">
+          <ScrubInput label="Width" value={Math.round(widthVal)} step={isSnappingWidth ? (project?.grid?.size ?? 1) : 1} fineStep={1} min={40} max={9999} suffix="px"
+            onChange={(v) => mutateGroup((g) => {
+              g.style.width = snapGroupWidth(v, project?.grid?.size ?? 1, project?.grid?.snapEnabled ?? false, g.style.freeWidth);
+            }, "continuous")}
+            onCommit={endContinuous}
+          />
+          {project?.grid?.snapEnabled && (
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-text-secondary">Free Width</span>
+              <ToggleSwitch
+                checked={freeWidth}
+                onChange={(checked) =>
+                  mutateGroup((g) => {
+                    g.style.freeWidth = checked || undefined;
+                    if (!checked && project.grid.snapEnabled) {
+                      g.style.width = snapGroupWidth(g.style.width ?? DEFAULT_WTG_WIDTH, project.grid.size, true, false);
+                    }
+                  })
+                }
+              />
+            </div>
+          )}
         </div>
       </InspectorSection>
 
