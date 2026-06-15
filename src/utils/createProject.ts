@@ -85,11 +85,18 @@ export function createBlankPanel(overrides?: Partial<WPanel>, existingPanels?: W
     x = percentToPanelX(50, width);
   }
 
+  let y = overrides?.y ?? 0;
+  if (overrides?.y === undefined && existingPanels && existingPanels.length > 0) {
+    // Stack below the lowest panel bottom edge, with 40px spacing
+    const lowestY = Math.max(...existingPanels.map((p) => p.y + p.height));
+    y = lowestY + 40;
+  }
+
   return {
     id: uid(),
     imageUrl: null,
     x,
-    y: 0,
+    y,
     width,
     height,
     textGroups: [createTextGroup(x + width / 2, height / 2)],

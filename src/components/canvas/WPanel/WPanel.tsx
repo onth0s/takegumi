@@ -32,16 +32,16 @@ export default function WPanel({ panel }: Props) {
       className={`relative shadow-md overflow-visible shrink-0 cursor-pointer ${
         isSelected ? "ring-2 ring-accent" : "hover:ring-1 hover:ring-border-default"
       } ${hasImage ? "animate-panel-fade-in" : "bg-surface-elevated"}`}
-      style={{ width: `${panel.width}px` }}
+      style={{ width: `${panel.width}px`, height: `${panel.height}px` }}
     >
       {/* Background image layer — normal flow determines height */}
       {hasImage ? (
         <WPanelImage
           imageUrl={panel.imageUrl}
-          className="w-full block"
+          className="w-full h-full block object-cover"
         />
       ) : (
-        <div className="min-h-[150px] bg-placeholder" />
+        <div className="w-full h-full bg-placeholder" />
       )}
 
       {/* Text group overlay — absolutely positioned within panel coordinate space */}

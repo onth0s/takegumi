@@ -56,10 +56,10 @@ WPanel:
       nullable: true
     x:
       type: number
-      description: Reserved for absolute layout engine — flex layout used today
+      description: Absolute horizontal X-coordinate on the canvas layout
     y:
       type: number
-      description: Reserved for absolute layout engine — flex layout used today
+      description: Absolute vertical Y-coordinate on the canvas layout
     width:
       type: number
       description: Width in pixels
@@ -75,10 +75,16 @@ WPanel:
       properties:
         gutter:
           type: number
-          description: Spacing between adjacent panels (not yet wired)
+          description: Spacing between adjacent panels
         borderStyle:
           type: string
-          description: Synthetic border style token (not yet wired)
+          description: Synthetic border style token
+        freeY:
+          type: boolean
+          description: When true, Y position is not snapped to grid
+        freeWidth:
+          type: boolean
+          description: When true, width is not snapped to grid
 
 WTextGroup:
   type: object

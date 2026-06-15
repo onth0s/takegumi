@@ -1,13 +1,13 @@
 "use client";
 
 import { memo, useCallback } from "react";
-import type { WPanel } from "@/types/canvas";
+import type { WPanel, WProject } from "@/types/canvas";
 import { useProjectStore } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
 import { createTextGroup } from "@/utils/createProject";
 import { deletePanelImage } from "@/utils/panelImageStorage";
 import { findPanel } from "@/utils/findInProject";
-import { CANVAS_MAX_WIDTH, xToPanelPercent, percentToPanelX, widthToPercent, percentToWidth, snapY } from "@/constants/canvasDefaults";
+import { CANVAS_MAX_WIDTH, xToPanelPercent, percentToPanelX, widthToPercent, percentToWidth, snapY, snapWidth } from "@/constants/canvasDefaults";
 import { ScrubInput, SmartSlider } from "@/components/shared/UI";
 import {
   InspectorButton,
@@ -25,11 +25,11 @@ export default memo(function PanelInspector({ panel }: Props) {
   const clearSelection = useUIStore((s) => s.clearSelection);
 
   const mutatePanel = useCallback(
-    (recipe: (p: WPanel) => void, commitType: "discrete" | "continuous" = "discrete") => {
+    (recipe: (p: WPanel, draft?: WProject) => void, commitType: "discrete" | "continuous" = "discrete") => {
       updateProject(
         (draft) => {
           const p = findPanel(draft, panel.id);
-          if (p) recipe(p);
+          if (p) recipe(p, draft);
         },
         commitType,
         panel.id
@@ -64,6 +64,7 @@ export default memo(function PanelInspector({ panel }: Props) {
   const gutter = panel.style?.gutter;
   const freeY = panel.style?.freeY ?? false;
   const isSnapping = (grid?.snapEnabled ?? false) && !freeY;
+  const freeWidth = panel.style?.freeWidth ?? false;
   const hasImage = panel.imageUrl !== null;
   const panelPercent = xToPanelPercent(panel.x, panel.width);
 
@@ -91,7 +92,19 @@ export default memo(function PanelInspector({ panel }: Props) {
             onCommit={endContinuous}
           />
           <ScrubInput label="Y" value={Math.round(panel.y)} step={isSnapping ? (grid?.size ?? 1) : 1} fineStep={1} min={-9999} max={9999} suffix="px"
-            onChange={(v) => mutatePanel((p) => { p.y = snapY(v, grid?.size ?? 1, grid?.snapEnabled ?? false, p.style?.freeY); }, "continuous")}
+            onChange={(v) => mutatePanel((p, draft) => {
+              const newY = snapY(v, grid?.size ?? 1, grid?.snapEnabled ?? false, p.style?.freeY);
+              const deltaY = newY - p.y;
+              if (deltaY !== 0 && draft) {
+                const targetIndex = draft.panels.findIndex((x: WPanel) => x.id === p.id);
+                if (targetIndex !== -1) {
+                  for (let i = targetIndex + 1; i < draft.panels.length; i++) {
+                    draft.panels[i].y += deltaY;
+                  }
+                }
+              }
+              p.y = newY;
+            }, "continuous")}
             onCommit={endContinuous}
           />
           {grid?.snapEnabled && (
@@ -122,8 +135,15 @@ export default memo(function PanelInspector({ panel }: Props) {
           <SmartSlider label={`Width: ${widthToPercent(panel.width)}%`} value={widthToPercent(panel.width)} min={10} max={100} step={1} fineStep={1}
             ctrlSteps={[10, 25, 50, 75, 100]}
             onChange={(v) => mutatePanel((p) => {
-              const newWidth = percentToWidth(v);
+              const rawWidth = percentToWidth(v);
+              const newWidth = snapWidth(rawWidth, grid?.size ?? 1, grid?.snapEnabled ?? false, p.style?.freeWidth);
               const oldWidth = p.width;
+              
+              // Scale height proportionally to maintain aspect ratio
+              if (oldWidth > 0) {
+                p.height = Math.round(p.height * (newWidth / oldWidth));
+              }
+
               const maxX = CANVAS_MAX_WIDTH - oldWidth;
               const percent = maxX > 0 ? (p.x / maxX) * 100 : 50;
               if (percent <= 2) {
@@ -140,6 +160,30 @@ export default memo(function PanelInspector({ panel }: Props) {
             }, "continuous")}
             onCommit={endContinuous}
           />
+          {grid?.snapEnabled && (
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-text-secondary">Free Width</span>
+              <InspectorToggle
+                checked={freeWidth}
+                onChange={(checked) =>
+                  mutatePanel((p) => {
+                    p.style = { ...p.style, freeWidth: checked || undefined };
+                    if (!checked && grid.snapEnabled) {
+                      const oldWidth = p.width;
+                      const snapped = snapWidth(oldWidth, grid.size, true, false);
+                      const maxX = CANVAS_MAX_WIDTH - oldWidth;
+                      const pct = maxX > 0 ? (p.x / maxX) * 100 : 50;
+                      if (pct <= 2) p.x = 0;
+                      else if (pct >= 98) p.x = CANVAS_MAX_WIDTH - snapped;
+                      else if (Math.abs(pct - 50) <= 2) p.x = percentToPanelX(50, snapped);
+                      else p.x = Math.round(p.x + oldWidth / 2 - snapped / 2);
+                      p.width = snapped;
+                    }
+                  })
+                }
+              />
+            </div>
+          )}
         </div>
         {gutter !== undefined && (
           <ScrubInput label="Gutter" value={gutter} step={1} fineStep={1} min={0} max={100} suffix="px"

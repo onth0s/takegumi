@@ -121,3 +121,32 @@ export function snapY(
   if (!snapEnabled || freeY) return Math.round(y);
   return Math.round(y / gridSize) * gridSize;
 }
+
+// ─── Panel Width snap helper ──────────────────────────────────────────────────
+
+/**
+ * Snap a raw pixel width to the nearest grid multiple,
+ * clamped to [minWidth, CANVAS_MAX_WIDTH].
+ *
+ * The slider operates in percentage space while the grid is in pixel space, so
+ * snapping must be applied to the pixel value after `percentToWidth` converts it.
+ *
+ * Returns a clamped `Math.round(width)` unchanged when:
+ * - `snapEnabled` is false (global snap off), or
+ * - `freeWidth` is true (per-panel override).
+ *
+ * Otherwise rounds to the nearest `gridSize` multiple, then re-clamps.
+ */
+export function snapWidth(
+  width: number,
+  gridSize: number,
+  snapEnabled: boolean,
+  freeWidth: boolean | undefined,
+): number {
+  const minWidth = (MIN_PANEL_WIDTH_PERCENT / 100) * CANVAS_MAX_WIDTH;
+  if (!snapEnabled || freeWidth) {
+    return Math.round(Math.min(CANVAS_MAX_WIDTH, Math.max(minWidth, width)));
+  }
+  const snapped = Math.round(width / gridSize) * gridSize;
+  return Math.min(CANVAS_MAX_WIDTH, Math.max(minWidth, snapped));
+}

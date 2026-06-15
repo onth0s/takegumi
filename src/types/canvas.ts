@@ -53,6 +53,8 @@ export interface WPanelStyle {
   borderStyle?: string;
   /** When true, the Y position is not rounded to the grid even if grid snap is on. */
   freeY?: boolean;
+  /** When true, the Width is not rounded to the grid even if grid snap is on. */
+  freeWidth?: boolean;
 }
 
 export interface WPanel {

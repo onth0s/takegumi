@@ -49,27 +49,38 @@ export default function WProject({ project }: Props) {
 
   const drop = useImageDrop(handleFiles);
 
+  const panelsBottom = project.panels.length > 0 
+    ? Math.max(...project.panels.map((p) => p.y + p.height)) 
+    : 0;
+  // Calculate total height of the canvas contents: panels + buffer for the drop footer
+  // footer is 200px tall, plus gap/padding
+  const contentHeight = Math.max(500, panelsBottom + 280);
+
   return (
     <div
       onClick={handleCanvasClick}
-      className={`relative w-full max-w-[960px] h-full overflow-y-auto no-scrollbar flex flex-col gap-[40px] pt-[40px] pb-[40px] ${
+      className={`relative w-full max-w-[960px] h-full overflow-y-auto no-scrollbar ${
         project.canvasTheme === "dark" ? "bg-black" : "bg-white"
       }`}
     >
-      {project.grid.showGrid && (
-        <WGrid gridSize={project.grid.size} canvasTheme={project.canvasTheme} />
-      )}
-      {process.env.NODE_ENV === "development" && <DebugAxis />}
-      {project.panels.map((panel) => (
-        <div
-          key={panel.id}
-          style={{ alignSelf: 'flex-start', marginLeft: panel.x, marginTop: panel.y }}
-        >
-          <WPanel panel={panel} />
-        </div>
-      ))}
+      <div style={{ position: "relative", width: "100%", height: `${contentHeight}px` }}>
+        {project.grid.showGrid && (
+          <WGrid gridSize={project.grid.size} canvasTheme={project.canvasTheme} />
+        )}
+        {process.env.NODE_ENV === "development" && <DebugAxis />}
+        {project.panels.map((panel) => (
+          <div
+            key={panel.id}
+            style={{ position: 'absolute', left: panel.x, top: panel.y }}
+          >
+            <WPanel panel={panel} />
+          </div>
+        ))}
 
-      <div className={`grid grid-cols-[560px_1fr] gap-[20px] shrink-0 px-[40px] ${project.panels.length > 0 ? "mt-auto" : ""}`}>
+        <div 
+          className="grid grid-cols-[560px_1fr] gap-[20px] shrink-0 px-[40px] w-full"
+          style={{ position: "absolute", bottom: "40px", left: 0 }}
+        >
         <ImageDropZone
           id="viewport-drop-zone"
           variant="editor"
@@ -105,5 +116,6 @@ export default function WProject({ project }: Props) {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }
