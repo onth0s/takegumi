@@ -34,8 +34,15 @@ export default function WTextBlock({
   groupBorderRadius,
   groupOpacity,
 }: Props) {
+  const { text, style } = block;
   const contentRef = useRef<HTMLDivElement>(null);
-  const dimensions = useElementDimensions(contentRef, [block.text]);
+  const dimensions = useElementDimensions(contentRef, [
+    text,
+    style.fontSize,
+    style.fontWeight,
+    style.fontFamily,
+    style.lineHeight,
+  ]);
 
   const selectedBlockId = useUIStore((s) => s.selectedWTextBlockId);
   const selectTextBlock = useUIStore((s) => s.selectTextBlock);
@@ -49,7 +56,7 @@ export default function WTextBlock({
     [panelId, groupId, block.id, selectTextBlock]
   );
 
-  const { text, style } = block;
+
   const hasBackdrop = Boolean(style.backgroundColor);
 
   const backdropWidth =

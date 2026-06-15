@@ -9,6 +9,7 @@ import { useImageDrop } from "@/hooks/useImageDrop";
 import ImageDropZone from "@/components/shared/ImageDropZone";
 import WPanel from "../WPanel";
 import WGrid from "../WGrid";
+import WTextGroup from "../WTextGroup";
 import DebugAxis from "@/components/debug/DebugAxis";
 
 interface Props {
@@ -48,6 +49,7 @@ export default function WProject({ project }: Props) {
   );
 
   const drop = useImageDrop(handleFiles);
+  const hideAllText = useUIStore((s) => s.hideAllText);
 
   const panelsBottom = project.panels.length > 0 
     ? Math.max(...project.panels.map((p) => p.y + p.height)) 
@@ -68,14 +70,45 @@ export default function WProject({ project }: Props) {
           <WGrid gridSize={project.grid.size} canvasTheme={project.canvasTheme} />
         )}
         {process.env.NODE_ENV === "development" && <DebugAxis />}
-        {project.panels.map((panel) => (
-          <div
-            key={panel.id}
-            style={{ position: 'absolute', left: panel.x, top: panel.y }}
-          >
-            <WPanel panel={panel} />
-          </div>
-        ))}
+        
+        {/* Layer 1: Panel Backgrounds */}
+        {project.panels.map((panel) => {
+          return (
+            <div
+              key={panel.id}
+              style={{ 
+                position: 'absolute', 
+                left: panel.x, 
+                top: panel.y
+              }}
+            >
+              <WPanel panel={panel} />
+            </div>
+          );
+        })}
+
+        {/* Layer 2: Global Text Overlays — always mounted to preserve ResizeObserver measurements;
+            toggled via visibility so dimensions never reset to 0 on re-show */}
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none", zIndex: 10,
+          visibility: hideAllText ? "hidden" : "visible",
+        }}>
+          {project.panels.map((panel) =>
+            panel.textGroups.map((group) => (
+              <div
+                key={group.id}
+                style={{
+                  position: "absolute",
+                  left: `${group.x}px`,
+                  top: `${panel.y + group.y}px`,
+                  pointerEvents: hideAllText ? "none" : "auto",
+                }}
+              >
+                <WTextGroup panelId={panel.id} group={group} />
+              </div>
+            ))
+          )}
+        </div>
 
         <div 
           className="grid grid-cols-[560px_1fr] gap-[20px] shrink-0 px-[40px] w-full"

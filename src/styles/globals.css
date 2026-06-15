@@ -64,6 +64,19 @@ body {
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-roboto-sans), ui-sans-serif, system-ui, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+img {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
+input, textarea, [contenteditable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 @utility bg-grid {

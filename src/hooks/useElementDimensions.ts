@@ -1,4 +1,4 @@
-import { useState, useEffect, RefObject } from "react";
+import { useState, useLayoutEffect, RefObject } from "react";
 
 export function useElementDimensions(
   contentRef: RefObject<HTMLElement | null>,
@@ -8,7 +8,7 @@ export function useElementDimensions(
 ): { width: number; height: number } {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = contentRef.current;
     if (!el) return;
 

@@ -18,7 +18,9 @@ export interface WPathResult {
 
 export function useWPath(group: WTextGroup, contentRef: RefObject<HTMLElement | null>): WPathResult {
   const blocksKey = useMemo(
-    () => group.blocks.map((b) => `${b.id}:${b.text}`).join("\0"),
+    () => group.blocks.map((b) =>
+      `${b.id}:${b.text}:${b.style.fontSize}:${b.style.fontWeight}:${b.style.fontFamily}:${b.style.lineHeight}`
+    ).join("\0"),
     [group.blocks]
   );
 

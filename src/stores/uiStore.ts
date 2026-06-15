@@ -17,6 +17,7 @@ interface UIState {
 
   /** Monotonically increments on every project mutation for dirty-state tracking. */
   revision: number;
+  hideAllText: boolean;
 
   setSelectedPanelId: (id: string | null) => void;
   setSelectedTextGroupId: (id: string | null) => void;
@@ -25,6 +26,7 @@ interface UIState {
   setContextMenu: (menu: ContextMenuState | null) => void;
   setActiveSidebarTab: (tab: SidebarTab) => void;
   setAlignmentGuides: (guides: AlignmentGuide[]) => void;
+  setHideAllText: (hide: boolean) => void;
   clearSelection: () => void;
 
   selectPanel: (id: string) => void;
@@ -43,6 +45,7 @@ export const useUIStore = create<UIState>((set) => ({
   activeSidebarTab: "inspector",
   alignmentGuides: [],
   revision: 0,
+  hideAllText: false,
 
   setSelectedPanelId: (id) => set({ selectedWPanelId: id }),
   setSelectedTextGroupId: (id) => set({ selectedWTextGroupId: id }),
@@ -51,6 +54,7 @@ export const useUIStore = create<UIState>((set) => ({
   setContextMenu: (menu) => set({ contextMenu: menu }),
   setActiveSidebarTab: (tab) => set({ activeSidebarTab: tab }),
   setAlignmentGuides: (guides) => set({ alignmentGuides: guides }),
+  setHideAllText: (hide) => set({ hideAllText: hide }),
 
   clearSelection: () =>
     set({

@@ -7,6 +7,7 @@ import {
   DEFAULT_PANEL_HEIGHT,
 } from "@/constants/canvasDefaults";
 import { useProjectStore } from "@/stores/projectStore";
+import { useUIStore } from "@/stores/uiStore";
 import { ScrubInput, SegmentedControl, ToggleSwitch } from "@/components/shared/UI";
 import {
   FieldRow,
@@ -37,7 +38,7 @@ export default memo(function ProjectInspector({ project }: Props) {
     (v: boolean) => {
       updateProject((draft) => {
         draft.grid.showGrid = v;
-      }, "continuous");
+      }, "ignore");
     },
     [updateProject]
   );
@@ -111,6 +112,12 @@ export default memo(function ProjectInspector({ project }: Props) {
           value={project.canvasTheme}
           onChange={handleThemeChange}
         />
+        <FieldRowHorizontal label="Hide All Text">
+          <ToggleSwitch 
+            checked={useUIStore((s) => s.hideAllText)} 
+            onChange={(v) => useUIStore.getState().setHideAllText(v)} 
+          />
+        </FieldRowHorizontal>
       </InspectorSection>
 
       <InspectorSection title="Defaults" defaultOpen={false}>

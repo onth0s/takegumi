@@ -13,10 +13,9 @@ import WTextBlock from "../WTextBlock";
 interface Props {
   panelId: string;
   group: WTextGroupType;
-  panelX: number;
 }
 
-export default function WTextGroup({ panelId, group, panelX }: Props) {
+export default function WTextGroup({ panelId, group }: Props) {
   const contentRef = useRef<HTMLDivElement>(null);
   const { backdropPath, tailPathString, width, height } = useWPath(group, contentRef);
 
@@ -47,20 +46,22 @@ export default function WTextGroup({ panelId, group, panelX }: Props) {
       className={`absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer ${
         isSelected ? "ring-2 ring-accent" : "hover:ring-1 hover:ring-border-default"
       }`}
-      style={{
-        left: `${group.x - panelX}px`,
-        top: `${group.y}px`,
-        width: width > 0 ? `${width}px` : "auto",
-        height: height > 0 ? `${height}px` : "auto",
-      }}
+      style={{ left: 0, top: 0 }}
     >
-      {/* Layer 1: Group backdrop + tail (unified envelope) */}
+      {/* Layer 1: Group backdrop + tail — SVG self-centres via transform instead of inset-0
+          so the outer div stays content-sized and contentRef.clientWidth is never constrained
+          by stale measured dimensions (which caused the ResizeObserver convergence animation). */}
       {width > 0 && height > 0 && (
         <svg
-          className="absolute inset-0 pointer-events-none overflow-visible"
+          className="absolute pointer-events-none overflow-visible"
           width={width}
           height={height}
-          style={{ opacity: groupOpacity }}
+          style={{
+            left: "50%",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            opacity: groupOpacity,
+          }}
         >
           {backdropPath && (
             <path

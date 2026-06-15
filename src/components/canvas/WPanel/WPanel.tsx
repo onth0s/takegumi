@@ -3,7 +3,6 @@
 import { useCallback } from "react";
 import type { WPanel as WPanelType } from "@/types/canvas";
 import { useUIStore } from "@/stores/uiStore";
-import WTextGroup from "../WTextGroup";
 import WPanelImage from "./WPanelImage";
 
 interface Props {
@@ -43,13 +42,6 @@ export default function WPanel({ panel }: Props) {
       ) : (
         <div className="w-full h-full bg-placeholder" />
       )}
-
-      {/* Text group overlay — absolutely positioned within panel coordinate space */}
-      <div className="absolute inset-0">
-        {panel.textGroups.map((group) => (
-          <WTextGroup key={group.id} panelId={panel.id} group={group} panelX={panel.x} />
-        ))}
-      </div>
     </div>
   );
 }
