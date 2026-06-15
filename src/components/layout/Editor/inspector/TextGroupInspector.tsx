@@ -119,11 +119,11 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
       <InspectorSection title="Position">
         <div className="grid grid-cols-2 gap-2">
           <ScrubInput label="X" value={Math.round(group.x)} step={1} fineStep={1} min={0} max={9999} suffix="px"
-            onChange={(v) => mutateGroup((g) => { g.x = v; })}
+            onChange={(v) => mutateGroup((g) => { g.x = v; }, "continuous")}
             onCommit={endContinuous}
           />
           <ScrubInput label="Y" value={Math.round(group.y)} step={1} fineStep={1} min={0} max={9999} suffix="px"
-            onChange={(v) => mutateGroup((g) => { g.y = v; })}
+            onChange={(v) => mutateGroup((g) => { g.y = v; }, "continuous")}
             onCommit={endContinuous}
           />
         </div>
@@ -204,11 +204,11 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
         {hasTail && (
           <div className="grid grid-cols-2 gap-2">
             <ScrubInput label="Anchor X" value={Math.round(tailX)} step={1} fineStep={1} min={0} max={9999} suffix="px"
-              onChange={(v) => mutateGroup((g) => { g.tailAnchor = { x: v, y: g.tailAnchor?.y ?? tailY }; })}
+              onChange={(v) => mutateGroup((g) => { g.tailAnchor = { x: v, y: g.tailAnchor?.y ?? tailY }; }, "continuous")}
               onCommit={endContinuous}
             />
             <ScrubInput label="Anchor Y" value={Math.round(tailY)} step={1} fineStep={1} min={0} max={9999} suffix="px"
-              onChange={(v) => mutateGroup((g) => { g.tailAnchor = { x: g.tailAnchor?.x ?? tailX, y: v }; })}
+              onChange={(v) => mutateGroup((g) => { g.tailAnchor = { x: g.tailAnchor?.x ?? tailX, y: v }; }, "continuous")}
               onCommit={endContinuous}
             />
           </div>

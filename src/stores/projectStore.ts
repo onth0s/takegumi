@@ -159,14 +159,22 @@ export const useProjectStore = create<ProjectState>()(
 
         if (commitType === "continuous") {
           set((curr) => {
+            const isNewSession =
+              !curr.tempPastState ||
+              (elementId != null && curr.lastChangedElementId !== elementId);
+
             let savedBaseState = curr.tempPastState;
             let nextPast = curr.past;
+            let nextFuture = curr.future;
 
-            if (!savedBaseState || (elementId && curr.lastChangedElementId !== elementId)) {
+            if (isNewSession) {
+              // Commit the previous session's base state (element switch mid-drag)
               if (savedBaseState && curr.project) {
                 nextPast = [...curr.past, savedBaseState].slice(-MAX_HISTORY_DEPTH);
               }
               savedBaseState = curr.project;
+              // Starting a fresh edit — invalidate the redo stack
+              nextFuture = [];
             }
 
             if (curr.continuousTimer) {
@@ -181,9 +189,10 @@ export const useProjectStore = create<ProjectState>()(
               project: nextProject,
               projects: nextProjects,
               past: nextPast,
+              future: nextFuture,
               tempPastState: savedBaseState,
               continuousTimer: timer,
-              lastChangedElementId: elementId || null,
+              lastChangedElementId: elementId ?? null,
             };
           });
         }
