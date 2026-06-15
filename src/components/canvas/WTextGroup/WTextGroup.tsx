@@ -5,7 +5,6 @@ import {
   DEFAULT_WTG_BACKGROUND_COLOR,
   DEFAULT_WTG_BORDER_WIDTH,
   DEFAULT_WTG_OPACITY,
-  DEFAULT_WTG_WIDTH,
   BACKDROP_PAD_X,
   BACKDROP_PAD_Y,
 } from "@/constants/canvasDefaults";
@@ -89,9 +88,10 @@ export default function WTextGroup({ panelId, group }: Props) {
         ref={nonDecoupledRef}
         className="relative z-10 flex flex-col gap-1 items-stretch text-center select-none"
         style={{
-          width: "max-content",
-          maxWidth: `${group.style.width ?? DEFAULT_WTG_WIDTH}px`,
+          width: group.style.width ? `${group.style.width}px` : "max-content",
+          maxWidth: group.style.width ? `${group.style.width}px` : "max-content",
           padding: `${BACKDROP_PAD_Y / 2}px ${BACKDROP_PAD_X / 2}px`,
+          boxSizing: "border-box",
         }}
       >
         {group.blocks.map((block) => (

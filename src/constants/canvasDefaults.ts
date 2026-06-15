@@ -172,3 +172,27 @@ export function snapWidth(
   const snapped = Math.round(width / gridSize) * gridSize;
   return Math.min(CANVAS_MAX_WIDTH, Math.max(minWidth, snapped));
 }
+
+export function wtgWidthToPercent(px: number): number {
+  if (px === 0) return 0;
+  return Math.round(valClamp((px / CANVAS_MAX_WIDTH) * 100, 1, 100));
+}
+
+export function wtgPercentToWidth(percent: number): number {
+  if (percent === 0) return 0;
+  return Math.round(valClamp((percent / 100) * CANVAS_MAX_WIDTH, 1, CANVAS_MAX_WIDTH));
+}
+
+export function snapGroupWidth(
+  width: number,
+  gridSize: number,
+  snapEnabled: boolean,
+  freeWidth: boolean | undefined,
+): number {
+  if (width === 0) return 0;
+  if (!snapEnabled || freeWidth) {
+    return Math.round(valClamp(width, 1, CANVAS_MAX_WIDTH));
+  }
+  const snapped = Math.round(width / gridSize) * gridSize;
+  return Math.round(valClamp(snapped, gridSize, CANVAS_MAX_WIDTH));
+}

@@ -143,9 +143,7 @@ export default function SmartSlider({
   );
 
   useEffect(() => {
-    if (!dragging.current) {
-      setLocalValue(value);
-    }
+    setLocalValue(value);
   }, [value]);
 
   return (

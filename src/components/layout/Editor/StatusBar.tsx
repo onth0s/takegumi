@@ -110,7 +110,7 @@ export default function StatusBar() {
       : null;
 
   return (
-    <div className="flex items-center h-12 gap-4 px-4 text-xs text-text-secondary border-t border-border-subtle bg-surface-elevated select-none">
+    <div className="flex items-center h-12 gap-4 px-4 text-xs text-text-secondary border-t border-accent bg-surface-elevated select-none">
       {/* ── Left zone: project context ── */}
       <div className="flex items-center gap-2 min-w-0">
         <span

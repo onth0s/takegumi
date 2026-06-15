@@ -33,7 +33,7 @@ export default function RootLayout({
       lang="en"
       className={`${robotoSans.variable} ${robotoMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">{children}</body>
+      <body className="min-h-full flex flex-col bg-background text-foreground overflow-hidden">{children}</body>
     </html>
   );
 }
