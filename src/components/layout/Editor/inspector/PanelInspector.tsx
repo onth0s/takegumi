@@ -58,6 +58,78 @@ export default memo(function PanelInspector({ panel }: Props) {
     });
   }, [mutatePanel]);
 
+  const handleBringToFront = useCallback(() => {
+    mutatePanel((p, draft) => {
+      if (!draft) return;
+      draft.panels.forEach((panel, idx) => {
+        if (panel.zIndex === undefined) {
+          panel.zIndex = idx;
+        }
+      });
+      const sorted = [...draft.panels].sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0));
+      const remaining = sorted.filter((x) => x.id !== p.id);
+      remaining.forEach((x, idx) => {
+        x.zIndex = idx;
+      });
+      p.zIndex = remaining.length;
+    });
+  }, [mutatePanel]);
+
+  const handleSendToBack = useCallback(() => {
+    mutatePanel((p, draft) => {
+      if (!draft) return;
+      draft.panels.forEach((panel, idx) => {
+        if (panel.zIndex === undefined) {
+          panel.zIndex = idx;
+        }
+      });
+      const sorted = [...draft.panels].sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0));
+      const remaining = sorted.filter((x) => x.id !== p.id);
+      remaining.forEach((x, idx) => {
+        x.zIndex = idx + 1;
+      });
+      p.zIndex = 0;
+    });
+  }, [mutatePanel]);
+
+  const handleBringForward = useCallback(() => {
+    mutatePanel((p, draft) => {
+      if (!draft) return;
+      draft.panels.forEach((panel, idx) => {
+        if (panel.zIndex === undefined) {
+          panel.zIndex = idx;
+        }
+      });
+      const sorted = [...draft.panels].sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0));
+      const currentIndex = sorted.findIndex((panel) => panel.id === p.id);
+      if (currentIndex < sorted.length - 1) {
+        const nextPanel = sorted[currentIndex + 1];
+        const temp = p.zIndex;
+        p.zIndex = nextPanel.zIndex;
+        nextPanel.zIndex = temp;
+      }
+    });
+  }, [mutatePanel]);
+
+  const handleSendBackward = useCallback(() => {
+    mutatePanel((p, draft) => {
+      if (!draft) return;
+      draft.panels.forEach((panel, idx) => {
+        if (panel.zIndex === undefined) {
+          panel.zIndex = idx;
+        }
+      });
+      const sorted = [...draft.panels].sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0));
+      const currentIndex = sorted.findIndex((panel) => panel.id === p.id);
+      if (currentIndex > 0) {
+        const prevPanel = sorted[currentIndex - 1];
+        const temp = p.zIndex;
+        p.zIndex = prevPanel.zIndex;
+        prevPanel.zIndex = temp;
+      }
+    });
+  }, [mutatePanel]);
+
   const endContinuous = () => useProjectStore.getState().endContinuousCommit();
 
   const grid = useProjectStore((s) => s.project?.grid);
@@ -74,9 +146,10 @@ export default memo(function PanelInspector({ panel }: Props) {
     (dir: "left" | "center" | "right") => {
       mutatePanel((p) => {
         const percent = dir === "left" ? 0 : dir === "center" ? 50 : 100;
+        const bw = p.borderEnabled ? (p.borderWidth ?? 4) : 0;
         if (grid?.snapEnabled && !p.style?.freeWidth) {
           const effectiveGridSize = dir === "center" ? grid.size * 2 : grid.size;
-          const snapped = snapWidth(p.width, effectiveGridSize, true, false);
+          const snapped = snapWidth(p.width, effectiveGridSize, true, false, bw);
           if (p.width > 0 && snapped !== p.width) {
             p.height = Math.round(p.height * (snapped / p.width));
             p.width = snapped;
@@ -100,19 +173,22 @@ export default memo(function PanelInspector({ panel }: Props) {
             ctrlSteps={[0, 25, 50, 75, 100]}
             onChange={(v) => mutatePanel((p) => {
               const rawX = percentToPanelX(v, p.width);
-              p.x = snapX(rawX, grid?.size ?? 1, grid?.snapEnabled ?? false, p.style?.freeX);
+              const bw = p.borderEnabled ? (p.borderWidth ?? 4) : 0;
+              p.x = snapX(rawX, grid?.size ?? 1, grid?.snapEnabled ?? false, p.style?.freeX, bw);
             }, "continuous")}
             onCommit={endContinuous}
           />
           <ScrubInput label="X" value={Math.round(panel.x)} step={isSnappingX ? (grid?.size ?? 1) : 1} fineStep={1} min={-9999} max={9999} suffix="px"
             onChange={(v) => mutatePanel((p) => {
-              p.x = snapX(v, grid?.size ?? 1, grid?.snapEnabled ?? false, p.style?.freeX);
+              const bw = p.borderEnabled ? (p.borderWidth ?? 4) : 0;
+              p.x = snapX(v, grid?.size ?? 1, grid?.snapEnabled ?? false, p.style?.freeX, bw);
             }, "continuous")}
             onCommit={endContinuous}
           />
           <ScrubInput label="Y" value={Math.round(panel.y)} step={isSnappingY ? (grid?.size ?? 1) : 1} fineStep={1} min={-9999} max={9999} suffix="px"
             onChange={(v) => mutatePanel((p, draft) => {
-              const newY = snapY(v, grid?.size ?? 1, grid?.snapEnabled ?? false, p.style?.freeY);
+              const bw = p.borderEnabled ? (p.borderWidth ?? 4) : 0;
+              const newY = snapY(v, grid?.size ?? 1, grid?.snapEnabled ?? false, p.style?.freeY, bw);
               const deltaY = newY - p.y;
               if (deltaY !== 0 && draft) {
                 const targetIndex = draft.panels.findIndex((x: WPanel) => x.id === p.id);
@@ -136,7 +212,8 @@ export default memo(function PanelInspector({ panel }: Props) {
                     mutatePanel((p) => {
                       p.style = { ...p.style, freeX: checked || undefined };
                       if (!checked && grid.snapEnabled) {
-                        p.x = snapX(p.x, grid.size, true, false);
+                        const bw = p.borderEnabled ? (p.borderWidth ?? 4) : 0;
+                        p.x = snapX(p.x, grid.size, true, false, bw);
                       }
                     })
                   }
@@ -150,7 +227,8 @@ export default memo(function PanelInspector({ panel }: Props) {
                     mutatePanel((p) => {
                       p.style = { ...p.style, freeY: checked || undefined };
                       if (!checked && grid.snapEnabled) {
-                        p.y = snapY(p.y, grid.size, true, false);
+                        const bw = p.borderEnabled ? (p.borderWidth ?? 4) : 0;
+                        p.y = snapY(p.y, grid.size, true, false, bw);
                       }
                     })
                   }
@@ -177,8 +255,9 @@ export default memo(function PanelInspector({ panel }: Props) {
               const percent = maxX > 0 ? (p.x / maxX) * 100 : 50;
               const isCentered = Math.abs(percent - 50) <= 2;
               
+              const bw = p.borderEnabled ? (p.borderWidth ?? 4) : 0;
               const effectiveGridSize = isCentered ? (grid?.size ?? 1) * 2 : (grid?.size ?? 1);
-              const newWidth = snapWidth(rawWidth, effectiveGridSize, grid?.snapEnabled ?? false, p.style?.freeWidth);
+              const newWidth = snapWidth(rawWidth, effectiveGridSize, grid?.snapEnabled ?? false, p.style?.freeWidth, bw);
               
               // Scale height proportionally to maintain aspect ratio
               if (oldWidth > 0) {
@@ -195,7 +274,7 @@ export default memo(function PanelInspector({ panel }: Props) {
                 const center = p.x + oldWidth / 2;
                 let nextX = center - newWidth / 2;
                 if (grid?.snapEnabled && !p.style?.freeX) {
-                  nextX = snapX(nextX, grid.size, true, false);
+                  nextX = snapX(nextX, grid.size, true, false, bw);
                 } else {
                   nextX = Math.round(nextX);
                 }
@@ -218,8 +297,9 @@ export default memo(function PanelInspector({ panel }: Props) {
                       const maxX = CANVAS_MAX_WIDTH - oldWidth;
                       const pct = maxX > 0 ? (p.x / maxX) * 100 : 50;
                       const isCentered = Math.abs(pct - 50) <= 2;
+                      const bw = p.borderEnabled ? (p.borderWidth ?? 4) : 0;
                       const effectiveGridSize = isCentered ? grid.size * 2 : grid.size;
-                      const snapped = snapWidth(oldWidth, effectiveGridSize, true, false);
+                      const snapped = snapWidth(oldWidth, effectiveGridSize, true, false, bw);
                       
                       // Scale height proportionally to maintain aspect ratio
                       if (oldWidth > 0 && snapped !== oldWidth) {
@@ -232,7 +312,7 @@ export default memo(function PanelInspector({ panel }: Props) {
                       else {
                         let nextX = p.x + oldWidth / 2 - snapped / 2;
                         if (grid.snapEnabled && !p.style?.freeX) {
-                          nextX = snapX(nextX, grid.size, true, false);
+                          nextX = snapX(nextX, grid.size, true, false, bw);
                         } else {
                           nextX = Math.round(nextX);
                         }
@@ -276,6 +356,75 @@ export default memo(function PanelInspector({ panel }: Props) {
           </div>
         ) : (
           <span className="text-xs text-text-tertiary">No image</span>
+        )}
+      </InspectorSection>
+
+      <InspectorSection title="Border">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs text-text-secondary">Enable Border</span>
+          <InspectorToggle
+            checked={!!panel.borderEnabled}
+            onChange={(checked) =>
+              mutatePanel((p) => {
+                p.borderEnabled = checked;
+              })
+            }
+          />
+        </div>
+        {panel.borderEnabled && (
+          <div className="flex flex-col gap-3 mt-3">
+            <ScrubInput
+              label="Border Width"
+              value={panel.borderWidth ?? 4}
+              step={1}
+              fineStep={1}
+              min={1}
+              max={50}
+              suffix="px"
+              onChange={(v) =>
+                mutatePanel((p) => {
+                  p.borderWidth = v;
+                }, "continuous")
+              }
+              onCommit={endContinuous}
+            />
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-text-secondary">Border Color</span>
+              <input
+                type="color"
+                value={panel.borderColor ?? "#000000"}
+                onChange={(e) =>
+                  mutatePanel((p) => {
+                    p.borderColor = e.target.value;
+                  })
+                }
+                className="w-8 h-8 rounded cursor-pointer border border-border-default bg-transparent"
+              />
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-text-secondary">Disable Synthetic Border</span>
+              <InspectorToggle
+                checked={!!panel.disableSyntheticBorder}
+                onChange={(checked) =>
+                  mutatePanel((p) => {
+                    p.disableSyntheticBorder = checked;
+                  })
+                }
+              />
+            </div>
+          </div>
+        )}
+      </InspectorSection>
+
+      <InspectorSection title="Layering">
+        <div className="grid grid-cols-2 gap-2">
+          <InspectorButton onClick={handleBringToFront}>Bring to Front</InspectorButton>
+          <InspectorButton onClick={handleSendToBack}>Send to Back</InspectorButton>
+          <InspectorButton onClick={handleBringForward}>Bring Forward</InspectorButton>
+          <InspectorButton onClick={handleSendBackward}>Send Backward</InspectorButton>
+        </div>
+        {panel.zIndex !== undefined && (
+          <p className="text-xs text-text-tertiary mt-2">Current Z-Index: {panel.zIndex}</p>
         )}
       </InspectorSection>
 

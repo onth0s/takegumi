@@ -118,9 +118,12 @@ export function snapX(
   gridSize: number,
   snapEnabled: boolean,
   freeX: boolean | undefined,
+  borderWidth: number = 0,
 ): number {
   if (!snapEnabled || freeX) return Math.round(x);
-  return Math.round(x / gridSize) * gridSize;
+  const target = x + borderWidth;
+  const snappedTarget = Math.round(target / gridSize) * gridSize;
+  return snappedTarget - borderWidth;
 }
 
 // ─── Panel Y snap helper ───────────────────────────────────────────────────────
@@ -139,9 +142,12 @@ export function snapY(
   gridSize: number,
   snapEnabled: boolean,
   freeY: boolean | undefined,
+  borderWidth: number = 0,
 ): number {
   if (!snapEnabled || freeY) return Math.round(y);
-  return Math.round(y / gridSize) * gridSize;
+  const target = y + borderWidth;
+  const snappedTarget = Math.round(target / gridSize) * gridSize;
+  return snappedTarget - borderWidth;
 }
 
 // ─── Panel Width snap helper ──────────────────────────────────────────────────
@@ -164,12 +170,15 @@ export function snapWidth(
   gridSize: number,
   snapEnabled: boolean,
   freeWidth: boolean | undefined,
+  borderWidth: number = 0,
 ): number {
   const minWidth = (MIN_PANEL_WIDTH_PERCENT / 100) * CANVAS_MAX_WIDTH;
   if (!snapEnabled || freeWidth) {
     return Math.round(Math.min(CANVAS_MAX_WIDTH, Math.max(minWidth, width)));
   }
-  const snapped = Math.round(width / gridSize) * gridSize;
+  const innerWidth = width - 2 * borderWidth;
+  const snappedInner = Math.round(innerWidth / gridSize) * gridSize;
+  const snapped = snappedInner + 2 * borderWidth;
   return Math.min(CANVAS_MAX_WIDTH, Math.max(minWidth, snapped));
 }
 

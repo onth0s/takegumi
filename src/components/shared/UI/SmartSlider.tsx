@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 function roundTo(value: number, decimals: number): number {
   const factor = 10 ** decimals;
@@ -45,6 +45,12 @@ export default function SmartSlider({
   const trackRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
   const [localValue, setLocalValue] = useState(value);
+  const [prevValue, setPrevValue] = useState(value);
+
+  if (value !== prevValue) {
+    setPrevValue(value);
+    setLocalValue(value);
+  }
 
   const ratio = (localValue - min) / (max - min);
 
@@ -142,9 +148,7 @@ export default function SmartSlider({
     [onCommit]
   );
 
-  useEffect(() => {
-    setLocalValue(value);
-  }, [value]);
+
 
   return (
     <div className={`flex flex-col gap-1 ${className}`}>

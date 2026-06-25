@@ -10,7 +10,6 @@ import ImageDropZone from "@/components/shared/ImageDropZone";
 import WPanel from "../WPanel";
 import WGrid from "../WGrid";
 import WTextGroup from "../WTextGroup";
-import DebugAxis from "@/components/debug/DebugAxis";
 
 interface Props {
   project: WProjectType;
@@ -69,17 +68,17 @@ export default function WProject({ project }: Props) {
         {project.grid.showGrid && (
           <WGrid gridSize={project.grid.size} canvasTheme={project.canvasTheme} />
         )}
-        {process.env.NODE_ENV === "development" && <DebugAxis />}
         
         {/* Layer 1: Panel Backgrounds */}
-        {project.panels.map((panel) => {
+        {project.panels.map((panel, index) => {
           return (
             <div
               key={panel.id}
               style={{ 
                 position: 'absolute', 
                 left: panel.x, 
-                top: panel.y
+                top: panel.y,
+                zIndex: panel.zIndex ?? index
               }}
             >
               <WPanel panel={panel} />

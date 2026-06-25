@@ -118,6 +118,12 @@ export default memo(function ProjectInspector({ project }: Props) {
             onChange={(v) => useUIStore.getState().setHideAllText(v)} 
           />
         </FieldRowHorizontal>
+        <FieldRowHorizontal label="Disable Synthetic Border">
+          <ToggleSwitch 
+            checked={!!project.disableSyntheticBorder} 
+            onChange={(v) => updateProject((draft) => { draft.disableSyntheticBorder = v; })} 
+          />
+        </FieldRowHorizontal>
       </InspectorSection>
 
       <InspectorSection title="Defaults" defaultOpen={false}>

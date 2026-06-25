@@ -63,7 +63,7 @@ export function actionBurstPath(w: number, h: number): string {
   return points.join(" ");
 }
 
-export type BackdropShapeType = "pill" | "rounded-rectangle" | "action-burst" | "rect";
+export type BackdropShapeType = "rect" | "pill" | "rounded-rectangle" | "action-burst";
 
 /** Dispatches to the correct backdrop path generator for a shape type. */
 export function getBackdropPath(

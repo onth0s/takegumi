@@ -129,8 +129,8 @@ WTextGroup:
           default: 0
         shapeType:
           type: string
-          enum: [pill, rounded-rectangle, action-burst, rect]
-          default: rounded-rectangle
+          enum: [rect, pill, rounded-rectangle, action-burst]
+          default: rect
     tailAnchor:
       type: object
       nullable: true

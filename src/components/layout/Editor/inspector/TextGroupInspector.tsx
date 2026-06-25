@@ -124,7 +124,6 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
 
   const widthVal = group.style.width ?? DEFAULT_WTG_WIDTH;
   const freeWidth = group.style.freeWidth ?? false;
-  const widthPct = wtgWidthToPercent(widthVal);
 
   return (
     <div className="flex flex-col gap-6">
@@ -224,10 +223,10 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
       <InspectorSection title="Appearance">
         <SegmentedControl label="Shape"
           options={[
+            { value: "rect", label: "Rect" },
             { value: "rounded-rectangle", label: "Rounded" },
             { value: "pill", label: "Pill" },
             { value: "action-burst", label: "Burst" },
-            { value: "rect", label: "Rect" },
           ]}
           value={shapeType}
           onChange={(v) => mutateGroup((g) => { g.style.shapeType = v as WTextGroupStyle["shapeType"]; }, "discrete")}

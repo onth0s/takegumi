@@ -25,7 +25,7 @@ export const DEFAULT_WTG_BORDER_RADIUS = 8;
 /** style.borderWidth */
 export const DEFAULT_WTG_BORDER_WIDTH = 0;
 /** style.shapeType */
-export const DEFAULT_WTG_SHAPE_TYPE = "rounded-rectangle";
+export const DEFAULT_WTG_SHAPE_TYPE = "rect";
 
 // WTextBlock
 /** style.fontSize */

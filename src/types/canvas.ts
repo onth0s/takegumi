@@ -37,7 +37,7 @@ export interface WTextGroupStyle {
   freeY?: boolean;
   borderRadius?: number;
   borderWidth?: number;
-  shapeType?: "pill" | "rounded-rectangle" | "action-burst" | "rect";
+  shapeType?: "rect" | "pill" | "rounded-rectangle" | "action-burst";
 }
 
 export interface WTextGroup {
@@ -74,6 +74,11 @@ export interface WPanel {
   height: number;
   textGroups: WTextGroup[];
   style?: WPanelStyle;
+  borderEnabled?: boolean;
+  borderColor?: string;
+  borderWidth?: number;
+  disableSyntheticBorder?: boolean;
+  zIndex?: number;
 }
 
 // ─── Grid & Theme ──────────────────────────────────────────────────────────────
@@ -99,4 +104,6 @@ export interface WProject {
   canvasTheme: CanvasTheme;
   createdAt: string;
   updatedAt: string;
+  disableSyntheticBorder?: boolean;
 }
+
