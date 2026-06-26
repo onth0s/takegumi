@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { WPanel as WPanelType } from "@/types/canvas";
 import { useUIStore } from "@/stores/uiStore";
 import { useProjectStore } from "@/stores/projectStore";
@@ -17,6 +17,7 @@ export default function WPanel({ panel }: Props) {
   const selectedGroupId = useUIStore((s) => s.selectedWTextGroupId);
   const selectPanel = useUIStore((s) => s.selectPanel);
   const isSelected = selectedPanelId === panel.id && !selectedGroupId;
+  const [isHovered, setIsHovered] = useState(false);
 
   const project = useProjectStore((s) => s.project);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -36,27 +37,27 @@ export default function WPanel({ panel }: Props) {
   );
 
   const hasImage = !!panel.imageUrl;
-  const borderOffset = enabled ? borderWidth : 0;
-  const imageWidth = panel.width - 2 * borderOffset;
-  const imageHeight = panel.height - 2 * borderOffset;
 
   return (
     <div
       ref={panelRef}
       onClick={handleClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       className={`relative shadow-md overflow-visible shrink-0 cursor-pointer ${
-        isSelected ? "ring-2 ring-accent" : "hover:ring-1 hover:ring-border-default"
-      } ${hasImage ? "animate-panel-fade-in" : "bg-surface-elevated"}`}
+        hasImage ? "animate-panel-fade-in" : "bg-surface-elevated"
+      }`}
       style={{ width: `${panel.width}px`, height: `${panel.height}px` }}
     >
-      {/* Background image layer — normal flow determines height */}
+      {/* Background image layer — fills the full panel; border grows outward */}
       <div
         style={{
           position: "absolute",
-          left: `${borderOffset}px`,
-          top: `${borderOffset}px`,
-          width: `${imageWidth}px`,
-          height: `${imageHeight}px`,
+          left: 0,
+          top: 0,
+          width: `${panel.width}px`,
+          height: `${panel.height}px`,
+          overflow: "hidden",
         }}
       >
         {hasImage ? (
@@ -69,19 +70,18 @@ export default function WPanel({ panel }: Props) {
         )}
       </div>
 
-      {/* Synthetic Border Layer */}
-      {enabled && (
-        <WBorder
-          pathD={pathD}
-          borderColor={borderColor}
-          borderWidth={borderWidth}
-          width={panel.width}
-          height={panel.height}
-          x={panel.x}
-          y={panel.y}
-        />
-      )}
+      {/* Border + selection ring — always mounted so the ring portal works */}
+      <WBorder
+        pathD={enabled ? pathD : ""}
+        borderColor={borderColor}
+        borderWidth={borderWidth}
+        width={panel.width}
+        height={panel.height}
+        x={panel.x}
+        y={panel.y}
+        isSelected={isSelected}
+        isHovered={!isSelected && isHovered}
+      />
     </div>
   );
 }
-

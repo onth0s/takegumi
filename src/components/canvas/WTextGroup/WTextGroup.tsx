@@ -7,7 +7,7 @@ import {
   DEFAULT_WTG_BORDER_COLOR,
   DEFAULT_WTG_BORDER_OPACITY,
   DEFAULT_WTG_OPACITY,
-  DEFAULT_PANEL_BORDER_MODE,
+  DEFAULT_WTG_BORDER_MODE,
   BACKDROP_PAD_X,
   BACKDROP_PAD_Y,
 } from "@/constants/canvasDefaults";
@@ -46,7 +46,7 @@ export default function WTextGroup({ panelId, group }: Props) {
 
   // Check if bubble overlaps panel boundary in union mode
   const panel = useProjectStore((s) => s.project?.panels.find((p) => p.id === panelId));
-  const borderMode = panel?.borderMode ?? DEFAULT_PANEL_BORDER_MODE;
+  const borderMode = group.style.borderMode ?? DEFAULT_WTG_BORDER_MODE;
   const panelBorderEnabled = panel?.borderEnabled && !panel.disableSyntheticBorder;
 
   const gLeft = group.x - width / 2 - (panel?.x ?? 0);

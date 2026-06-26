@@ -42,6 +42,8 @@ export interface WTextGroupStyle {
   borderColor?: string;
   borderOpacity?: number;
   shapeType?: "rect" | "pill" | "rounded-rectangle" | "action-burst";
+  /** How this WTG interacts with the panel's synthetic border. */
+  borderMode?: "overlap" | "union";
 }
 
 export interface WTextGroup {
@@ -83,7 +85,6 @@ export interface WPanel {
   borderWidth?: number;
   disableSyntheticBorder?: boolean;
   zIndex?: number;
-  borderMode?: "overlap" | "union";
 }
 
 // ─── Grid & Theme ──────────────────────────────────────────────────────────────

@@ -13,7 +13,7 @@ import {
 import {
   DEFAULT_WTG_BORDER_RADIUS,
   DEFAULT_WTG_SHAPE_TYPE,
-  DEFAULT_PANEL_BORDER_MODE,
+  DEFAULT_WTG_BORDER_MODE,
 } from "@/constants/canvasDefaults";
 
 interface UseWBorderProps {
@@ -29,23 +29,8 @@ interface UseWBorderResult {
   enabled: boolean;
 }
 
-function mergeIntervals(intervals: [number, number][]): [number, number][] {
-  if (intervals.length === 0) return [];
-  // Sort by start position
-  const sorted = [...intervals].sort((a, b) => a[0] - b[0]);
-  const merged: [number, number][] = [sorted[0]];
 
-  for (let i = 1; i < sorted.length; i++) {
-    const last = merged[merged.length - 1];
-    const curr = sorted[i];
-    if (curr[0] <= last[1]) {
-      last[1] = Math.max(last[1], curr[1]);
-    } else {
-      merged.push(curr);
-    }
-  }
-  return merged;
-}
+
 
 export function useWBorder({
   panel,
@@ -74,25 +59,31 @@ export function useWBorder({
       const panelEl = panelRef.current;
       if (!panelEl) return;
 
-      const panelRect = panelEl.getBoundingClientRect();
-      const pWidth = Math.round(panelRect.width);
-      const pHeight = Math.round(panelRect.height);
+      const pWidth = panel.width;
+      const pHeight = panel.height;
       const bw = borderWidth;
 
-      const borderMode = panel.borderMode ?? DEFAULT_PANEL_BORDER_MODE;
-      if (borderMode === "union" && !hideAllText) {
+      const hasAnyUnion = panel.textGroups.some(
+        (g) => (g.style.borderMode ?? DEFAULT_WTG_BORDER_MODE) === "union"
+      );
+      if (hasAnyUnion && !hideAllText) {
         const offset = bw / 2;
-        let currentUnionPolys: Point[][] = [discretizeRect(offset, offset, pWidth - bw, pHeight - bw)];
+        // Panel polygon: centerline sits bw/2 OUTSIDE each edge so stroke extends
+        // fully outward, inner stroke edge = panel boundary.
+        let currentUnionPolys: Point[][] = [discretizeRect(-offset, -offset, pWidth + bw, pHeight + bw)];
 
         panel.textGroups.forEach((group) => {
+          const groupBorderMode = group.style.borderMode ?? DEFAULT_WTG_BORDER_MODE;
+          if (groupBorderMode !== "union") return;
+
           const groupEl = document.getElementById(`text-group-${group.id}`);
           if (!groupEl) return;
 
           const groupRect = groupEl.getBoundingClientRect();
-          const gLeft = Math.round(groupRect.left - panelRect.left);
-          const gTop = Math.round(groupRect.top - panelRect.top);
           const gWidth = Math.round(groupRect.width);
           const gHeight = Math.round(groupRect.height);
+          const gLeft = Math.round(group.x - gWidth / 2 - panel.x);
+          const gTop = Math.round(group.y - gHeight / 2 - panel.y);
 
           const shape = group.style.shapeType ?? DEFAULT_WTG_SHAPE_TYPE;
           const r = group.style.borderRadius ?? DEFAULT_WTG_BORDER_RADIUS;
@@ -172,111 +163,16 @@ export function useWBorder({
         return;
       }
 
-      // Define standard borders.
-      // Top edge: [0, pWidth] at y = bw/2
-      // Bottom edge: [0, pWidth] at y = pHeight - bw/2
-      // Left edge: [bw, pHeight - bw] at x = bw/2 (preventing corner overlaps)
-      // Right edge: [bw, pHeight - bw] at x = pWidth - bw/2
-
-      const topGaps: [number, number][] = [];
-      const bottomGaps: [number, number][] = [];
-      const leftGaps: [number, number][] = [];
-      const rightGaps: [number, number][] = [];
-
-      if (!hideAllText) {
-        panel.textGroups.forEach((group) => {
-          const groupEl = document.getElementById(`text-group-${group.id}`);
-          if (!groupEl) return;
-
-          const groupRect = groupEl.getBoundingClientRect();
-          const gLeft = Math.round(groupRect.left - panelRect.left);
-          const gRight = Math.round(groupRect.right - panelRect.left);
-          const gTop = Math.round(groupRect.top - panelRect.top);
-          const gBottom = Math.round(groupRect.bottom - panelRect.top);
-
-          // Top edge intersection (y range: 0 to bw)
-          if (gBottom >= 0 && gTop <= bw) {
-            topGaps.push([gLeft, gRight]);
-          }
-          // Bottom edge intersection (y range: pHeight - bw to pHeight)
-          if (gBottom >= pHeight - bw && gTop <= pHeight) {
-            bottomGaps.push([gLeft, gRight]);
-          }
-          // Left edge intersection (x range: 0 to bw)
-          if (gRight >= 0 && gLeft <= bw) {
-            leftGaps.push([gTop, gBottom]);
-          }
-          // Right edge intersection (x range: pWidth - bw to pWidth)
-          if (gRight >= pWidth - bw && gLeft <= pWidth) {
-            rightGaps.push([gTop, gBottom]);
-          }
-        });
-      }
-
-      const mergedTop = mergeIntervals(topGaps);
-      const mergedBottom = mergeIntervals(bottomGaps);
-      const mergedLeft = mergeIntervals(leftGaps);
-      const mergedRight = mergeIntervals(rightGaps);
-
-      let d = "";
-
-      // Generate Top path
-      let cursor = 0;
-      mergedTop.forEach(([start, end]) => {
-        const gapStart = Math.max(0, Math.min(pWidth, start));
-        const gapEnd = Math.max(0, Math.min(pWidth, end));
-        if (gapStart > cursor) {
-          d += ` M ${cursor},${bw / 2} L ${gapStart},${bw / 2}`;
-        }
-        cursor = Math.max(cursor, gapEnd);
-      });
-      if (cursor < pWidth) {
-        d += ` M ${cursor},${bw / 2} L ${pWidth},${bw / 2}`;
-      }
-
-      // Generate Bottom path
-      cursor = 0;
-      mergedBottom.forEach(([start, end]) => {
-        const gapStart = Math.max(0, Math.min(pWidth, start));
-        const gapEnd = Math.max(0, Math.min(pWidth, end));
-        if (gapStart > cursor) {
-          d += ` M ${cursor},${pHeight - bw / 2} L ${gapStart},${pHeight - bw / 2}`;
-        }
-        cursor = Math.max(cursor, gapEnd);
-      });
-      if (cursor < pWidth) {
-        d += ` M ${cursor},${pHeight - bw / 2} L ${pWidth},${pHeight - bw / 2}`;
-      }
-
-      // Generate Left path (range: bw to pHeight - bw)
-      cursor = bw;
-      mergedLeft.forEach(([start, end]) => {
-        const gapStart = Math.max(bw, Math.min(pHeight - bw, start));
-        const gapEnd = Math.max(bw, Math.min(pHeight - bw, end));
-        if (gapStart > cursor) {
-          d += ` M ${bw / 2},${cursor} L ${bw / 2},${gapStart}`;
-        }
-        cursor = Math.max(cursor, gapEnd);
-      });
-      if (cursor < pHeight - bw) {
-        d += ` M ${bw / 2},${cursor} L ${bw / 2},${pHeight - bw}`;
-      }
-
-      // Generate Right path (range: bw to pHeight - bw)
-      cursor = bw;
-      mergedRight.forEach(([start, end]) => {
-        const gapStart = Math.max(bw, Math.min(pHeight - bw, start));
-        const gapEnd = Math.max(bw, Math.min(pHeight - bw, end));
-        if (gapStart > cursor) {
-          d += ` M ${pWidth - bw / 2},${cursor} L ${pWidth - bw / 2},${gapStart}`;
-        }
-        cursor = Math.max(cursor, gapEnd);
-      });
-      if (cursor < pHeight - bw) {
-        d += ` M ${pWidth - bw / 2},${cursor} L ${pWidth - bw / 2},${pHeight - bw}`;
-      }
-
-      setPathD(d.trim());
+      // Overlap mode: closed rectangle path — centerline sits bw/2 OUTSIDE the
+      // panel boundary. Stroke inner edge = panel boundary; extends fully outward.
+      // Using a closed path (not 4 separate segments) ensures miter-join corners
+      // identical to the polygon approach used in union mode.
+      //
+      // With an outward-only border, WTGs inside the panel can never reach the
+      // border band, so no gap-cutting is required.
+      const half = bw / 2;
+      const d = `M ${-half},${-half} H ${pWidth + half} V ${pHeight + half} H ${-half} Z`;
+      setPathD(d);
     };
 
     computePath();

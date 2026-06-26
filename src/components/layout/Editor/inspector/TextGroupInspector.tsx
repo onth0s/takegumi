@@ -356,6 +356,19 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
                 }
                 onCommit={endContinuous}
               />
+              <SegmentedControl
+                label="Border Mode"
+                options={[
+                  { value: "overlap", label: "Overlap" },
+                  { value: "union", label: "Union" },
+                ]}
+                value={group.style.borderMode ?? "overlap"}
+                onChange={(v) =>
+                  mutateGroup((g) => {
+                    g.style.borderMode = v as "overlap" | "union";
+                  })
+                }
+              />
             </>
           )}
         </div>

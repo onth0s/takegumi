@@ -89,7 +89,7 @@ export default function WProject({ project }: Props) {
         {/* Layer 2: Global Text Overlays — always mounted to preserve ResizeObserver measurements;
             toggled via visibility so dimensions never reset to 0 on re-show */}
         <div style={{
-          position: "absolute", inset: 0, pointerEvents: "none", zIndex: 10,
+          position: "absolute", inset: 0, pointerEvents: "none", zIndex: 20,
           visibility: hideAllText ? "hidden" : "visible",
         }}>
           {project.panels.map((panel) =>
@@ -109,8 +109,11 @@ export default function WProject({ project }: Props) {
           )}
         </div>
 
-        {/* Portal target for synthetic borders (drawn on top of bubble backgrounds) */}
-        <div id="panel-borders-portal-target" style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 15 }} />
+        {/* Portal target for synthetic borders — sits above panel images, below WTGs */}
+        <div id="panel-borders-portal-target" style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 5 }} />
+
+        {/* Portal target for panel selection/hover rings — always on top */}
+        <div id="panel-selection-portal-target" style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 25 }} />
 
         <div 
           className="grid grid-cols-[560px_1fr] gap-[20px] shrink-0 px-[40px] w-full"
