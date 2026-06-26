@@ -1,12 +1,16 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { produce } from "immer";
-import type { WProject, WProjectGrid, CanvasTheme } from "@/types/canvas";
+import type { WProject, WProjectGrid } from "@/types/canvas";
 import {
   DEFAULT_GRID_SIZE,
   DEFAULT_GRID_SNAP_ENABLED,
   DEFAULT_GRID_SHOW_GRID,
   DEFAULT_CANVAS_THEME,
+  DEFAULT_PANEL_BORDER_ENABLED,
+  DEFAULT_PANEL_BORDER_COLOR,
+  DEFAULT_PANEL_BORDER_WIDTH,
+  DEFAULT_PANEL_DISABLE_SYNTHETIC_BORDER,
 } from "@/constants/canvasDefaults";
 import { projectStoreDb } from "@/storage";
 import {
@@ -59,10 +63,25 @@ function migrateProject(project: WProject): WProject {
     snapEnabled: DEFAULT_GRID_SNAP_ENABLED,
     showGrid: DEFAULT_GRID_SHOW_GRID,
   };
+  const panels = (project.panels ?? []).map((panel, index) => ({
+    ...panel,
+    borderEnabled: panel.borderEnabled ?? DEFAULT_PANEL_BORDER_ENABLED,
+    borderColor: panel.borderColor ?? DEFAULT_PANEL_BORDER_COLOR,
+    borderWidth: panel.borderWidth ?? DEFAULT_PANEL_BORDER_WIDTH,
+    disableSyntheticBorder: panel.disableSyntheticBorder ?? DEFAULT_PANEL_DISABLE_SYNTHETIC_BORDER,
+    zIndex: panel.zIndex ?? index,
+    textGroups: (panel.textGroups ?? []).map((tg) => ({
+      ...tg,
+      blocks: (tg.blocks ?? []).map((block) => ({
+        ...block,
+      })),
+    })),
+  }));
   return {
     ...project,
     grid: project.grid ?? defaultGrid,
-    canvasTheme: (project as WProject & { canvasTheme?: CanvasTheme }).canvasTheme ?? DEFAULT_CANVAS_THEME,
+    canvasTheme: (project as Partial<WProject>).canvasTheme ?? DEFAULT_CANVAS_THEME,
+    panels,
   };
 }
 

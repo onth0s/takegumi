@@ -1,12 +1,14 @@
 "use client";
 
 import { memo, useCallback } from "react";
-import type { WPanel, WProject } from "@/types/canvas";
+import type { WPanel } from "@/types/canvas";
 import { useProjectStore } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
 import { createTextGroup } from "@/utils/createProject";
 import { deletePanelImage } from "@/utils/panelImageStorage";
-import { findPanel } from "@/utils/findInProject";
+import { bringToFront, sendToBack, bringForward, sendBackward } from "@/utils/panelLayering";
+import { shiftPanelsBelow } from "@/utils/panelReflow";
+import { useMutateEntity } from "@/hooks/useMutateEntity";
 import { CANVAS_MAX_WIDTH, xToPanelPercent, percentToPanelX, widthToPercent, percentToWidth, snapX, snapY, snapWidth } from "@/constants/canvasDefaults";
 import { ScrubInput, SmartSlider } from "@/components/shared/UI";
 import {
@@ -24,19 +26,7 @@ export default memo(function PanelInspector({ panel }: Props) {
   const updateProject = useProjectStore((s) => s.updateProject);
   const clearSelection = useUIStore((s) => s.clearSelection);
 
-  const mutatePanel = useCallback(
-    (recipe: (p: WPanel, draft?: WProject) => void, commitType: "discrete" | "continuous" = "discrete") => {
-      updateProject(
-        (draft) => {
-          const p = findPanel(draft, panel.id);
-          if (p) recipe(p, draft);
-        },
-        commitType,
-        panel.id
-      );
-    },
-    [updateProject, panel.id]
-  );
+  const { mutate: mutatePanel, endContinuous } = useMutateEntity("panel", { panelId: panel.id });
 
   const handleDelete = useCallback(() => {
     updateProject(
@@ -61,76 +51,31 @@ export default memo(function PanelInspector({ panel }: Props) {
   const handleBringToFront = useCallback(() => {
     mutatePanel((p, draft) => {
       if (!draft) return;
-      draft.panels.forEach((panel, idx) => {
-        if (panel.zIndex === undefined) {
-          panel.zIndex = idx;
-        }
-      });
-      const sorted = [...draft.panels].sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0));
-      const remaining = sorted.filter((x) => x.id !== p.id);
-      remaining.forEach((x, idx) => {
-        x.zIndex = idx;
-      });
-      p.zIndex = remaining.length;
+      bringToFront(draft.panels, p.id);
     });
   }, [mutatePanel]);
 
   const handleSendToBack = useCallback(() => {
     mutatePanel((p, draft) => {
       if (!draft) return;
-      draft.panels.forEach((panel, idx) => {
-        if (panel.zIndex === undefined) {
-          panel.zIndex = idx;
-        }
-      });
-      const sorted = [...draft.panels].sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0));
-      const remaining = sorted.filter((x) => x.id !== p.id);
-      remaining.forEach((x, idx) => {
-        x.zIndex = idx + 1;
-      });
-      p.zIndex = 0;
+      sendToBack(draft.panels, p.id);
     });
   }, [mutatePanel]);
 
   const handleBringForward = useCallback(() => {
     mutatePanel((p, draft) => {
       if (!draft) return;
-      draft.panels.forEach((panel, idx) => {
-        if (panel.zIndex === undefined) {
-          panel.zIndex = idx;
-        }
-      });
-      const sorted = [...draft.panels].sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0));
-      const currentIndex = sorted.findIndex((panel) => panel.id === p.id);
-      if (currentIndex < sorted.length - 1) {
-        const nextPanel = sorted[currentIndex + 1];
-        const temp = p.zIndex;
-        p.zIndex = nextPanel.zIndex;
-        nextPanel.zIndex = temp;
-      }
+      bringForward(draft.panels, p.id);
     });
   }, [mutatePanel]);
 
   const handleSendBackward = useCallback(() => {
     mutatePanel((p, draft) => {
       if (!draft) return;
-      draft.panels.forEach((panel, idx) => {
-        if (panel.zIndex === undefined) {
-          panel.zIndex = idx;
-        }
-      });
-      const sorted = [...draft.panels].sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0));
-      const currentIndex = sorted.findIndex((panel) => panel.id === p.id);
-      if (currentIndex > 0) {
-        const prevPanel = sorted[currentIndex - 1];
-        const temp = p.zIndex;
-        p.zIndex = prevPanel.zIndex;
-        prevPanel.zIndex = temp;
-      }
+      sendBackward(draft.panels, p.id);
     });
   }, [mutatePanel]);
 
-  const endContinuous = () => useProjectStore.getState().endContinuousCommit();
 
   const grid = useProjectStore((s) => s.project?.grid);
   const gutter = panel.style?.gutter;
@@ -146,7 +91,7 @@ export default memo(function PanelInspector({ panel }: Props) {
     (dir: "left" | "center" | "right") => {
       mutatePanel((p) => {
         const percent = dir === "left" ? 0 : dir === "center" ? 50 : 100;
-        const bw = p.borderEnabled ? (p.borderWidth ?? 4) : 0;
+        const bw = p.borderEnabled ? p.borderWidth : 0;
         if (grid?.snapEnabled && !p.style?.freeWidth) {
           const effectiveGridSize = dir === "center" ? grid.size * 2 : grid.size;
           const snapped = snapWidth(p.width, effectiveGridSize, true, false, bw);
@@ -173,44 +118,25 @@ export default memo(function PanelInspector({ panel }: Props) {
             ctrlSteps={[0, 25, 50, 75, 100]}
             onChange={(v) => mutatePanel((p) => {
               const rawX = percentToPanelX(v, p.width);
-              const bw = p.borderEnabled ? (p.borderWidth ?? 4) : 0;
+              const bw = p.borderEnabled ? p.borderWidth : 0;
               p.x = snapX(rawX, grid?.size ?? 1, grid?.snapEnabled ?? false, p.style?.freeX, bw);
             }, "continuous")}
             onCommit={endContinuous}
           />
           <ScrubInput label="X" value={Math.round(panel.x)} step={isSnappingX ? (grid?.size ?? 1) : 1} fineStep={1} min={-9999} max={9999} suffix="px"
             onChange={(v) => mutatePanel((p) => {
-              const bw = p.borderEnabled ? (p.borderWidth ?? 4) : 0;
+              const bw = p.borderEnabled ? p.borderWidth : 0;
               p.x = snapX(v, grid?.size ?? 1, grid?.snapEnabled ?? false, p.style?.freeX, bw);
             }, "continuous")}
             onCommit={endContinuous}
           />
           <ScrubInput label="Y" value={Math.round(panel.y)} step={isSnappingY ? (grid?.size ?? 1) : 1} fineStep={1} min={-9999} max={9999} suffix="px"
             onChange={(v) => mutatePanel((p, draft) => {
-              const bw = p.borderEnabled ? (p.borderWidth ?? 4) : 0;
+              const bw = p.borderEnabled ? p.borderWidth : 0;
               const newY = snapY(v, grid?.size ?? 1, grid?.snapEnabled ?? false, p.style?.freeY, bw);
               const deltaY = newY - p.y;
               if (deltaY !== 0 && draft) {
-                // Shift child text groups of the active panel
-                p.textGroups.forEach((group) => {
-                  group.y += deltaY;
-                  if (group.tailAnchor) {
-                    group.tailAnchor.y += deltaY;
-                  }
-                });
-
-                const targetIndex = draft.panels.findIndex((x: WPanel) => x.id === p.id);
-                if (targetIndex !== -1) {
-                  for (let i = targetIndex + 1; i < draft.panels.length; i++) {
-                    draft.panels[i].y += deltaY;
-                    draft.panels[i].textGroups.forEach((group) => {
-                      group.y += deltaY;
-                      if (group.tailAnchor) {
-                        group.tailAnchor.y += deltaY;
-                      }
-                    });
-                  }
-                }
+                shiftPanelsBelow(draft, p.id, deltaY);
               }
               p.y = newY;
             }, "continuous")}
@@ -226,7 +152,7 @@ export default memo(function PanelInspector({ panel }: Props) {
                     mutatePanel((p) => {
                       p.style = { ...p.style, freeX: checked || undefined };
                       if (!checked && grid.snapEnabled) {
-                        const bw = p.borderEnabled ? (p.borderWidth ?? 4) : 0;
+                        const bw = p.borderEnabled ? p.borderWidth : 0;
                         p.x = snapX(p.x, grid.size, true, false, bw);
                       }
                     })
@@ -241,28 +167,11 @@ export default memo(function PanelInspector({ panel }: Props) {
                     mutatePanel((p, draft) => {
                       p.style = { ...p.style, freeY: checked || undefined };
                       if (!checked && grid.snapEnabled) {
-                        const bw = p.borderEnabled ? (p.borderWidth ?? 4) : 0;
+                        const bw = p.borderEnabled ? p.borderWidth : 0;
                         const newY = snapY(p.y, grid.size, true, false, bw);
                         const deltaY = newY - p.y;
                         if (deltaY !== 0 && draft) {
-                          p.textGroups.forEach((group) => {
-                            group.y += deltaY;
-                            if (group.tailAnchor) {
-                              group.tailAnchor.y += deltaY;
-                            }
-                          });
-                          const targetIndex = draft.panels.findIndex((x: WPanel) => x.id === p.id);
-                          if (targetIndex !== -1) {
-                            for (let i = targetIndex + 1; i < draft.panels.length; i++) {
-                              draft.panels[i].y += deltaY;
-                              draft.panels[i].textGroups.forEach((group) => {
-                                group.y += deltaY;
-                                if (group.tailAnchor) {
-                                  group.tailAnchor.y += deltaY;
-                                }
-                              });
-                            }
-                          }
+                          shiftPanelsBelow(draft, p.id, deltaY);
                           p.y = newY;
                         }
                       }
@@ -291,7 +200,7 @@ export default memo(function PanelInspector({ panel }: Props) {
               const percent = maxX > 0 ? (p.x / maxX) * 100 : 50;
               const isCentered = Math.abs(percent - 50) <= 2;
               
-              const bw = p.borderEnabled ? (p.borderWidth ?? 4) : 0;
+              const bw = p.borderEnabled ? p.borderWidth : 0;
               const effectiveGridSize = isCentered ? (grid?.size ?? 1) * 2 : (grid?.size ?? 1);
               const newWidth = snapWidth(rawWidth, effectiveGridSize, grid?.snapEnabled ?? false, p.style?.freeWidth, bw);
               
@@ -333,7 +242,7 @@ export default memo(function PanelInspector({ panel }: Props) {
                       const maxX = CANVAS_MAX_WIDTH - oldWidth;
                       const pct = maxX > 0 ? (p.x / maxX) * 100 : 50;
                       const isCentered = Math.abs(pct - 50) <= 2;
-                      const bw = p.borderEnabled ? (p.borderWidth ?? 4) : 0;
+                      const bw = p.borderEnabled ? p.borderWidth : 0;
                       const effectiveGridSize = isCentered ? grid.size * 2 : grid.size;
                       const snapped = snapWidth(oldWidth, effectiveGridSize, true, false, bw);
                       
@@ -399,7 +308,7 @@ export default memo(function PanelInspector({ panel }: Props) {
         <div className="flex items-center justify-between gap-2">
           <span className="text-xs text-text-secondary">Enable Border</span>
           <InspectorToggle
-            checked={!!panel.borderEnabled}
+            checked={panel.borderEnabled}
             onChange={(checked) =>
               mutatePanel((p) => {
                 p.borderEnabled = checked;
@@ -411,7 +320,7 @@ export default memo(function PanelInspector({ panel }: Props) {
           <div className="flex flex-col gap-3 mt-3">
             <ScrubInput
               label="Border Width"
-              value={panel.borderWidth ?? 4}
+              value={panel.borderWidth}
               step={1}
               fineStep={1}
               min={1}
@@ -428,7 +337,7 @@ export default memo(function PanelInspector({ panel }: Props) {
               <span className="text-xs text-text-secondary">Border Color</span>
               <input
                 type="color"
-                value={panel.borderColor ?? "#000000"}
+                value={panel.borderColor}
                 onChange={(e) =>
                   mutatePanel((p) => {
                     p.borderColor = e.target.value;
@@ -440,7 +349,7 @@ export default memo(function PanelInspector({ panel }: Props) {
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs text-text-secondary">Disable Synthetic Border</span>
               <InspectorToggle
-                checked={!!panel.disableSyntheticBorder}
+                checked={panel.disableSyntheticBorder}
                 onChange={(checked) =>
                   mutatePanel((p) => {
                     p.disableSyntheticBorder = checked;

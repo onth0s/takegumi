@@ -12,7 +12,7 @@ import {
 } from "@/constants/canvasDefaults";
 import { useProjectStore } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
-import { findTextBlock } from "@/utils/findInProject";
+import { useMutateEntity } from "@/hooks/useMutateEntity";
 import { SmartSlider, ScrubInput, SmartNumberInput, SegmentedControl, ColorControl } from "@/components/shared/UI";
 import {
   FieldRow,
@@ -31,19 +31,8 @@ interface Props {
 export default memo(function TextBlockInspector({ panelId, groupId, block }: Props) {
   const updateProject = useProjectStore((s) => s.updateProject);
 
-  const mutateBlock = useCallback(
-    (recipe: (b: WTextBlock) => void, commitType: "discrete" | "continuous" = "continuous") => {
-      updateProject(
-        (draft) => {
-          const b = findTextBlock(draft, panelId, groupId, block.id);
-          if (b) recipe(b);
-        },
-        commitType,
-        block.id
-      );
-    },
-    [updateProject, panelId, groupId, block.id]
-  );
+  const clearSelection = useUIStore((s) => s.clearSelection);
+  const { mutate: mutateBlock, endContinuous } = useMutateEntity("block", { panelId, groupId, blockId: block.id });
 
   const handleDelete = useCallback(() => {
     updateProject(
@@ -57,10 +46,9 @@ export default memo(function TextBlockInspector({ panelId, groupId, block }: Pro
       "discrete",
       block.id
     );
-    useUIStore.getState().setSelectedTextBlockId(null);
-  }, [updateProject, panelId, groupId, block.id]);
+    clearSelection();
+  }, [updateProject, panelId, groupId, block.id, clearSelection]);
 
-  const endContinuous = () => useProjectStore.getState().endContinuousCommit();
 
   const fontSize = block.style.fontSize ?? DEFAULT_WTB_FONT_SIZE;
   const color = block.style.color ?? DEFAULT_WTB_COLOR;

@@ -35,6 +35,9 @@ interface UIState {
 
   incrementRevision: () => void;
   resetRevision: () => void;
+
+  textGroupRects: Map<string, DOMRect>;
+  setTextGroupRect: (groupId: string, rect: DOMRect | null) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -86,4 +89,16 @@ export const useUIStore = create<UIState>((set) => ({
 
   incrementRevision: () => set((state) => ({ revision: state.revision + 1 })),
   resetRevision: () => set({ revision: 0 }),
+
+  textGroupRects: new Map<string, DOMRect>(),
+  setTextGroupRect: (groupId, rect) =>
+    set((state) => {
+      const nextMap = new Map(state.textGroupRects);
+      if (rect) {
+        nextMap.set(groupId, rect);
+      } else {
+        nextMap.delete(groupId);
+      }
+      return { textGroupRects: nextMap };
+    }),
 }));

@@ -128,6 +128,25 @@ Throughout the editor's numeric controls (sliders, scrub inputs, spinners):
 * **Ctrl+drag / Ctrl+arrow**: stepped mode — value snaps to predefined increments (e.g. whole 25% opacity stops, common font sizes).
 * **Scrub inputs** (click-and-drag a numeric label): provide rapid horizontal scrubbing. Click the number to type an exact value.
 
+### 6. Unified Mutation Hook ([useMutateEntity](file:///c:/Users/Leonardo/001/00__DEV/Takegumi/src/hooks/useMutateEntity.ts))
+
+To simplify state updates across different levels of the canvas hierarchy, the editor uses a unified hook [useMutateEntity](file:///c:/Users/Leonardo/001/00__DEV/Takegumi/src/hooks/useMutateEntity.ts). This hook provides type-safe abstractions to mutate:
+* **`panel`**: updates properties on [WPanel](file:///c:/Users/Leonardo/001/00__DEV/Takegumi/src/types/canvas.ts#L73).
+* **`group`**: updates properties on [WTextGroup](file:///c:/Users/Leonardo/001/00__DEV/Takegumi/src/types/canvas.ts#L49).
+* **`block`**: updates properties on [WTextBlock](file:///c:/Users/Leonardo/001/00__DEV/Takegumi/src/types/canvas.ts#L21).
+
+It internally resolves target elements using standard lookup utilities and commits changes to `useProjectStore` under either continuous (debounced) or discrete (immediate) transaction scopes.
+
+### 7. Panel Layering & Reflow Mechanics
+
+Vertical scroll layouts are kept neat and structurally sequenced via two helper modules:
+* **Sequential Layering ([panelLayering.ts](file:///c:/Users/Leonardo/001/00__DEV/Takegumi/src/utils/panelLayering.ts))**: Ensures all canvas panels maintain contiguous, normalized, unique `zIndex` values. Moving panels to the front/back or shifting them forward/backward dynamically swaps indexes cleanly.
+* **Vertical Reflow ([panelReflow.ts](file:///c:/Users/Leonardo/001/00__DEV/Takegumi/src/utils/panelReflow.ts))**: When a panel is dragged vertically or changes height, `shiftPanelsBelow` moves all subsequent panels along with their children [WTextGroup](file:///c:/Users/Leonardo/001/00__DEV/Takegumi/src/types/canvas.ts#L49) coordinates and tail anchor points. This preserves the user's layout gaps and sequence structure automatically.
+
+### 8. Decoupled Dimension Caching
+
+To prevent layout thrashing and synchronous DOM reflow bottlenecks, text group dimensions measured by `ResizeObserver` inside [WTextGroup.tsx](file:///c:/Users/Leonardo/001/00__DEV/Takegumi/src/components/canvas/WTextGroup/WTextGroup.tsx) are cached in `useUIStore.textGroupRects`. The synthetic border computation engine ([useWBorder](file:///c:/Users/Leonardo/001/00__DEV/Takegumi/src/hooks/useWBorder.ts)) reads from this store cache, separating DOM layout queries from the rendering execution.
+
 ---
 ## 📝 Content & Workflow Systems
 ### 1. Markdown Script Parser [Planned]

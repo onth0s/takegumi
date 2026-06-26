@@ -52,6 +52,7 @@ export interface WTextGroup {
   y: number;
   style: WTextGroupStyle;
   tailAnchor: { x: number; y: number } | null;
+  /** @planned Reserved for tracking which specific block within the group the tail anchors to. */
   tailAnchorBlockId?: string | null;
   blocks: WTextBlock[];
 }
@@ -80,10 +81,10 @@ export interface WPanel {
   height: number;
   textGroups: WTextGroup[];
   style?: WPanelStyle;
-  borderEnabled?: boolean;
-  borderColor?: string;
-  borderWidth?: number;
-  disableSyntheticBorder?: boolean;
+  borderEnabled: boolean;
+  borderColor: string;
+  borderWidth: number;
+  disableSyntheticBorder: boolean;
   zIndex?: number;
 }
 

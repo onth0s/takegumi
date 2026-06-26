@@ -12,7 +12,7 @@ import {
   DEFAULT_PANEL_WIDTH,
   DEFAULT_PANEL_HEIGHT,
 } from "@/constants/canvasDefaults";
-import { SegmentedControl, ScrubInput } from "@/components/shared/UI";
+import { SegmentedControl } from "@/components/shared/UI";
 import { EmptyInspectorState, InspectorSection } from "./inspector/InspectorFields";
 import PanelInspector from "./inspector/PanelInspector";
 import ProjectInspector from "./inspector/ProjectInspector";
@@ -68,15 +68,17 @@ export default function Inspector() {
       content = (
         <div className="flex flex-col gap-6">
           <InspectorSection title="Panel Defaults">
-            <div className="grid grid-cols-2 gap-2">
-              <ScrubInput label="Width" value={DEFAULT_PANEL_WIDTH} step={1} fineStep={1} min={50} max={2048} suffix="px"
-                onChange={() => {}} onCommit={() => {}}
-              />
-              <ScrubInput label="Height" value={DEFAULT_PANEL_HEIGHT} step={1} fineStep={1} min={50} max={2048} suffix="px"
-                onChange={() => {}} onCommit={() => {}}
-              />
+            <div className="flex flex-col gap-2 text-xs">
+              <div className="flex justify-between py-1 border-b border-border-subtle">
+                <span className="text-text-secondary font-medium">Default Width</span>
+                <span className="text-text-primary font-semibold">{DEFAULT_PANEL_WIDTH}px</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-border-subtle">
+                <span className="text-text-secondary font-medium">Default Height</span>
+                <span className="text-text-primary font-semibold">{DEFAULT_PANEL_HEIGHT}px</span>
+              </div>
             </div>
-            <p className="text-xs text-text-tertiary">Default dimensions for new panels. Edit in canvasDefaults.ts</p>
+            <p className="text-xs text-text-tertiary mt-2">Default dimensions for new panels. Edit in canvasDefaults.ts</p>
           </InspectorSection>
         </div>
       );

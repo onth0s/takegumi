@@ -70,7 +70,7 @@ export default function WProject({ project }: Props) {
         )}
         
         {/* Layer 1: Panel Backgrounds */}
-        {project.panels.map((panel, index) => {
+        {project.panels.map((panel) => {
           return (
             <div
               key={panel.id}
@@ -78,7 +78,7 @@ export default function WProject({ project }: Props) {
                 position: 'absolute', 
                 left: panel.x, 
                 top: panel.y,
-                zIndex: panel.zIndex ?? index
+                zIndex: panel.zIndex
               }}
             >
               <WPanel panel={panel} />

@@ -37,30 +37,10 @@ export function pillPath(w: number, h: number): string {
  * Generates a jagged action-burst (spiky speech bubble) path.
  */
 export function actionBurstPath(w: number, h: number): string {
-  const points: string[] = [];
-  const spikes = 16;
-  const rx = w / 2;
-  const ry = h / 2;
-  const cx = w / 2;
-  const cy = h / 2;
-
-  for (let i = 0; i < spikes; i++) {
-    const angle = (i * 2 * Math.PI) / spikes;
-    const nextAngle = ((i + 0.5) * 2 * Math.PI) / spikes;
-
-    // Outer spike vertex
-    const x1 = cx + rx * Math.cos(angle);
-    const y1 = cy + ry * Math.sin(angle);
-    points.push(`${i === 0 ? "M" : "L"} ${x1.toFixed(1)} ${y1.toFixed(1)}`);
-
-    // Inner valley vertex
-    const x2 = cx + rx * 0.85 * Math.cos(nextAngle);
-    const y2 = cy + ry * 0.85 * Math.sin(nextAngle);
-    points.push(`L ${x2.toFixed(1)} ${y2.toFixed(1)}`);
-  }
-
-  points.push("Z");
-  return points.join(" ");
+  const pts = actionBurstPoints(0, 0, w, h);
+  const parts = pts.map((pt, i) => `${i === 0 ? "M" : "L"} ${pt[0].toFixed(1)} ${pt[1].toFixed(1)}`);
+  parts.push("Z");
+  return parts.join(" ");
 }
 
 export type BackdropShapeType = "rect" | "pill" | "rounded-rectangle" | "action-burst";
@@ -115,33 +95,116 @@ export function getPerimeterPoint(w: number, h: number, anchorX: number, anchorY
  * Starts near the perimeter point, extends to the tailAnchor, and returns to the perimeter.
  */
 export function tailPath(w: number, h: number, anchorX: number, anchorY: number): string {
+  const pts = tailPoints(w, h, anchorX, anchorY, 0, 0);
+  return [
+    `M ${pts[0][0]} ${pts[0][1]}`,
+    `L ${pts[1][0]} ${pts[1][1]}`,
+    `L ${pts[2][0]} ${pts[2][1]}`,
+    `Z`
+  ].join(" ");
+}
+
+export type Point2D = [number, number];
+
+export function discretizeArc(cx: number, cy: number, r: number, startAngle: number, endAngle: number, steps = 8): Point2D[] {
+  const points: Point2D[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const angle = startAngle + (endAngle - startAngle) * (i / steps);
+    points.push([
+      cx + r * Math.cos(angle),
+      cy + r * Math.sin(angle)
+    ]);
+  }
+  return points;
+}
+
+export function rectPoints(x: number, y: number, w: number, h: number): Point2D[] {
+  return [
+    [x, y],
+    [x + w, y],
+    [x + w, y + h],
+    [x, y + h]
+  ];
+}
+
+export function roundedRectPoints(x: number, y: number, w: number, h: number, r: number): Point2D[] {
+  const radius = Math.min(r, w / 2, h / 2);
+  if (radius <= 0) {
+    return rectPoints(x, y, w, h);
+  }
+
+  const steps = 8;
+  const topRight = discretizeArc(x + w - radius, y + radius, radius, 1.5 * Math.PI, 2 * Math.PI, steps);
+  const bottomRight = discretizeArc(x + w - radius, y + h - radius, radius, 0, 0.5 * Math.PI, steps);
+  const bottomLeft = discretizeArc(x + radius, y + h - radius, radius, 0.5 * Math.PI, Math.PI, steps);
+  const topLeft = discretizeArc(x + radius, y + radius, radius, Math.PI, 1.5 * Math.PI, steps);
+
+  const points: Point2D[] = [];
+  points.push(...topRight.slice(0, -1));
+  points.push(...bottomRight.slice(0, -1));
+  points.push(...bottomLeft.slice(0, -1));
+  points.push(...topLeft.slice(0, -1));
+  return points;
+}
+
+export function actionBurstPoints(x: number, y: number, w: number, h: number): Point2D[] {
+  const points: Point2D[] = [];
+  const spikes = 16;
+  const rx = w / 2;
+  const ry = h / 2;
+  const cx = x + w / 2;
+  const cy = y + h / 2;
+
+  for (let i = 0; i < spikes; i++) {
+    const angle = (i * 2 * Math.PI) / spikes;
+    const nextAngle = ((i + 0.5) * 2 * Math.PI) / spikes;
+
+    // Outer spike vertex
+    points.push([
+      cx + rx * Math.cos(angle),
+      cy + ry * Math.sin(angle)
+    ]);
+
+    // Inner valley vertex
+    points.push([
+      cx + rx * 0.85 * Math.cos(nextAngle),
+      cy + ry * 0.85 * Math.sin(nextAngle)
+    ]);
+  }
+
+  return points;
+}
+
+export function tailPoints(
+  w: number,
+  h: number,
+  anchorX: number,
+  anchorY: number,
+  gLeft = 0,
+  gTop = 0
+): Point2D[] {
   const start = getPerimeterPoint(w, h, anchorX, anchorY);
   
-  // Calculate a secondary base point for the tail to give it thickness
   const cx = w / 2;
   const cy = h / 2;
   const dx = anchorX - cx;
   const dy = anchorY - cy;
   
-  // Tail base width
   const baseSize = 16;
   let p2x = start.x;
   let p2y = start.y;
 
   if (start.y === 0 || start.y === h) {
-    // Top or bottom edge: offset horizontally
     p2x = start.x + (dx > 0 ? -baseSize : baseSize);
     p2x = Math.max(0, Math.min(w, p2x));
   } else {
-    // Left or right edge: offset vertically
     p2y = start.y + (dy > 0 ? -baseSize : baseSize);
     p2y = Math.max(0, Math.min(h, p2y));
   }
 
   return [
-    `M ${start.x} ${start.y}`,
-    `L ${anchorX} ${anchorY}`,
-    `L ${p2x} ${p2y}`,
-    `Z`
-  ].join(" ");
+    [start.x + gLeft, start.y + gTop],
+    [anchorX + gLeft, anchorY + gTop],
+    [p2x + gLeft, p2y + gTop]
+  ];
 }

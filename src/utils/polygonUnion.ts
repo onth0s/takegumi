@@ -1,4 +1,9 @@
-import { getPerimeterPoint } from "./pathGenerators";
+import {
+  rectPoints,
+  roundedRectPoints,
+  actionBurstPoints,
+  tailPoints,
+} from "./pathGenerators";
 
 export type Point = [number, number];
 
@@ -18,113 +23,28 @@ export function discretizeTail(
   gLeft: number,
   gTop: number
 ): Point[] {
-  const start = getPerimeterPoint(w, h, anchorX, anchorY);
-  
-  const cx = w / 2;
-  const cy = h / 2;
-  const dx = anchorX - cx;
-  const dy = anchorY - cy;
-  
-  const baseSize = 16;
-  let p2x = start.x;
-  let p2y = start.y;
-
-  if (start.y === 0 || start.y === h) {
-    p2x = start.x + (dx > 0 ? -baseSize : baseSize);
-    p2x = Math.max(0, Math.min(w, p2x));
-  } else {
-    p2y = start.y + (dy > 0 ? -baseSize : baseSize);
-    p2y = Math.max(0, Math.min(h, p2y));
-  }
-
-  // Map to panel coordinates
-  return [
-    [start.x + gLeft, start.y + gTop],
-    [anchorX + gLeft, anchorY + gTop],
-    [p2x + gLeft, p2y + gTop]
-  ];
-}
-
-/**
- * Discretize a corner arc into vertices.
- */
-function discretizeArc(cx: number, cy: number, r: number, startAngle: number, endAngle: number, steps = 8): Point[] {
-  const points: Point[] = [];
-  for (let i = 0; i <= steps; i++) {
-    const angle = startAngle + (endAngle - startAngle) * (i / steps);
-    points.push([
-      cx + r * Math.cos(angle),
-      cy + r * Math.sin(angle)
-    ]);
-  }
-  return points;
+  return tailPoints(w, h, anchorX, anchorY, gLeft, gTop);
 }
 
 /**
  * Discretize a rectangle.
  */
 export function discretizeRect(x: number, y: number, w: number, h: number): Point[] {
-  return [
-    [x, y],
-    [x + w, y],
-    [x + w, y + h],
-    [x, y + h]
-  ];
+  return rectPoints(x, y, w, h);
 }
 
 /**
  * Discretize a rounded rectangle.
  */
 export function discretizeRoundedRect(x: number, y: number, w: number, h: number, r: number): Point[] {
-  const radius = Math.min(r, w / 2, h / 2);
-  if (radius <= 0) {
-    return discretizeRect(x, y, w, h);
-  }
-
-  const steps = 8;
-  const topRight = discretizeArc(x + w - radius, y + radius, radius, 1.5 * Math.PI, 2 * Math.PI, steps);
-  const bottomRight = discretizeArc(x + w - radius, y + h - radius, radius, 0, 0.5 * Math.PI, steps);
-  const bottomLeft = discretizeArc(x + radius, y + h - radius, radius, 0.5 * Math.PI, Math.PI, steps);
-  const topLeft = discretizeArc(x + radius, y + radius, radius, Math.PI, 1.5 * Math.PI, steps);
-
-  // Combine and remove duplicate endpoints at corner connections
-  const points: Point[] = [];
-  points.push(...topRight.slice(0, -1));
-  points.push(...bottomRight.slice(0, -1));
-  points.push(...bottomLeft.slice(0, -1));
-  points.push(...topLeft.slice(0, -1));
-  return points;
+  return roundedRectPoints(x, y, w, h, r);
 }
 
 /**
  * Discretize an action-burst shape.
  */
 export function discretizeActionBurst(x: number, y: number, w: number, h: number): Point[] {
-  const points: Point[] = [];
-  const spikes = 16;
-  const rx = w / 2;
-  const ry = h / 2;
-  const cx = x + w / 2;
-  const cy = y + h / 2;
-
-  for (let i = 0; i < spikes; i++) {
-    const angle = (i * 2 * Math.PI) / spikes;
-    const nextAngle = ((i + 0.5) * 2 * Math.PI) / spikes;
-
-    // Outer spike vertex
-    points.push([
-      cx + rx * Math.cos(angle),
-      cy + ry * Math.sin(angle)
-    ]);
-
-    // Inner valley vertex
-    points.push([
-      cx + rx * 0.85 * Math.cos(nextAngle),
-      cy + ry * 0.85 * Math.sin(nextAngle)
-    ]);
-  }
-
-  return points;
+  return actionBurstPoints(x, y, w, h);
 }
 
 /**

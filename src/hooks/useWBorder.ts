@@ -15,6 +15,7 @@ import {
   DEFAULT_WTG_SHAPE_TYPE,
   DEFAULT_WTG_BORDER_MODE,
 } from "@/constants/canvasDefaults";
+import { getGroupLocalRect } from "@/utils/groupGeometry";
 
 interface UseWBorderProps {
   panel: WPanel;
@@ -42,14 +43,15 @@ export function useWBorder({
   const [maskRects, setMaskRects] = useState<{ x: number; y: number; w: number; h: number }[]>([]);
   const revision = useUIStore((s) => s.revision);
   const hideAllText = useUIStore((s) => s.hideAllText);
+  const textGroupRects = useUIStore((s) => s.textGroupRects);
 
   const enabled =
-    !!panel.borderEnabled &&
+    panel.borderEnabled &&
     !panel.disableSyntheticBorder &&
     !disableSyntheticBorderGlobal;
 
-  const borderWidth = panel.borderWidth ?? 4;
-  const borderColor = panel.borderColor ?? "#000000";
+  const borderWidth = panel.borderWidth;
+  const borderColor = panel.borderColor;
 
   useLayoutEffect(() => {
     if (!enabled || !panelRef.current) {
@@ -78,14 +80,13 @@ export function useWBorder({
           const groupBorderMode = group.style.borderMode ?? DEFAULT_WTG_BORDER_MODE;
           if (groupBorderMode !== "union") return;
 
-          const groupEl = document.getElementById(`text-group-${group.id}`);
-          if (!groupEl) return;
-
-          const groupRect = groupEl.getBoundingClientRect();
-          const gWidth = Math.round(groupRect.width);
-          const gHeight = Math.round(groupRect.height);
-          const gLeft = Math.round(group.x - gWidth / 2 - panel.x);
-          const gTop = Math.round(group.y - gHeight / 2 - panel.y);
+          const groupRect = textGroupRects.get(group.id);
+          if (!groupRect) return;
+          const localRect = getGroupLocalRect(group, panel.x, panel.y, groupRect.width, groupRect.height);
+          const gLeft = localRect.left;
+          const gTop = localRect.top;
+          const gWidth = localRect.width;
+          const gHeight = localRect.height;
 
           const shape = group.style.shapeType ?? DEFAULT_WTG_SHAPE_TYPE;
           const r = group.style.borderRadius ?? DEFAULT_WTG_BORDER_RADIUS;
@@ -188,16 +189,14 @@ export function useWBorder({
       }
       const rects: { x: number; y: number; w: number; h: number }[] = [];
       panel.textGroups.forEach((group) => {
-        const groupEl = document.getElementById(`text-group-${group.id}`);
-        if (!groupEl) return;
-        const groupRect = groupEl.getBoundingClientRect();
-        const gWidth = Math.round(groupRect.width);
-        const gHeight = Math.round(groupRect.height);
+        const groupRect = textGroupRects.get(group.id);
+        if (!groupRect) return;
+        const localRect = getGroupLocalRect(group, panel.x, panel.y, groupRect.width, groupRect.height);
         rects.push({
-          x: Math.round(group.x - gWidth / 2 - panel.x),
-          y: Math.round(group.y - gHeight / 2 - panel.y),
-          w: gWidth,
-          h: gHeight,
+          x: localRect.left,
+          y: localRect.top,
+          w: localRect.width,
+          h: localRect.height,
         });
       });
       setMaskRects(rects);
@@ -205,12 +204,16 @@ export function useWBorder({
 
     computePath();
 
-    // Trigger update on resize as well
-    window.addEventListener("resize", computePath);
+    // Trigger update on resize of the panel element
+    const observer = new ResizeObserver(() => {
+      computePath();
+    });
+    observer.observe(panelRef.current);
+
     return () => {
-      window.removeEventListener("resize", computePath);
+      observer.disconnect();
     };
-  }, [enabled, panel, borderWidth, borderColor, revision, hideAllText, panelRef]);
+  }, [enabled, panel, borderWidth, borderColor, revision, hideAllText, textGroupRects, panelRef]);
 
   return {
     pathD,

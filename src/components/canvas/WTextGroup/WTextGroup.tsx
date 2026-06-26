@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useLayoutEffect } from "react";
 import type { WTextGroup as WTextGroupType } from "@/types/canvas";
 import {
   DEFAULT_WTG_BACKGROUND_COLOR,
@@ -15,6 +15,7 @@ import { useWPath } from "@/hooks/useWPath";
 import { useUIStore } from "@/stores/uiStore";
 import { useProjectStore } from "@/stores/projectStore";
 import WTextBlock from "../WTextBlock";
+import { getGroupLocalRect } from "@/utils/groupGeometry";
 
 interface Props {
   panelId: string;
@@ -24,6 +25,19 @@ interface Props {
 export default function WTextGroup({ panelId, group }: Props) {
   const nonDecoupledRef = useRef<HTMLDivElement>(null);
   const { backdropPath, tailPathString, width, height } = useWPath(group, nonDecoupledRef);
+  const setTextGroupRect = useUIStore((s) => s.setTextGroupRect);
+
+  useLayoutEffect(() => {
+    if (width > 0 && height > 0) {
+      const rect = new DOMRect(group.x - width / 2, group.y - height / 2, width, height);
+      setTextGroupRect(group.id, rect);
+    } else {
+      setTextGroupRect(group.id, null);
+    }
+    return () => {
+      setTextGroupRect(group.id, null);
+    };
+  }, [group.id, group.x, group.y, width, height, setTextGroupRect]);
 
   const selectedGroupId = useUIStore((s) => s.selectedWTextGroupId);
   const selectedBlockId = useUIStore((s) => s.selectedWTextBlockId);
@@ -47,15 +61,12 @@ export default function WTextGroup({ panelId, group }: Props) {
   // Check if bubble overlaps panel boundary in union mode
   const panel = useProjectStore((s) => s.project?.panels.find((p) => p.id === panelId));
   const borderMode = group.style.borderMode ?? DEFAULT_WTG_BORDER_MODE;
-  const panelBorderEnabled = panel?.borderEnabled && !panel.disableSyntheticBorder;
+  const panelBorderEnabled = panel ? (panel.borderEnabled && !panel.disableSyntheticBorder) : false;
 
-  const gLeft = group.x - width / 2 - (panel?.x ?? 0);
-  const gTop = group.y - height / 2 - (panel?.y ?? 0);
-  const gRight = gLeft + width;
-  const gBottom = gTop + height;
+  const localRect = getGroupLocalRect(group, panel?.x ?? 0, panel?.y ?? 0, width, height);
   const pWidth = panel?.width ?? 0;
   const pHeight = panel?.height ?? 0;
-  const overlapsPanel = gLeft < 0 || gTop < 0 || gRight > pWidth || gBottom > pHeight;
+  const overlapsPanel = localRect.left < 0 || localRect.top < 0 || localRect.right > pWidth || localRect.bottom > pHeight;
 
   const isUnionMode = borderMode === "union" && panelBorderEnabled && overlapsPanel;
   const strokeColor = borderWidth > 0 && !isUnionMode ? borderColor : "none";

@@ -23,7 +23,7 @@ import {
 import { useProjectStore } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
 import { createTextBlock } from "@/utils/createProject";
-import { findTextGroup } from "@/utils/findInProject";
+import { useMutateEntity } from "@/hooks/useMutateEntity";
 import { SmartSlider, ScrubInput, SegmentedControl, ColorControl, ToggleSwitch } from "@/components/shared/UI";
 import {
   AlignmentControl,
@@ -40,21 +40,9 @@ interface Props {
 
 export default memo(function TextGroupInspector({ panelId, group }: Props) {
   const updateProject = useProjectStore((s) => s.updateProject);
+  const clearSelection = useUIStore((s) => s.clearSelection);
   const selectTextBlock = useUIStore((s) => s.selectTextBlock);
-
-  const mutateGroup = useCallback(
-    (recipe: (g: WTextGroup) => void, commitType: "discrete" | "continuous" = "discrete") => {
-      updateProject(
-        (draft) => {
-          const g = findTextGroup(draft, panelId, group.id);
-          if (g) recipe(g);
-        },
-        commitType,
-        group.id
-      );
-    },
-    [updateProject, panelId, group.id]
-  );
+  const { mutate: mutateGroup, endContinuous } = useMutateEntity("group", { panelId, groupId: group.id });
 
   const handleDelete = useCallback(() => {
     updateProject(
@@ -67,9 +55,8 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
       "discrete",
       group.id
     );
-    useUIStore.getState().setSelectedTextGroupId(null);
-    useUIStore.getState().setSelectedTextBlockId(null);
-  }, [updateProject, panelId, group.id]);
+    clearSelection();
+  }, [updateProject, panelId, group.id, clearSelection]);
 
   const handleAddBlock = useCallback(() => {
     mutateGroup((g) => {
@@ -77,7 +64,6 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
     }, "discrete");
   }, [mutateGroup]);
 
-  const endContinuous = () => useProjectStore.getState().endContinuousCommit();
 
   const project = useProjectStore((s) => s.project);
   const freeX = group.style.freeX ?? false;
@@ -85,16 +71,15 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
   const isSnappingX = (project?.grid?.snapEnabled ?? false) && !freeX;
   const isSnappingY = (project?.grid?.snapEnabled ?? false) && !freeY;
 
-  const el = typeof document !== "undefined" ? document.getElementById(`text-group-${group.id}`) : null;
-  const actualWidth = el ? el.getBoundingClientRect().width : (group.style.width ?? DEFAULT_WTG_WIDTH);
-  const wtgWidth = actualWidth || DEFAULT_WTG_WIDTH;
+  const textGroupRects = useUIStore((s) => s.textGroupRects);
+  const cachedRect = textGroupRects.get(group.id);
+  const wtgWidth = cachedRect ? cachedRect.width : (group.style.width ?? DEFAULT_WTG_WIDTH);
 
   const handleAlign = useCallback(
     (dir: "left" | "center" | "right") => {
       mutateGroup((g) => {
-        const groupEl = document.getElementById(`text-group-${g.id}`);
-        const currentWidth = groupEl ? groupEl.getBoundingClientRect().width : (g.style.width ?? DEFAULT_WTG_WIDTH);
-        const activeW = currentWidth || DEFAULT_WTG_WIDTH;
+        const cachedR = useUIStore.getState().textGroupRects.get(g.id);
+        const activeW = cachedR ? cachedR.width : (g.style.width ?? DEFAULT_WTG_WIDTH);
 
         let targetX = 0;
         if (dir === "left") targetX = activeW / 2;

@@ -196,7 +196,7 @@ WTextGroup:
       type: string
       nullable: true
       description: >
-        When set, the tail anchor attaches to this block's perimeter instead of
+        @planned When set, the tail anchor attaches to this block's perimeter instead of
         the group container's.
     blocks:
       type: array
@@ -255,6 +255,7 @@ WTextBlock:
           description: Opacity of this block's individual backdrop layer
     transition:
       type: object
+      deprecated: true
       description: "@planned Remotion playback transitions — not implemented yet"
       properties:
         in:
