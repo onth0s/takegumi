@@ -27,9 +27,15 @@ const PATH_TO_CONST = {
   "WProject.grid.snapEnabled":          "DEFAULT_GRID_SNAP_ENABLED",
   "WProject.grid.showGrid":             "DEFAULT_GRID_SHOW_GRID",
   "WProject.canvasTheme":               "DEFAULT_CANVAS_THEME",
+  "WProject.disableSyntheticBorder":    "DEFAULT_PROJECT_DISABLE_SYNTHETIC_BORDER",
+  "WPanel.borderEnabled":               "DEFAULT_PANEL_BORDER_ENABLED",
+  "WPanel.borderColor":                 "DEFAULT_PANEL_BORDER_COLOR",
+  "WPanel.borderWidth":                 "DEFAULT_PANEL_BORDER_WIDTH",
+  "WPanel.disableSyntheticBorder":      "DEFAULT_PANEL_DISABLE_SYNTHETIC_BORDER",
   "WTextGroup.style.opacity":           "DEFAULT_WTG_OPACITY",
   "WTextGroup.style.backgroundColor":   "DEFAULT_WTG_BACKGROUND_COLOR",
   "WTextGroup.style.width":             "DEFAULT_WTG_WIDTH",
+  "WTextGroup.style.height":            "DEFAULT_WTG_HEIGHT",
   "WTextGroup.style.borderRadius":      "DEFAULT_WTG_BORDER_RADIUS",
   "WTextGroup.style.borderWidth":       "DEFAULT_WTG_BORDER_WIDTH",
   "WTextGroup.style.shapeType":         "DEFAULT_WTG_SHAPE_TYPE",
@@ -100,6 +106,16 @@ function main() {
         const name = PATH_TO_CONST[e.path];
         if (!name) throw new Error(`No constant mapping for YAML path "${e.path}"`);
         const comment = e.path.replace(/^WProject\./, "");
+        return `/** ${comment} */\nexport const ${name} = ${fmt(e.value)};`;
+      }),
+    "",
+    "// WPanel",
+    ...entries
+      .filter((e) => e.path.startsWith("WPanel"))
+      .map((e) => {
+        const name = PATH_TO_CONST[e.path];
+        if (!name) throw new Error(`No constant mapping for YAML path "${e.path}"`);
+        const comment = e.path.replace(/^WPanel\./, "");
         return `/** ${comment} */\nexport const ${name} = ${fmt(e.value)};`;
       }),
     "",

@@ -87,10 +87,12 @@ export default function WTextGroup({ panelId, group }: Props) {
       {/* Layer 2: Text blocks container (measured for backdrop) */}
       <div
         ref={nonDecoupledRef}
-        className="relative z-10 flex flex-col gap-1 items-stretch text-center select-none"
+        className="relative z-10 flex flex-col gap-1 items-stretch justify-center text-center select-none"
         style={{
           width: group.style.width ? `${group.style.width}px` : "max-content",
           maxWidth: group.style.width ? `${group.style.width}px` : "max-content",
+          height: group.style.height ? `${group.style.height}px` : "auto",
+          maxHeight: group.style.height ? `${group.style.height}px` : "none",
           padding: `${BACKDROP_PAD_Y / 2}px ${BACKDROP_PAD_X / 2}px`,
           boxSizing: "border-box",
         }}

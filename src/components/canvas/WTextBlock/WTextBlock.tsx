@@ -123,6 +123,7 @@ export default function WTextBlock({
           opacity: style.opacity ?? DEFAULT_WTB_OPACITY,
           position: "relative",
           zIndex: 1,
+          whiteSpace: "pre-wrap",
         }}
       >
         {text}

@@ -22,3 +22,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **Always read the file immediately before editing it.** Never reconstruct file content from conversation history or prior tool outputs — those may be stale.
 - **Target the minimum lines necessary.** Only replace the exact lines that need to change. Do not re-emit surrounding content unless it is part of the contiguous block being changed.
 - **Never infer "original" content.** If uncertain about the current state of a file, read it first, then edit. No exceptions.
+
+## Schema Alignment Audit Rule
+
+- **Perform Schema Audit on Changes:** Always audit and align the YAML schema file under `gnd/schemas/canvas.yaml` after every major data model change or new feature implementation to ensure it remains the single source of truth for the codebase and README specifications.

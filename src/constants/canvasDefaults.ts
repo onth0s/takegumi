@@ -4,9 +4,15 @@ export {
   DEFAULT_GRID_SNAP_ENABLED,
   DEFAULT_GRID_SHOW_GRID,
   DEFAULT_CANVAS_THEME,
+  DEFAULT_PROJECT_DISABLE_SYNTHETIC_BORDER,
+  DEFAULT_PANEL_BORDER_ENABLED,
+  DEFAULT_PANEL_BORDER_COLOR,
+  DEFAULT_PANEL_BORDER_WIDTH,
+  DEFAULT_PANEL_DISABLE_SYNTHETIC_BORDER,
   DEFAULT_WTG_OPACITY,
   DEFAULT_WTG_BACKGROUND_COLOR,
   DEFAULT_WTG_WIDTH,
+  DEFAULT_WTG_HEIGHT,
   DEFAULT_WTG_BORDER_RADIUS,
   DEFAULT_WTG_BORDER_WIDTH,
   DEFAULT_WTG_SHAPE_TYPE,
@@ -204,4 +210,30 @@ export function snapGroupWidth(
   }
   const snapped = Math.round(width / gridSize) * gridSize;
   return Math.round(valClamp(snapped, gridSize, CANVAS_MAX_WIDTH));
+}
+
+export const WTG_MAX_HEIGHT = 600;
+
+export function wtgHeightToPercent(px: number): number {
+  if (px === 0) return 0;
+  return Math.round(valClamp((px / WTG_MAX_HEIGHT) * 100, 1, 100));
+}
+
+export function wtgPercentToHeight(percent: number): number {
+  if (percent === 0) return 0;
+  return Math.round(valClamp((percent / 100) * WTG_MAX_HEIGHT, 1, WTG_MAX_HEIGHT));
+}
+
+export function snapGroupHeight(
+  height: number,
+  gridSize: number,
+  snapEnabled: boolean,
+  freeHeight: boolean | undefined,
+): number {
+  if (height === 0) return 0;
+  if (!snapEnabled || freeHeight) {
+    return Math.round(valClamp(height, 1, WTG_MAX_HEIGHT));
+  }
+  const snapped = Math.round(height / gridSize) * gridSize;
+  return Math.round(valClamp(snapped, gridSize, WTG_MAX_HEIGHT));
 }

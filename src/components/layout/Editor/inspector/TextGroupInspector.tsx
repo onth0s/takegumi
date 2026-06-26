@@ -3,24 +3,25 @@
 import { memo, useCallback } from "react";
 import type { WTextGroup, WTextGroupStyle } from "@/types/canvas";
 import {
-  DEFAULT_PANEL_WIDTH,
   DEFAULT_WTG_BACKGROUND_COLOR,
   DEFAULT_WTG_BORDER_RADIUS,
   DEFAULT_WTG_BORDER_WIDTH,
   DEFAULT_WTG_OPACITY,
   DEFAULT_WTG_SHAPE_TYPE,
   DEFAULT_WTG_WIDTH,
-  GROUP_PADDING,
+  DEFAULT_WTG_HEIGHT,
   wtgWidthToPercent,
   wtgPercentToWidth,
   snapGroupWidth,
+  snapGroupHeight,
   snapX,
   snapY,
+  CANVAS_MAX_WIDTH,
 } from "@/constants/canvasDefaults";
 import { useProjectStore } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
 import { createTextBlock } from "@/utils/createProject";
-import { findPanel, findTextGroup } from "@/utils/findInProject";
+import { findTextGroup } from "@/utils/findInProject";
 import { SmartSlider, ScrubInput, SegmentedControl, ColorControl, ToggleSwitch } from "@/components/shared/UI";
 import {
   AlignmentControl,
@@ -77,22 +78,26 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
   const endContinuous = () => useProjectStore.getState().endContinuousCommit();
 
   const project = useProjectStore((s) => s.project);
-  const parentPanel = project ? findPanel(project, panelId) : null;
-  const panelX = parentPanel?.x ?? 0;
-  const panelWidth = parentPanel?.width ?? DEFAULT_PANEL_WIDTH;
-
   const freeX = group.style.freeX ?? false;
   const freeY = group.style.freeY ?? false;
   const isSnappingX = (project?.grid?.snapEnabled ?? false) && !freeX;
   const isSnappingY = (project?.grid?.snapEnabled ?? false) && !freeY;
 
+  const el = typeof document !== "undefined" ? document.getElementById(`text-group-${group.id}`) : null;
+  const actualWidth = el ? el.getBoundingClientRect().width : (group.style.width ?? DEFAULT_WTG_WIDTH);
+  const wtgWidth = actualWidth || DEFAULT_WTG_WIDTH;
+
   const handleAlign = useCallback(
     (dir: "left" | "center" | "right") => {
       mutateGroup((g) => {
+        const groupEl = document.getElementById(`text-group-${g.id}`);
+        const currentWidth = groupEl ? groupEl.getBoundingClientRect().width : (g.style.width ?? DEFAULT_WTG_WIDTH);
+        const activeW = currentWidth || DEFAULT_WTG_WIDTH;
+
         let targetX = 0;
-        if (dir === "left") targetX = panelX + GROUP_PADDING;
-        else if (dir === "center") targetX = panelX + Math.round(panelWidth / 2);
-        else targetX = panelX + panelWidth - GROUP_PADDING;
+        if (dir === "left") targetX = activeW / 2;
+        else if (dir === "center") targetX = CANVAS_MAX_WIDTH / 2;
+        else targetX = CANVAS_MAX_WIDTH - activeW / 2;
 
         if (project?.grid?.snapEnabled && !g.style.freeX) {
           targetX = snapX(targetX, project.grid.size, true, false);
@@ -100,13 +105,13 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
         g.x = targetX;
       }, "discrete");
     },
-    [mutateGroup, panelX, panelWidth, project?.grid]
+    [mutateGroup, project?.grid]
   );
 
   const alignOffsets = {
-    left: panelX + GROUP_PADDING,
-    center: panelX + Math.round(panelWidth / 2),
-    right: panelX + panelWidth - GROUP_PADDING,
+    left: wtgWidth / 2,
+    center: CANVAS_MAX_WIDTH / 2,
+    right: CANVAS_MAX_WIDTH - wtgWidth / 2,
   };
   const currentAlign: "left" | "center" | "right" =
     Math.abs(group.x - alignOffsets.left) <= 2 ? "left" :
@@ -124,6 +129,8 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
 
   const widthVal = group.style.width ?? DEFAULT_WTG_WIDTH;
   const freeWidth = group.style.freeWidth ?? false;
+  const heightVal = group.style.height ?? DEFAULT_WTG_HEIGHT;
+  const freeHeight = group.style.freeHeight ?? false;
 
   return (
     <div className="flex flex-col gap-6">
@@ -211,6 +218,38 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
                     if (!checked && project.grid.snapEnabled) {
                       const effectiveGridSize = project.grid.size * 2;
                       g.style.width = snapGroupWidth(g.style.width ?? DEFAULT_WTG_WIDTH, effectiveGridSize, true, false);
+                    }
+                  })
+                }
+              />
+            </div>
+          )}
+          <ScrubInput
+            label="Height"
+            value={heightVal}
+            step={project?.grid?.snapEnabled && !freeHeight ? ((project?.grid?.size ?? 1) * 2) : 1}
+            fineStep={1}
+            min={0}
+            max={600}
+            suffix={heightVal === 0 ? " (Tight)" : "px"}
+            onChange={(v) => mutateGroup((g) => {
+              const effectiveGridSize = (project?.grid?.size ?? 1) * 2;
+              const snappedPx = snapGroupHeight(v, effectiveGridSize, project?.grid?.snapEnabled ?? false, g.style.freeHeight);
+              g.style.height = snappedPx;
+            }, "continuous")}
+            onCommit={endContinuous}
+          />
+          {project?.grid?.snapEnabled && (
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-text-secondary">Free Height</span>
+              <InspectorToggle
+                checked={freeHeight}
+                onChange={(checked) =>
+                  mutateGroup((g) => {
+                    g.style.freeHeight = checked || undefined;
+                    if (!checked && project.grid.snapEnabled) {
+                      const effectiveGridSize = project.grid.size * 2;
+                      g.style.height = snapGroupHeight(g.style.height ?? DEFAULT_WTG_HEIGHT, effectiveGridSize, true, false);
                     }
                   })
                 }

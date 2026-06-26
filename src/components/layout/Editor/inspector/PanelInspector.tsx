@@ -54,7 +54,7 @@ export default memo(function PanelInspector({ panel }: Props) {
 
   const handleAddTextGroup = useCallback(() => {
     mutatePanel((p) => {
-      p.textGroups.push(createTextGroup(p.x + p.width / 2, p.height / 2));
+      p.textGroups.push(createTextGroup(p.x + p.width / 2, p.y + p.height / 2));
     });
   }, [mutatePanel]);
 
@@ -191,10 +191,24 @@ export default memo(function PanelInspector({ panel }: Props) {
               const newY = snapY(v, grid?.size ?? 1, grid?.snapEnabled ?? false, p.style?.freeY, bw);
               const deltaY = newY - p.y;
               if (deltaY !== 0 && draft) {
+                // Shift child text groups of the active panel
+                p.textGroups.forEach((group) => {
+                  group.y += deltaY;
+                  if (group.tailAnchor) {
+                    group.tailAnchor.y += deltaY;
+                  }
+                });
+
                 const targetIndex = draft.panels.findIndex((x: WPanel) => x.id === p.id);
                 if (targetIndex !== -1) {
                   for (let i = targetIndex + 1; i < draft.panels.length; i++) {
                     draft.panels[i].y += deltaY;
+                    draft.panels[i].textGroups.forEach((group) => {
+                      group.y += deltaY;
+                      if (group.tailAnchor) {
+                        group.tailAnchor.y += deltaY;
+                      }
+                    });
                   }
                 }
               }
@@ -224,11 +238,33 @@ export default memo(function PanelInspector({ panel }: Props) {
                 <InspectorToggle
                   checked={freeY}
                   onChange={(checked) =>
-                    mutatePanel((p) => {
+                    mutatePanel((p, draft) => {
                       p.style = { ...p.style, freeY: checked || undefined };
                       if (!checked && grid.snapEnabled) {
                         const bw = p.borderEnabled ? (p.borderWidth ?? 4) : 0;
-                        p.y = snapY(p.y, grid.size, true, false, bw);
+                        const newY = snapY(p.y, grid.size, true, false, bw);
+                        const deltaY = newY - p.y;
+                        if (deltaY !== 0 && draft) {
+                          p.textGroups.forEach((group) => {
+                            group.y += deltaY;
+                            if (group.tailAnchor) {
+                              group.tailAnchor.y += deltaY;
+                            }
+                          });
+                          const targetIndex = draft.panels.findIndex((x: WPanel) => x.id === p.id);
+                          if (targetIndex !== -1) {
+                            for (let i = targetIndex + 1; i < draft.panels.length; i++) {
+                              draft.panels[i].y += deltaY;
+                              draft.panels[i].textGroups.forEach((group) => {
+                                group.y += deltaY;
+                                if (group.tailAnchor) {
+                                  group.tailAnchor.y += deltaY;
+                                }
+                              });
+                            }
+                          }
+                          p.y = newY;
+                        }
                       }
                     })
                   }

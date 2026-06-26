@@ -99,7 +99,7 @@ export default function WProject({ project }: Props) {
                 style={{
                   position: "absolute",
                   left: `${group.x}px`,
-                  top: `${panel.y + group.y}px`,
+                  top: `${group.y}px`,
                   pointerEvents: hideAllText ? "none" : "auto",
                 }}
               >

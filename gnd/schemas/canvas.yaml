@@ -43,6 +43,10 @@ WProject:
     updatedAt:
       type: string
       format: date-time
+    disableSyntheticBorder:
+      type: boolean
+      default: false
+      description: Global opt-out from synthetic border rendering across all panels
 
 WPanel:
   type: object
@@ -70,6 +74,25 @@ WPanel:
       type: array
       items:
         $ref: '#/WTextGroup'
+    borderEnabled:
+      type: boolean
+      default: false
+      description: Master toggle for the panel border
+    borderColor:
+      type: string
+      default: "#000000"
+      description: CSS color value for the panel border
+    borderWidth:
+      type: number
+      default: 4
+      description: Border stroke thickness in pixels
+    disableSyntheticBorder:
+      type: boolean
+      default: false
+      description: Per-panel opt-out from synthetic border behavior
+    zIndex:
+      type: number
+      description: Stacking layer order of the panel on the canvas
     style:
       type: object
       properties:
@@ -97,10 +120,10 @@ WTextGroup:
       description: Unique text group identifier
     x:
       type: number
-      description: Relative X position within the parent WPanel
+      description: Absolute horizontal X-coordinate on the project canvas layout
     y:
       type: number
-      description: Relative Y position within the parent WPanel
+      description: Absolute vertical Y-coordinate on the project canvas layout
     style:
       type: object
       properties:
@@ -121,6 +144,19 @@ WTextGroup:
         freeWidth:
           type: boolean
           description: When true, width is not snapped to grid
+        height:
+          type: number
+          default: 0
+          description: Custom height in pixels. 0 means tight/auto-sizing
+        freeHeight:
+          type: boolean
+          description: When true, height is not snapped to grid
+        freeX:
+          type: boolean
+          description: When true, X position is not snapped to grid
+        freeY:
+          type: boolean
+          description: When true, Y position is not snapped to grid
         borderRadius:
           type: number
           default: 8
@@ -137,10 +173,10 @@ WTextGroup:
       properties:
         x:
           type: number
-          description: Relative anchor target X
+          description: Absolute anchor target X position on the project canvas layout
         y:
           type: number
-          description: Relative anchor target Y
+          description: Absolute anchor target Y position on the project canvas layout
     tailAnchorBlockId:
       type: string
       nullable: true

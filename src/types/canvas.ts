@@ -33,6 +33,8 @@ export interface WTextGroupStyle {
   backgroundColor?: string;
   width?: number;
   freeWidth?: boolean;
+  height?: number;
+  freeHeight?: boolean;
   freeX?: boolean;
   freeY?: boolean;
   borderRadius?: number;

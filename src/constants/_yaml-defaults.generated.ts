@@ -12,6 +12,18 @@ export const DEFAULT_GRID_SNAP_ENABLED = true;
 export const DEFAULT_GRID_SHOW_GRID = true;
 /** canvasTheme */
 export const DEFAULT_CANVAS_THEME = "light";
+/** disableSyntheticBorder */
+export const DEFAULT_PROJECT_DISABLE_SYNTHETIC_BORDER = false;
+
+// WPanel
+/** borderEnabled */
+export const DEFAULT_PANEL_BORDER_ENABLED = false;
+/** borderColor */
+export const DEFAULT_PANEL_BORDER_COLOR = "#000000";
+/** borderWidth */
+export const DEFAULT_PANEL_BORDER_WIDTH = 4;
+/** disableSyntheticBorder */
+export const DEFAULT_PANEL_DISABLE_SYNTHETIC_BORDER = false;
 
 // WTextGroup
 /** style.opacity */
@@ -20,6 +32,8 @@ export const DEFAULT_WTG_OPACITY = 0.5;
 export const DEFAULT_WTG_BACKGROUND_COLOR = "#000000";
 /** style.width */
 export const DEFAULT_WTG_WIDTH = 200;
+/** style.height */
+export const DEFAULT_WTG_HEIGHT = 0;
 /** style.borderRadius */
 export const DEFAULT_WTG_BORDER_RADIUS = 8;
 /** style.borderWidth */
