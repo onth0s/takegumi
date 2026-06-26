@@ -7,7 +7,7 @@ import { useHydration } from "@/hooks/useHydration";
 import { createBlankProject } from "@/utils/createProject";
 
 
-function UndoRedoBtn({ label, disabled, onClick }: { label: string; disabled?: boolean; onClick: () => void }) {
+function UndoRedoBtn({ label, disabled, onClick, className }: { label: string; disabled?: boolean; onClick: () => void; className?: string }) {
   return (
     <button
       type="button"
@@ -15,7 +15,7 @@ function UndoRedoBtn({ label, disabled, onClick }: { label: string; disabled?: b
       title={label}
       disabled={disabled}
       onClick={onClick}
-      className="flex w-10 h-10 justify-center items-center text-text-secondary rounded-sm border border-accent bg-black/70 hover:border-accent/50 hover:text-accent transition-colors duration-150 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-accent disabled:hover:text-text-secondary"
+      className={`flex w-10 h-10 justify-center items-center text-accent border border-accent/50 bg-black/70 hover:border-accent hover:text-text-secondary transition-colors duration-150 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-accent disabled:hover:text-text-secondary ${className || ""}`}
     >
       {label === "Undo" ? "↶" : "↷"}
     </button>
@@ -66,9 +66,9 @@ export default function Viewport() {
       }`}
     >
       <div className="relative w-full h-full">
-        <div className="absolute bottom-6 right-4 z-10 select-none flex flex-col gap-2">
-          <UndoRedoBtn label="Undo" disabled={!canUndo} onClick={undo} />
-          <UndoRedoBtn label="Redo" disabled={!canRedo} onClick={redo} />
+        <div className="absolute bottom-6 right-4 z-10 select-none flex flex-col">
+          <UndoRedoBtn label="Undo" disabled={!canUndo} onClick={undo} className="rounded-t-sm border-b-0" />
+          <UndoRedoBtn label="Redo" disabled={!canRedo} onClick={redo} className="rounded-b-sm" />
         </div>
         <div className="flex items-center justify-center w-full h-full">
           <div className="relative w-full max-w-[960px] h-full">
