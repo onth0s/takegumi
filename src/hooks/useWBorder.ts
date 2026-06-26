@@ -27,6 +27,7 @@ interface UseWBorderResult {
   borderColor: string;
   borderWidth: number;
   enabled: boolean;
+  maskRects: { x: number; y: number; w: number; h: number }[];
 }
 
 
@@ -38,6 +39,7 @@ export function useWBorder({
   disableSyntheticBorderGlobal = false,
 }: UseWBorderProps): UseWBorderResult {
   const [pathD, setPathD] = useState("");
+  const [maskRects, setMaskRects] = useState<{ x: number; y: number; w: number; h: number }[]>([]);
   const revision = useUIStore((s) => s.revision);
   const hideAllText = useUIStore((s) => s.hideAllText);
 
@@ -160,6 +162,8 @@ export function useWBorder({
 
         const d = currentUnionPolys.map(poly => polygonToSVGPath(poly)).join(" ");
         setPathD(d);
+        // Mask out all WTG bounding boxes so the border never shows through them
+        computeMaskRects();
         return;
       }
 
@@ -173,7 +177,31 @@ export function useWBorder({
       const half = bw / 2;
       const d = `M ${-half},${-half} H ${pWidth + half} V ${pHeight + half} H ${-half} Z`;
       setPathD(d);
+      // Mask out all WTG bounding boxes so the border never shows through them
+      computeMaskRects();
     };
+
+    function computeMaskRects() {
+      if (hideAllText) {
+        setMaskRects([]);
+        return;
+      }
+      const rects: { x: number; y: number; w: number; h: number }[] = [];
+      panel.textGroups.forEach((group) => {
+        const groupEl = document.getElementById(`text-group-${group.id}`);
+        if (!groupEl) return;
+        const groupRect = groupEl.getBoundingClientRect();
+        const gWidth = Math.round(groupRect.width);
+        const gHeight = Math.round(groupRect.height);
+        rects.push({
+          x: Math.round(group.x - gWidth / 2 - panel.x),
+          y: Math.round(group.y - gHeight / 2 - panel.y),
+          w: gWidth,
+          h: gHeight,
+        });
+      });
+      setMaskRects(rects);
+    }
 
     computePath();
 
@@ -189,5 +217,6 @@ export function useWBorder({
     borderColor,
     borderWidth,
     enabled,
+    maskRects,
   };
 }

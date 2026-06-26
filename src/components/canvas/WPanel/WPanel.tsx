@@ -22,7 +22,7 @@ export default function WPanel({ panel }: Props) {
   const project = useProjectStore((s) => s.project);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  const { pathD, borderColor, borderWidth, enabled } = useWBorder({
+  const { pathD, borderColor, borderWidth, enabled, maskRects } = useWBorder({
     panel,
     panelRef,
     disableSyntheticBorderGlobal: !!project?.disableSyntheticBorder,
@@ -79,6 +79,8 @@ export default function WPanel({ panel }: Props) {
         height={panel.height}
         x={panel.x}
         y={panel.y}
+        panelId={panel.id}
+        maskRects={maskRects}
         isSelected={isSelected}
         isHovered={!isSelected && isHovered}
       />

@@ -3,6 +3,13 @@ import { useSyncExternalStore } from "react";
 
 const emptySubscribe = () => () => {};
 
+interface MaskRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 interface WBorderProps {
   pathD: string;
   borderColor: string;
@@ -11,6 +18,8 @@ interface WBorderProps {
   height: number;
   x: number;
   y: number;
+  panelId: string;
+  maskRects?: MaskRect[];
   isSelected?: boolean;
   isHovered?: boolean;
 }
@@ -23,6 +32,8 @@ export default function WBorder({
   height,
   x,
   y,
+  panelId,
+  maskRects = [],
   isSelected = false,
   isHovered = false,
 }: WBorderProps) {
@@ -43,9 +54,16 @@ export default function WBorder({
     : "var(--color-border-default, #888)";
   const showRing = isSelected || isHovered;
 
+  const hasMask = maskRects.length > 0;
+  const maskId = `border-mask-${panelId}`;
+  // Oversized white rect so the mask covers the full stroke including overflow
+  const pad = borderWidth * 2;
+
   return (
     <>
-      {/* Synthetic border — low-z portal, above panel images but below WTGs */}
+      {/* Synthetic border — low-z portal, above panel images but below WTGs.
+          SVG mask punches out each WTG bounding box so the border is never
+          visible behind a WTG. */}
       {pathD && borderTarget && createPortal(
         <svg
           className="absolute pointer-events-none overflow-visible"
@@ -53,12 +71,31 @@ export default function WBorder({
           height={height}
           style={{ left: `${x}px`, top: `${y}px` }}
         >
+          {hasMask && (
+            <defs>
+              <mask id={maskId}>
+                {/* White = show the border */}
+                <rect
+                  x={-pad}
+                  y={-pad}
+                  width={width + pad * 2}
+                  height={height + pad * 2}
+                  fill="white"
+                />
+                {/* Black = hide the border where WTGs sit */}
+                {maskRects.map((r, i) => (
+                  <rect key={i} x={r.x} y={r.y} width={r.w} height={r.h} fill="black" />
+                ))}
+              </mask>
+            </defs>
+          )}
           <path
             d={pathD}
             stroke={borderColor}
             strokeWidth={borderWidth}
             fill="none"
             strokeLinecap="square"
+            mask={hasMask ? `url(#${maskId})` : undefined}
           />
         </svg>,
         borderTarget
