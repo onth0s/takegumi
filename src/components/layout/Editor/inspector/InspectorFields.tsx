@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useRef, useLayoutEffect, type ReactNode } from "react";
 import { useId, cloneElement, isValidElement } from "react";
 import ToggleSwitch from "@/components/shared/UI/ToggleSwitch";
 
@@ -46,10 +46,20 @@ export function InspectorInput(props: React.InputHTMLAttributes<HTMLInputElement
 }
 
 export function InspectorTextarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [props.value]);
+
   return (
     <textarea
+      ref={ref}
       {...props}
-      className={`w-full px-2 py-1.5 text-sm rounded border border-border-default bg-surface text-text-primary outline-none focus:border-accent/60 resize-y min-h-20 ${props.className ?? ""}`}
+      className={`w-full px-2 py-1.5 text-sm rounded border border-border-default bg-surface text-text-primary outline-none focus:border-accent/60 resize-none overflow-hidden ${props.className ?? ""}`}
     />
   );
 }
