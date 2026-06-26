@@ -99,13 +99,35 @@ export function useWBorder({
 
           let bubblePoly: Point[] = [];
           if (shape === "pill") {
-            bubblePoly = discretizeRoundedRect(gLeft, gTop, gWidth, gHeight, gHeight / 2);
+            bubblePoly = discretizeRoundedRect(
+              gLeft - offset,
+              gTop - offset,
+              gWidth + 2 * offset,
+              gHeight + 2 * offset,
+              gHeight / 2 + offset
+            );
           } else if (shape === "action-burst") {
-            bubblePoly = discretizeActionBurst(gLeft, gTop, gWidth, gHeight);
+            bubblePoly = discretizeActionBurst(
+              gLeft - offset,
+              gTop - offset,
+              gWidth + 2 * offset,
+              gHeight + 2 * offset
+            );
           } else if (shape === "rect") {
-            bubblePoly = discretizeRect(gLeft, gTop, gWidth, gHeight);
+            bubblePoly = discretizeRect(
+              gLeft - offset,
+              gTop - offset,
+              gWidth + 2 * offset,
+              gHeight + 2 * offset
+            );
           } else {
-            bubblePoly = discretizeRoundedRect(gLeft, gTop, gWidth, gHeight, r);
+            bubblePoly = discretizeRoundedRect(
+              gLeft - offset,
+              gTop - offset,
+              gWidth + 2 * offset,
+              gHeight + 2 * offset,
+              r + offset
+            );
           }
 
           const nextLoops: Point[][] = [];

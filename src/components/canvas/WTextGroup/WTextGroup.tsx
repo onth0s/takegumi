@@ -85,24 +85,63 @@ export default function WTextGroup({ panelId, group }: Props) {
             transform: "translate(-50%, -50%)",
           }}
         >
+          <defs>
+            <mask id={`mask-${group.id}`}>
+              {/* White rect to keep everything outside the bubble */}
+              <rect
+                x={-width}
+                y={-height}
+                width={width * 3}
+                height={height * 3}
+                fill="white"
+              />
+              {/* Black bubble path to mask out the inside */}
+              {backdropPath && <path d={backdropPath} fill="black" />}
+              {tailPathString && <path d={tailPathString} fill="black" />}
+            </mask>
+          </defs>
+
+          {/* 1. Backdrop Fill */}
           {backdropPath && groupHasBg && (
             <path
               d={backdropPath}
               fill={fillColor}
               fillOpacity={groupOpacity}
-              stroke={strokeColor}
-              strokeWidth={borderWidth}
-              strokeOpacity={borderOpacity}
+              stroke="none"
             />
           )}
+
+          {/* 2. Tail Fill */}
           {tailPathString && (
             <path
               d={tailPathString}
               fill={fillColor}
               fillOpacity={groupOpacity}
+              stroke="none"
+            />
+          )}
+
+          {/* 3. Backdrop Stroke (masked to only draw outside) */}
+          {backdropPath && groupHasBg && borderWidth > 0 && (
+            <path
+              d={backdropPath}
+              fill="none"
               stroke={strokeColor}
-              strokeWidth={borderWidth}
+              strokeWidth={borderWidth * 2}
               strokeOpacity={borderOpacity}
+              mask={`url(#mask-${group.id})`}
+            />
+          )}
+
+          {/* 4. Tail Stroke (masked to only draw outside) */}
+          {tailPathString && borderWidth > 0 && (
+            <path
+              d={tailPathString}
+              fill="none"
+              stroke={strokeColor}
+              strokeWidth={borderWidth * 2}
+              strokeOpacity={borderOpacity}
+              mask={`url(#mask-${group.id})`}
             />
           )}
         </svg>
