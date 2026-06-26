@@ -1,6 +1,20 @@
 import { useState, useLayoutEffect, RefObject } from "react";
 import type { WPanel } from "@/types/canvas";
 import { useUIStore } from "@/stores/uiStore";
+import {
+  discretizeRect,
+  discretizeRoundedRect,
+  discretizeActionBurst,
+  discretizeTail,
+  unionTwoPolygons,
+  polygonToSVGPath,
+  Point,
+} from "@/utils/polygonUnion";
+import {
+  DEFAULT_WTG_BORDER_RADIUS,
+  DEFAULT_WTG_SHAPE_TYPE,
+  DEFAULT_PANEL_BORDER_MODE,
+} from "@/constants/canvasDefaults";
 
 interface UseWBorderProps {
   panel: WPanel;
@@ -64,6 +78,76 @@ export function useWBorder({
       const pWidth = Math.round(panelRect.width);
       const pHeight = Math.round(panelRect.height);
       const bw = borderWidth;
+
+      const borderMode = panel.borderMode ?? DEFAULT_PANEL_BORDER_MODE;
+      if (borderMode === "union" && !hideAllText) {
+        let currentUnionPolys: Point[][] = [discretizeRect(0, 0, pWidth, pHeight)];
+
+        panel.textGroups.forEach((group) => {
+          const groupEl = document.getElementById(`text-group-${group.id}`);
+          if (!groupEl) return;
+
+          const groupRect = groupEl.getBoundingClientRect();
+          const gLeft = Math.round(groupRect.left - panelRect.left);
+          const gTop = Math.round(groupRect.top - panelRect.top);
+          const gWidth = Math.round(groupRect.width);
+          const gHeight = Math.round(groupRect.height);
+
+          const shape = group.style.shapeType ?? DEFAULT_WTG_SHAPE_TYPE;
+          const r = group.style.borderRadius ?? DEFAULT_WTG_BORDER_RADIUS;
+
+          let bubblePoly: Point[] = [];
+          if (shape === "pill") {
+            bubblePoly = discretizeRoundedRect(gLeft, gTop, gWidth, gHeight, gHeight / 2);
+          } else if (shape === "action-burst") {
+            bubblePoly = discretizeActionBurst(gLeft, gTop, gWidth, gHeight);
+          } else if (shape === "rect") {
+            bubblePoly = discretizeRect(gLeft, gTop, gWidth, gHeight);
+          } else {
+            bubblePoly = discretizeRoundedRect(gLeft, gTop, gWidth, gHeight, r);
+          }
+
+          const nextLoops: Point[][] = [];
+          let merged = false;
+          for (const poly of currentUnionPolys) {
+            const unionResult = unionTwoPolygons(poly, bubblePoly);
+            if (unionResult.length === 1) {
+              nextLoops.push(unionResult[0]);
+              merged = true;
+            } else {
+              nextLoops.push(poly);
+            }
+          }
+          if (merged) {
+            currentUnionPolys = nextLoops;
+          }
+
+          if (group.tailAnchor) {
+            const relativeAnchorX = group.tailAnchor.x - (group.x - gWidth / 2);
+            const relativeAnchorY = group.tailAnchor.y - (group.y - gHeight / 2);
+            const tailPoly = discretizeTail(gWidth, gHeight, relativeAnchorX, relativeAnchorY, gLeft, gTop);
+
+            const nextLoopsWithTail: Point[][] = [];
+            let tailMerged = false;
+            for (const poly of currentUnionPolys) {
+              const unionResult = unionTwoPolygons(poly, tailPoly);
+              if (unionResult.length === 1) {
+                nextLoopsWithTail.push(unionResult[0]);
+                tailMerged = true;
+              } else {
+                nextLoopsWithTail.push(poly);
+              }
+            }
+            if (tailMerged) {
+              currentUnionPolys = nextLoopsWithTail;
+            }
+          }
+        });
+
+        const d = currentUnionPolys.map(poly => polygonToSVGPath(poly)).join(" ");
+        setPathD(d);
+        return;
+      }
 
       // Define standard borders.
       // Top edge: [0, pWidth] at y = bw/2

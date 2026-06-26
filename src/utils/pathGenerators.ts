@@ -83,7 +83,7 @@ export function getBackdropPath(
  * Finds the nearest point on a rectangle's perimeter to a given anchor point.
  * Coordinates are relative to the rectangle's top-left corner (0,0).
  */
-function getPerimeterPoint(w: number, h: number, anchorX: number, anchorY: number): { x: number; y: number } {
+export function getPerimeterPoint(w: number, h: number, anchorX: number, anchorY: number): { x: number; y: number } {
   const cx = w / 2;
   const cy = h / 2;
 

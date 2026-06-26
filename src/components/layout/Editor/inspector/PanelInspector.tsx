@@ -8,7 +8,7 @@ import { createTextGroup } from "@/utils/createProject";
 import { deletePanelImage } from "@/utils/panelImageStorage";
 import { findPanel } from "@/utils/findInProject";
 import { CANVAS_MAX_WIDTH, xToPanelPercent, percentToPanelX, widthToPercent, percentToWidth, snapX, snapY, snapWidth } from "@/constants/canvasDefaults";
-import { ScrubInput, SmartSlider } from "@/components/shared/UI";
+import { ScrubInput, SmartSlider, SegmentedControl } from "@/components/shared/UI";
 import {
   InspectorButton,
   InspectorSection,
@@ -448,6 +448,19 @@ export default memo(function PanelInspector({ panel }: Props) {
                 }
               />
             </div>
+            <SegmentedControl
+              label="Border Mode"
+              options={[
+                { value: "overlap", label: "Overlap" },
+                { value: "union", label: "Union" },
+              ]}
+              value={panel.borderMode ?? "overlap"}
+              onChange={(v) =>
+                mutatePanel((p) => {
+                  p.borderMode = v as "overlap" | "union";
+                })
+              }
+            />
           </div>
         )}
       </InspectorSection>

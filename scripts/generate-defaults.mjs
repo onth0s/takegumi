@@ -32,6 +32,7 @@ const PATH_TO_CONST = {
   "WPanel.borderColor":                 "DEFAULT_PANEL_BORDER_COLOR",
   "WPanel.borderWidth":                 "DEFAULT_PANEL_BORDER_WIDTH",
   "WPanel.disableSyntheticBorder":      "DEFAULT_PANEL_DISABLE_SYNTHETIC_BORDER",
+  "WPanel.borderMode":                  "DEFAULT_PANEL_BORDER_MODE",
   "WTextGroup.style.opacity":           "DEFAULT_WTG_OPACITY",
   "WTextGroup.style.backgroundColor":   "DEFAULT_WTG_BACKGROUND_COLOR",
   "WTextGroup.style.width":             "DEFAULT_WTG_WIDTH",

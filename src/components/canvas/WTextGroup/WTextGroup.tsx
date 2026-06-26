@@ -5,11 +5,13 @@ import {
   DEFAULT_WTG_BACKGROUND_COLOR,
   DEFAULT_WTG_BORDER_WIDTH,
   DEFAULT_WTG_OPACITY,
+  DEFAULT_PANEL_BORDER_MODE,
   BACKDROP_PAD_X,
   BACKDROP_PAD_Y,
 } from "@/constants/canvasDefaults";
 import { useWPath } from "@/hooks/useWPath";
 import { useUIStore } from "@/stores/uiStore";
+import { useProjectStore } from "@/stores/projectStore";
 import WTextBlock from "../WTextBlock";
 
 interface Props {
@@ -37,7 +39,22 @@ export default function WTextGroup({ panelId, group }: Props) {
   const groupOpacity = group.style.opacity ?? DEFAULT_WTG_OPACITY;
   const borderWidth = group.style.borderWidth ?? DEFAULT_WTG_BORDER_WIDTH;
   const fillColor = group.style.backgroundColor ?? DEFAULT_WTG_BACKGROUND_COLOR;
-  const strokeColor = borderWidth > 0 ? fillColor : "none";
+
+  // Check if bubble overlaps panel boundary in union mode
+  const panel = useProjectStore((s) => s.project?.panels.find((p) => p.id === panelId));
+  const borderMode = panel?.borderMode ?? DEFAULT_PANEL_BORDER_MODE;
+  const panelBorderEnabled = panel?.borderEnabled && !panel.disableSyntheticBorder;
+
+  const gLeft = group.x - width / 2 - (panel?.x ?? 0);
+  const gTop = group.y - height / 2 - (panel?.y ?? 0);
+  const gRight = gLeft + width;
+  const gBottom = gTop + height;
+  const pWidth = panel?.width ?? 0;
+  const pHeight = panel?.height ?? 0;
+  const overlapsPanel = gLeft < 0 || gTop < 0 || gRight > pWidth || gBottom > pHeight;
+
+  const isUnionMode = borderMode === "union" && panelBorderEnabled && overlapsPanel;
+  const strokeColor = borderWidth > 0 && !isUnionMode ? fillColor : "none";
   const groupHasBg = Boolean(group.style.backgroundColor);
 
   const groupShapeType = group.style.shapeType;

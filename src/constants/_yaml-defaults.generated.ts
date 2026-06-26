@@ -24,6 +24,8 @@ export const DEFAULT_PANEL_BORDER_COLOR = "#000000";
 export const DEFAULT_PANEL_BORDER_WIDTH = 4;
 /** disableSyntheticBorder */
 export const DEFAULT_PANEL_DISABLE_SYNTHETIC_BORDER = false;
+/** borderMode */
+export const DEFAULT_PANEL_BORDER_MODE = "overlap";
 
 // WTextGroup
 /** style.opacity */

@@ -93,6 +93,11 @@ WPanel:
     zIndex:
       type: number
       description: Stacking layer order of the panel on the canvas
+    borderMode:
+      type: string
+      enum: [overlap, union]
+      default: overlap
+      description: Rendering mode for overlapping panel and text group borders
     style:
       type: object
       properties:

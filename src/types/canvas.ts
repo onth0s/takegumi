@@ -81,6 +81,7 @@ export interface WPanel {
   borderWidth?: number;
   disableSyntheticBorder?: boolean;
   zIndex?: number;
+  borderMode?: "overlap" | "union";
 }
 
 // ─── Grid & Theme ──────────────────────────────────────────────────────────────
