@@ -39,6 +39,8 @@ const PATH_TO_CONST = {
   "WTextGroup.style.height":            "DEFAULT_WTG_HEIGHT",
   "WTextGroup.style.borderRadius":      "DEFAULT_WTG_BORDER_RADIUS",
   "WTextGroup.style.borderWidth":       "DEFAULT_WTG_BORDER_WIDTH",
+  "WTextGroup.style.borderColor":       "DEFAULT_WTG_BORDER_COLOR",
+  "WTextGroup.style.borderOpacity":     "DEFAULT_WTG_BORDER_OPACITY",
   "WTextGroup.style.shapeType":         "DEFAULT_WTG_SHAPE_TYPE",
   "WTextBlock.style.fontSize":          "DEFAULT_WTB_FONT_SIZE",
   "WTextBlock.style.fontWeight":        "DEFAULT_WTB_FONT_WEIGHT",

@@ -4,6 +4,8 @@ import type { WTextGroup as WTextGroupType } from "@/types/canvas";
 import {
   DEFAULT_WTG_BACKGROUND_COLOR,
   DEFAULT_WTG_BORDER_WIDTH,
+  DEFAULT_WTG_BORDER_COLOR,
+  DEFAULT_WTG_BORDER_OPACITY,
   DEFAULT_WTG_OPACITY,
   DEFAULT_PANEL_BORDER_MODE,
   BACKDROP_PAD_X,
@@ -38,6 +40,8 @@ export default function WTextGroup({ panelId, group }: Props) {
 
   const groupOpacity = group.style.opacity ?? DEFAULT_WTG_OPACITY;
   const borderWidth = group.style.borderWidth ?? DEFAULT_WTG_BORDER_WIDTH;
+  const borderColor = group.style.borderColor ?? DEFAULT_WTG_BORDER_COLOR;
+  const borderOpacity = group.style.borderOpacity ?? DEFAULT_WTG_BORDER_OPACITY;
   const fillColor = group.style.backgroundColor ?? DEFAULT_WTG_BACKGROUND_COLOR;
 
   // Check if bubble overlaps panel boundary in union mode
@@ -54,7 +58,7 @@ export default function WTextGroup({ panelId, group }: Props) {
   const overlapsPanel = gLeft < 0 || gTop < 0 || gRight > pWidth || gBottom > pHeight;
 
   const isUnionMode = borderMode === "union" && panelBorderEnabled && overlapsPanel;
-  const strokeColor = borderWidth > 0 && !isUnionMode ? fillColor : "none";
+  const strokeColor = borderWidth > 0 && !isUnionMode ? borderColor : "none";
   const groupHasBg = Boolean(group.style.backgroundColor);
 
   const groupShapeType = group.style.shapeType;
@@ -79,23 +83,26 @@ export default function WTextGroup({ panelId, group }: Props) {
             left: "50%",
             top: "50%",
             transform: "translate(-50%, -50%)",
-            opacity: groupOpacity,
           }}
         >
           {backdropPath && groupHasBg && (
             <path
               d={backdropPath}
               fill={fillColor}
+              fillOpacity={groupOpacity}
               stroke={strokeColor}
               strokeWidth={borderWidth}
+              strokeOpacity={borderOpacity}
             />
           )}
           {tailPathString && (
             <path
               d={tailPathString}
               fill={fillColor}
+              fillOpacity={groupOpacity}
               stroke={strokeColor}
               strokeWidth={borderWidth}
+              strokeOpacity={borderOpacity}
             />
           )}
         </svg>

@@ -148,7 +148,7 @@ _Another Speaker_: Dialogue on Panel 2.
 Takegumi operates on a normalized state structure:
 * **WProject**: The root document representing a single chapter or webtoon draft.
 * **WPanel**: An individual graphic framework holding a background image as well as optional WTextGroups. It supports synthetic borders with configurable width, color, and `borderMode` (`overlap` vs `union`).
-* **WTextGroup**: An opacity-unified envelope linking multiple WTextBlocks. The group provides shared layout properties (`width`, `height`, and corresponding `freeWidth`/`freeHeight` snapping overrides) and shape defaults (`shapeType`: `pill`, `rounded-rectangle`, `action-burst`, or `rect`; `borderRadius`) inherited by its child blocks.
+* **WTextGroup**: An opacity-unified envelope linking multiple WTextBlocks. The group provides shared layout properties (`width`, `height`, and corresponding `freeWidth`/`freeHeight` snapping overrides), shape defaults (`shapeType`: `pill`, `rounded-rectangle`, `action-burst`, or `rect`; `borderRadius`) inherited by its child blocks, and customizable border settings (`borderWidth`, `borderColor`, and `borderOpacity`).
 * **WTextBlock**: An individual block containing text content, styling, and transition parameters. Each block may independently define its own `backgroundColor` and `backgroundOpacity` — set a color for an individual bubble, or leave it falsy for no background at all (SFX mode).
 Further Schema Specifications are to be found as YAML files in `/gnd` (ground directory, acting as the single source of truth).
 ---

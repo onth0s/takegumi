@@ -40,6 +40,10 @@ export const DEFAULT_WTG_HEIGHT = 0;
 export const DEFAULT_WTG_BORDER_RADIUS = 8;
 /** style.borderWidth */
 export const DEFAULT_WTG_BORDER_WIDTH = 0;
+/** style.borderColor */
+export const DEFAULT_WTG_BORDER_COLOR = "#000000";
+/** style.borderOpacity */
+export const DEFAULT_WTG_BORDER_OPACITY = 1;
 /** style.shapeType */
 export const DEFAULT_WTG_SHAPE_TYPE = "rect";
 

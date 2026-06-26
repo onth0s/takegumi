@@ -6,6 +6,8 @@ import {
   DEFAULT_WTG_BACKGROUND_COLOR,
   DEFAULT_WTG_BORDER_RADIUS,
   DEFAULT_WTG_BORDER_WIDTH,
+  DEFAULT_WTG_BORDER_COLOR,
+  DEFAULT_WTG_BORDER_OPACITY,
   DEFAULT_WTG_OPACITY,
   DEFAULT_WTG_SHAPE_TYPE,
   DEFAULT_WTG_WIDTH,
@@ -123,6 +125,8 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
   const opacity = group.style.opacity ?? DEFAULT_WTG_OPACITY;
   const borderRadius = group.style.borderRadius ?? DEFAULT_WTG_BORDER_RADIUS;
   const borderWidth = group.style.borderWidth ?? DEFAULT_WTG_BORDER_WIDTH;
+  const borderColor = group.style.borderColor ?? DEFAULT_WTG_BORDER_COLOR;
+  const borderOpacity = group.style.borderOpacity ?? DEFAULT_WTG_BORDER_OPACITY;
   const hasTail = group.tailAnchor !== null;
   const tailX = group.tailAnchor?.x ?? group.x;
   const tailY = group.tailAnchor?.y ?? group.y + 80;
@@ -280,15 +284,80 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
           onChange={(v) => mutateGroup((g) => { g.style.opacity = v; })}
           onCommit={endContinuous}
         />
-        <div className="grid grid-cols-2 gap-2">
-          <ScrubInput label="Border radius" value={borderRadius} step={1} fineStep={1} min={0} max={200} suffix="px"
-            onChange={(v) => mutateGroup((g) => { g.style.borderRadius = v; })}
-            onCommit={endContinuous}
-          />
-          <ScrubInput label="Border width" value={borderWidth} step={1} fineStep={1} min={0} max={50} suffix="px"
-            onChange={(v) => mutateGroup((g) => { g.style.borderWidth = v; })}
-            onCommit={endContinuous}
-          />
+      </InspectorSection>
+
+      <InspectorSection title="Border">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-text-secondary">Border Enabled</span>
+            <InspectorToggle
+              checked={borderWidth > 0}
+              onChange={(checked) =>
+                mutateGroup((g) => {
+                  g.style.borderWidth = checked ? 2 : 0;
+                })
+              }
+            />
+          </div>
+          {borderWidth > 0 && (
+            <>
+              <div className="grid grid-cols-[1fr_auto] gap-2 items-end">
+                <SmartSlider
+                  label={`Border Width (${borderWidth}px)`}
+                  value={borderWidth}
+                  min={1}
+                  max={20}
+                  step={1}
+                  fineStep={1}
+                  onChange={(v) =>
+                    mutateGroup((g) => {
+                      g.style.borderWidth = v;
+                    }, "continuous")
+                  }
+                  onCommit={endContinuous}
+                />
+                <ColorControl
+                  label="Border Color"
+                  value={borderColor}
+                  onChange={(v) =>
+                    mutateGroup((g) => {
+                      g.style.borderColor = v;
+                    })
+                  }
+                />
+              </div>
+              <SmartSlider
+                label={`Border Opacity (${Math.round(borderOpacity * 100)}%)`}
+                value={borderOpacity}
+                min={0}
+                max={1}
+                step={0.05}
+                fineStep={0.01}
+                ctrlSteps={[0, 0.25, 0.5, 0.75, 1]}
+                onChange={(v) =>
+                  mutateGroup((g) => {
+                    g.style.borderOpacity = v;
+                  })
+                }
+                onCommit={endContinuous}
+              />
+              <ScrubInput
+                label="Border radius"
+                value={borderRadius}
+                step={1}
+                fineStep={1}
+                min={0}
+                max={200}
+                suffix="px"
+                onChange={(v) =>
+                  mutateGroup((g) => {
+                    g.style.borderRadius = v;
+                  })
+                }
+                onCommit={endContinuous}
+              />
+            </>
+          )}
         </div>
       </InspectorSection>
 

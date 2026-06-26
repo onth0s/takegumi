@@ -39,6 +39,8 @@ export interface WTextGroupStyle {
   freeY?: boolean;
   borderRadius?: number;
   borderWidth?: number;
+  borderColor?: string;
+  borderOpacity?: number;
   shapeType?: "rect" | "pill" | "rounded-rectangle" | "action-burst";
 }
 
