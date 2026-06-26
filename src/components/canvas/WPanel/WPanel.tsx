@@ -77,6 +77,8 @@ export default function WPanel({ panel }: Props) {
           borderWidth={borderWidth}
           width={panel.width}
           height={panel.height}
+          x={panel.x}
+          y={panel.y}
         />
       )}
     </div>

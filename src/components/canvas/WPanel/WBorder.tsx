@@ -1,4 +1,7 @@
-"use client";
+import { createPortal } from "react-dom";
+import { useSyncExternalStore } from "react";
+
+const emptySubscribe = () => () => {};
 
 interface WBorderProps {
   pathD: string;
@@ -6,6 +9,8 @@ interface WBorderProps {
   borderWidth: number;
   width: number;
   height: number;
+  x: number;
+  y: number;
 }
 
 export default function WBorder({
@@ -14,14 +19,26 @@ export default function WBorder({
   borderWidth,
   width,
   height,
+  x,
+  y,
 }: WBorderProps) {
-  if (!pathD) return null;
+  const isClient = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
-  return (
+  if (!pathD || !isClient) return null;
+
+  const target = document.getElementById("panel-borders-portal-target");
+  if (!target) return null;
+
+  return createPortal(
     <svg
-      className="absolute inset-0 pointer-events-none z-10 overflow-visible"
+      className="absolute pointer-events-none z-10 overflow-visible"
       width={width}
       height={height}
+      style={{ left: `${x}px`, top: `${y}px` }}
     >
       <path
         d={pathD}
@@ -30,6 +47,7 @@ export default function WBorder({
         fill="none"
         strokeLinecap="butt"
       />
-    </svg>
+    </svg>,
+    target
   );
 }

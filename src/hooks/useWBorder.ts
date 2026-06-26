@@ -81,7 +81,8 @@ export function useWBorder({
 
       const borderMode = panel.borderMode ?? DEFAULT_PANEL_BORDER_MODE;
       if (borderMode === "union" && !hideAllText) {
-        let currentUnionPolys: Point[][] = [discretizeRect(0, 0, pWidth, pHeight)];
+        const offset = bw / 2;
+        let currentUnionPolys: Point[][] = [discretizeRect(offset, offset, pWidth - bw, pHeight - bw)];
 
         panel.textGroups.forEach((group) => {
           const groupEl = document.getElementById(`text-group-${group.id}`);

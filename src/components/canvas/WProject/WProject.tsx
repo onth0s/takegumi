@@ -109,6 +109,9 @@ export default function WProject({ project }: Props) {
           )}
         </div>
 
+        {/* Portal target for synthetic borders (drawn on top of bubble backgrounds) */}
+        <div id="panel-borders-portal-target" style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 15 }} />
+
         <div 
           className="grid grid-cols-[560px_1fr] gap-[20px] shrink-0 px-[40px] w-full"
           style={{ position: "absolute", bottom: "40px", left: 0 }}
