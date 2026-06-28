@@ -43,12 +43,29 @@ export default memo(function PanelInspector({ panel }: Props) {
         URL.revokeObjectURL(tempUrl);
         const aspect = img.naturalHeight / img.naturalWidth;
         const newHeight = Math.round(panel.width * aspect);
+        const heightDelta = newHeight - panel.height;
 
         savePanelImage(panel.id, file)
           .then(() => {
-            mutatePanel((p) => {
+            mutatePanel((p, draft) => {
               p.imageUrl = toLocalImageUrl(p.id);
               p.height = newHeight;
+
+              if (heightDelta !== 0 && draft) {
+                const targetIndex = draft.panels.findIndex((x) => x.id === p.id);
+                if (targetIndex !== -1) {
+                  for (let i = targetIndex + 1; i < draft.panels.length; i++) {
+                    const belowPanel = draft.panels[i];
+                    belowPanel.y += heightDelta;
+                    belowPanel.textGroups.forEach((group) => {
+                      group.y += heightDelta;
+                      if (group.tailAnchor) {
+                        group.tailAnchor.y += heightDelta;
+                      }
+                    });
+                  }
+                }
+              }
             });
           })
           .catch((err) => {
@@ -68,7 +85,7 @@ export default memo(function PanelInspector({ panel }: Props) {
           });
       };
     },
-    [panel.id, panel.width, mutatePanel]
+    [panel.id, panel.width, panel.height, mutatePanel]
   );
 
   const handleClearImage = useCallback(() => {
