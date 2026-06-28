@@ -1,11 +1,11 @@
 "use client";
 
-import { memo, useCallback } from "react";
+import { memo, useCallback, useRef } from "react";
 import type { WPanel } from "@/types/canvas";
 import { useProjectStore } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
 import { createTextGroup } from "@/utils/createProject";
-import { deletePanelImage } from "@/utils/panelImageStorage";
+import { deletePanelImage, savePanelImage, toLocalImageUrl } from "@/utils/panelImageStorage";
 import { bringToFront, sendToBack, bringForward, sendBackward } from "@/utils/panelLayering";
 import { shiftPanelsBelow } from "@/utils/panelReflow";
 import { useMutateEntity } from "@/hooks/useMutateEntity";
@@ -27,6 +27,58 @@ export default memo(function PanelInspector({ panel }: Props) {
   const clearSelection = useUIStore((s) => s.clearSelection);
 
   const { mutate: mutatePanel, endContinuous } = useMutateEntity("panel", { panelId: panel.id });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      e.target.value = "";
+
+      const tempUrl = URL.createObjectURL(file);
+      const img = new Image();
+      img.src = tempUrl;
+      img.onload = () => {
+        URL.revokeObjectURL(tempUrl);
+        const aspect = img.naturalHeight / img.naturalWidth;
+        const newHeight = Math.round(panel.width * aspect);
+
+        savePanelImage(panel.id, file)
+          .then(() => {
+            mutatePanel((p) => {
+              p.imageUrl = toLocalImageUrl(p.id);
+              p.height = newHeight;
+            });
+          })
+          .catch((err) => {
+            console.error("Failed to save panel image", err);
+          });
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(tempUrl);
+        savePanelImage(panel.id, file)
+          .then(() => {
+            mutatePanel((p) => {
+              p.imageUrl = toLocalImageUrl(p.id);
+            });
+          })
+          .catch((err) => {
+            console.error("Failed to save panel image", err);
+          });
+      };
+    },
+    [panel.id, panel.width, mutatePanel]
+  );
+
+  const handleClearImage = useCallback(() => {
+    mutatePanel((p) => {
+      p.imageUrl = null;
+    });
+    deletePanelImage(panel.id).catch((err) => {
+      console.error("Failed to delete image for panel", panel.id, err);
+    });
+  }, [panel.id, mutatePanel]);
 
   const handleDelete = useCallback(() => {
     updateProject(
@@ -283,24 +335,34 @@ export default memo(function PanelInspector({ panel }: Props) {
       </InspectorSection>
 
       <InspectorSection title="Image">
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleImageChange}
+          accept="image/*"
+          className="hidden"
+        />
         {hasImage ? (
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs text-text-tertiary truncate" title={panel.imageUrl!}>
-              {panel.imageUrl!.length > 30 ? panel.imageUrl!.slice(0, 30) + "…" : panel.imageUrl}
+          <div className="flex flex-col gap-2">
+            <span className="text-xs text-text-tertiary truncate block w-full" title={panel.imageUrl!}>
+              {panel.imageUrl}
             </span>
-            <button
-              type="button"
-              onClick={() => {
-                mutatePanel((p) => { p.imageUrl = null; });
-                deletePanelImage(panel.id).catch(() => {});
-              }}
-              className="text-xs text-danger hover:text-danger/80 shrink-0"
-            >
-              Clear
-            </button>
+            <div className="flex gap-2">
+              <InspectorButton onClick={() => fileInputRef.current?.click()} className="flex-1">
+                Replace
+              </InspectorButton>
+              <InspectorButton variant="danger" onClick={handleClearImage} className="flex-1">
+                Clear
+              </InspectorButton>
+            </div>
           </div>
         ) : (
-          <span className="text-xs text-text-tertiary">No image</span>
+          <div className="flex flex-col gap-2 w-full">
+            <span className="text-xs text-text-tertiary block w-full">No image</span>
+            <InspectorButton onClick={() => fileInputRef.current?.click()}>
+              Add Image
+            </InspectorButton>
+          </div>
         )}
       </InspectorSection>
 
