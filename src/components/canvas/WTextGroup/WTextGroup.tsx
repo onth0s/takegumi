@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useCallback, useLayoutEffect } from "react";
+import { useRef, useCallback, useLayoutEffect, useState } from "react";
 import type { WTextGroup as WTextGroupType } from "@/types/canvas";
 import {
   DEFAULT_WTG_BACKGROUND_COLOR,
@@ -42,6 +42,14 @@ export default function WTextGroup({ panelId, group }: Props) {
   const selectedBlockId = useUIStore((s) => s.selectedWTextBlockId);
   const selectTextGroup = useUIStore((s) => s.selectTextGroup);
   const isSelected = selectedGroupId === group.id && !selectedBlockId;
+  const [isHovered, setIsHovered] = useState(false);
+
+  const showOutline = isSelected || isHovered;
+  const outlineStyle = isSelected
+    ? "2px solid var(--color-accent, #c4a35a)"
+    : isHovered
+    ? "1px solid var(--color-border-default, #333333)"
+    : "none";
 
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
@@ -73,10 +81,15 @@ export default function WTextGroup({ panelId, group }: Props) {
     <div
       id={`text-group-${group.id}`}
       onClick={handleClick}
-      className={`absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer ${
-        isSelected ? "ring-2 ring-accent" : "hover:ring-1 hover:ring-border-default"
-      }`}
-      style={{ left: 0, top: 0 }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer"
+      style={{
+        left: 0,
+        top: 0,
+        outline: outlineStyle,
+        outlineOffset: showOutline ? `${borderWidth}px` : undefined,
+      }}
     >
       {/* Layer 1: Group backdrop + tail — SVG is clickable to select group */}
       {width > 0 && height > 0 && (
