@@ -91,7 +91,7 @@ export default function WTextGroup({ panelId, group }: Props) {
           }}
         >
           <defs>
-            <mask id={`mask-${group.id}`}>
+            <mask id={`mask-${group.id}`} maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse">
               {/* White rect to keep everything outside the bubble */}
               <rect
                 x={-width}
