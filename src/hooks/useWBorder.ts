@@ -189,14 +189,21 @@ export function useWBorder({
       }
       const rects: { x: number; y: number; w: number; h: number }[] = [];
       panel.textGroups.forEach((group) => {
+        const groupBorderMode = group.style.borderMode ?? DEFAULT_WTG_BORDER_MODE;
+        if (groupBorderMode === "union") return;
+
         const groupRect = textGroupRects.get(group.id);
         if (!groupRect) return;
         const localRect = getGroupLocalRect(group, panel.x, panel.y, groupRect.width, groupRect.height);
+        
+        // Expand the mask rect outward by a margin to completely cover the panel's border stroke
+        // which extends outside/inside the panel boundary.
+        const margin = Math.max(8, borderWidth);
         rects.push({
-          x: localRect.left,
-          y: localRect.top,
-          w: localRect.width,
-          h: localRect.height,
+          x: localRect.left - margin,
+          y: localRect.top - margin,
+          w: localRect.width + margin * 2,
+          h: localRect.height + margin * 2,
         });
       });
       setMaskRects(rects);
