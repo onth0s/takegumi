@@ -88,9 +88,11 @@ input, textarea, [contenteditable="true"] {
 }
 
 @utility no-scrollbar {
-  scrollbar-width: none;
+  scrollbar-width: none !important;
   &::-webkit-scrollbar {
-    display: none;
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
   }
 }
 
