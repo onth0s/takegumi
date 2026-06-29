@@ -192,6 +192,32 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
               const rawPx = wtgPercentToWidth(v);
               const effectiveGridSize = (project?.grid?.size ?? 1) * 2;
               const snappedPx = snapGroupWidth(rawPx, effectiveGridSize, project?.grid?.snapEnabled ?? false, g.style.freeWidth);
+
+              const oldW = g.style.width ?? DEFAULT_WTG_WIDTH;
+              const newW = snappedPx;
+              const leftEdge = g.x - oldW / 2;
+              const rightEdge = g.x + oldW / 2;
+
+              const wasLeftAligned = Math.abs(leftEdge) <= 2;
+              const wasRightAligned = Math.abs(rightEdge - CANVAS_MAX_WIDTH) <= 2;
+              const wasCentered = Math.abs(g.x - CANVAS_MAX_WIDTH / 2) <= 2;
+
+              if (wasLeftAligned) {
+                g.x = newW / 2;
+              } else if (wasRightAligned) {
+                g.x = CANVAS_MAX_WIDTH - newW / 2;
+              } else if (wasCentered) {
+                g.x = CANVAS_MAX_WIDTH / 2;
+              } else {
+                let nextX = g.x;
+                if (nextX - newW / 2 < 0) {
+                  nextX = newW / 2;
+                } else if (nextX + newW / 2 > CANVAS_MAX_WIDTH) {
+                  nextX = CANVAS_MAX_WIDTH - newW / 2;
+                }
+                g.x = nextX;
+              }
+
               g.style.width = snappedPx;
             }, "continuous")}
             onCommit={endContinuous}
@@ -205,8 +231,33 @@ export default memo(function TextGroupInspector({ panelId, group }: Props) {
                   mutateGroup((g) => {
                     g.style.freeWidth = checked || undefined;
                     if (!checked && project.grid.snapEnabled) {
+                      const oldW = g.style.width ?? DEFAULT_WTG_WIDTH;
                       const effectiveGridSize = project.grid.size * 2;
-                      g.style.width = snapGroupWidth(g.style.width ?? DEFAULT_WTG_WIDTH, effectiveGridSize, true, false);
+                      const snappedPx = snapGroupWidth(oldW, effectiveGridSize, true, false);
+
+                      const leftEdge = g.x - oldW / 2;
+                      const rightEdge = g.x + oldW / 2;
+                      const wasLeftAligned = Math.abs(leftEdge) <= 2;
+                      const wasRightAligned = Math.abs(rightEdge - CANVAS_MAX_WIDTH) <= 2;
+                      const wasCentered = Math.abs(g.x - CANVAS_MAX_WIDTH / 2) <= 2;
+
+                      if (wasLeftAligned) {
+                        g.x = snappedPx / 2;
+                      } else if (wasRightAligned) {
+                        g.x = CANVAS_MAX_WIDTH - snappedPx / 2;
+                      } else if (wasCentered) {
+                        g.x = CANVAS_MAX_WIDTH / 2;
+                      } else {
+                        let nextX = g.x;
+                        if (nextX - snappedPx / 2 < 0) {
+                          nextX = snappedPx / 2;
+                        } else if (nextX + snappedPx / 2 > CANVAS_MAX_WIDTH) {
+                          nextX = CANVAS_MAX_WIDTH - snappedPx / 2;
+                        }
+                        g.x = nextX;
+                      }
+
+                      g.style.width = snappedPx;
                     }
                   })
                 }
