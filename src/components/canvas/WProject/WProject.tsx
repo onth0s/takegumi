@@ -13,9 +13,10 @@ import WTextGroup from "../WTextGroup";
 
 interface Props {
   project: WProjectType;
+  scrollRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-export default function WProject({ project }: Props) {
+export default function WProject({ project, scrollRef }: Props) {
   const updateProject = useProjectStore((s) => s.updateProject);
   const clearSelection = useUIStore((s) => s.clearSelection);
 
@@ -59,8 +60,9 @@ export default function WProject({ project }: Props) {
 
   return (
     <div
+      ref={scrollRef}
       onClick={handleCanvasClick}
-      className={`relative w-full max-w-[960px] h-full overflow-y-auto no-scrollbar ${
+      className={`relative w-full max-w-[960px] h-full overflow-y-auto overflow-x-hidden no-scrollbar ${
         project.canvasTheme === "dark" ? "bg-black" : "bg-white"
       }`}
     >
