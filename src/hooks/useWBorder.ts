@@ -1,6 +1,7 @@
 import { useState, useLayoutEffect, RefObject } from "react";
 import type { WPanel } from "@/types/canvas";
 import { useUIStore } from "@/stores/uiStore";
+import { useProjectStore } from "@/stores/projectStore";
 import {
   discretizeRect,
   discretizeRoundedRect,
@@ -43,6 +44,7 @@ export function useWBorder({
   const [maskRects, setMaskRects] = useState<{ x: number; y: number; w: number; h: number }[]>([]);
   const revision = useUIStore((s) => s.revision);
   const hideAllText = useUIStore((s) => s.hideAllText);
+  const project = useProjectStore((s) => s.project);
   const textGroupRects = useUIStore((s) => s.textGroupRects);
 
   const enabled =
@@ -188,16 +190,33 @@ export function useWBorder({
         return;
       }
       const rects: { x: number; y: number; w: number; h: number }[] = [];
-      panel.textGroups.forEach((group) => {
+      const allTextGroups = project?.panels.flatMap((p) =>
+        p.textGroups.map((g) => ({ ...g, panelId: p.id }))
+      ) ?? [];
+
+      allTextGroups.forEach((group) => {
+        const groupBorderMode = group.style.borderMode ?? DEFAULT_WTG_BORDER_MODE;
+        const isOwnUnion = group.panelId === panel.id && groupBorderMode === "union";
+        if (isOwnUnion) return;
+
         const groupRect = textGroupRects.get(group.id);
         if (!groupRect) return;
         const localRect = getGroupLocalRect(group, panel.x, panel.y, groupRect.width, groupRect.height);
-        rects.push({
-          x: localRect.left,
-          y: localRect.top,
-          w: localRect.width,
-          h: localRect.height,
-        });
+
+        const intersects =
+          localRect.left < panel.width &&
+          localRect.right > 0 &&
+          localRect.top < panel.height &&
+          localRect.bottom > 0;
+
+        if (intersects) {
+          rects.push({
+            x: localRect.left,
+            y: localRect.top,
+            w: localRect.width,
+            h: localRect.height,
+          });
+        }
       });
       setMaskRects(rects);
     }
@@ -213,7 +232,7 @@ export function useWBorder({
     return () => {
       observer.disconnect();
     };
-  }, [enabled, panel, borderWidth, borderColor, revision, hideAllText, textGroupRects, panelRef]);
+  }, [enabled, panel, borderWidth, borderColor, revision, hideAllText, textGroupRects, panelRef, project]);
 
   return {
     pathD,
