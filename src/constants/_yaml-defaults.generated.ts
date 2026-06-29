@@ -33,7 +33,7 @@ export const DEFAULT_WTG_BACKGROUND_COLOR = "#000000";
 /** style.width */
 export const DEFAULT_WTG_WIDTH = 200;
 /** style.height */
-export const DEFAULT_WTG_HEIGHT = 0;
+export const DEFAULT_WTG_HEIGHT = 40;
 /** style.borderRadius */
 export const DEFAULT_WTG_BORDER_RADIUS = 8;
 /** style.borderWidth */

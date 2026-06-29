@@ -146,8 +146,8 @@ WTextGroup:
           description: When true, width is not snapped to grid
         height:
           type: number
-          default: 0
-          description: Custom height in pixels. 0 means tight/auto-sizing
+          default: 40
+          description: Custom height in pixels.
         freeHeight:
           type: boolean
           description: When true, height is not snapped to grid

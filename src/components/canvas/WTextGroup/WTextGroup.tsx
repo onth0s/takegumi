@@ -15,7 +15,6 @@ import { useWPath } from "@/hooks/useWPath";
 import { useUIStore } from "@/stores/uiStore";
 import { useProjectStore } from "@/stores/projectStore";
 import WTextBlock from "../WTextBlock";
-import { getGroupLocalRect } from "@/utils/groupGeometry";
 
 interface Props {
   panelId: string;
@@ -63,12 +62,7 @@ export default function WTextGroup({ panelId, group }: Props) {
   const borderMode = group.style.borderMode ?? DEFAULT_WTG_BORDER_MODE;
   const panelBorderEnabled = panel ? (panel.borderEnabled && !panel.disableSyntheticBorder) : false;
 
-  const localRect = getGroupLocalRect(group, panel?.x ?? 0, panel?.y ?? 0, width, height);
-  const pWidth = panel?.width ?? 0;
-  const pHeight = panel?.height ?? 0;
-  const overlapsPanel = localRect.left < 0 || localRect.top < 0 || localRect.right > pWidth || localRect.bottom > pHeight;
-
-  const isUnionMode = borderMode === "union" && panelBorderEnabled && overlapsPanel;
+  const isUnionMode = borderMode === "union" && panelBorderEnabled;
   const strokeColor = borderWidth > 0 && !isUnionMode ? borderColor : "none";
   const groupHasBg = Boolean(group.style.backgroundColor);
 
