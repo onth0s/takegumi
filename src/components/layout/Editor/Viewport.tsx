@@ -5,6 +5,7 @@ import { useProjectStore } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
 import { useHydration } from "@/hooks/useHydration";
 import { createBlankProject } from "@/utils/createProject";
+import SyntheticScrollbar from "./SyntheticScrollbar";
 
 
 function UndoRedoBtn({ label, disabled, onClick, className }: { label: string; disabled?: boolean; onClick: () => void; className?: string }) {
@@ -33,89 +34,24 @@ export default function Viewport() {
   const canRedo = useProjectStore((s) => s.future.length > 0);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const scrollThumbRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
 
-  const updateScrollbar = useCallback(() => {
-    const container = scrollContainerRef.current;
-    const thumb = scrollThumbRef.current;
-    if (!container || !thumb) return;
-
-    const { scrollTop, scrollHeight, clientHeight } = container;
-
-    if (scrollHeight <= clientHeight) {
-      thumb.style.height = "0px";
-      return;
-    }
-
-    const visibleRatio = clientHeight / scrollHeight;
-    const trackHeight = clientHeight;
-    const thumbHeight = Math.max(30, trackHeight * visibleRatio);
-
-    const containerScrollable = scrollHeight - clientHeight;
-    const thumbScrollable = trackHeight - thumbHeight;
-
-    const scrollRatio = scrollTop / containerScrollable;
-    const thumbTop = scrollRatio * thumbScrollable;
-
-    thumb.style.height = `${thumbHeight}px`;
-    thumb.style.transform = `translateY(${thumbTop}px)`;
-  }, []);
-
-  const handleThumbMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const startY = e.clientY;
-    const startScrollTop = container.scrollTop;
-    const { scrollHeight, clientHeight } = container;
-
-    const visibleRatio = clientHeight / scrollHeight;
-    const trackHeight = clientHeight;
-    const thumbHeight = Math.max(30, trackHeight * visibleRatio);
-    const containerScrollable = scrollHeight - clientHeight;
-    const thumbScrollable = trackHeight - thumbHeight;
-
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const deltaY = moveEvent.clientY - startY;
-      const deltaTop = (deltaY / thumbScrollable) * containerScrollable;
-      container.scrollTop = Math.max(0, Math.min(scrollHeight - clientHeight, startScrollTop + deltaTop));
-    };
-
-    const handleMouseUp = () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-      document.body.classList.remove("select-none");
-    };
-
-    document.body.classList.add("select-none");
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-  }, []);
-
+  // Capture wheel events on the Viewport and scroll WProject container programmatically
   useEffect(() => {
+    const viewport = viewportRef.current;
     const container = scrollContainerRef.current;
-    if (!container) return;
+    if (!viewport || !container) return;
 
-    container.addEventListener("scroll", updateScrollbar);
-
-    const resizeObserver = new ResizeObserver(() => {
-      updateScrollbar();
-    });
-
-    resizeObserver.observe(container);
-    const content = container.firstElementChild;
-    if (content) {
-      resizeObserver.observe(content);
-    }
-
-    updateScrollbar();
-
-    return () => {
-      container.removeEventListener("scroll", updateScrollbar);
-      resizeObserver.disconnect();
+    const handleWheel = (e: WheelEvent) => {
+      container.scrollTop += e.deltaY;
+      e.preventDefault();
     };
-  }, [hydrated, project, updateScrollbar]);
+
+    viewport.addEventListener("wheel", handleWheel, { passive: false });
+    return () => {
+      viewport.removeEventListener("wheel", handleWheel);
+    };
+  }, [hydrated, project]);
 
   // Seed a blank project the first time the store hydrates with no saved data.
   useEffect(() => {
@@ -145,6 +81,7 @@ export default function Viewport() {
 
   return (
     <div
+      ref={viewportRef}
       onClick={handleViewportClick}
       className={`flex-1 h-full overflow-hidden relative ${
         isDarkTheme ? "bg-neutral-50 bg-grid-light" : "bg-grid"
@@ -161,15 +98,7 @@ export default function Viewport() {
           </div>
         </div>
 
-        {/* Synthetic Scrollbar */}
-        <div className="absolute right-0 top-0 bottom-0 w-2 bg-black/5 hover:bg-black/10 border-l border-black/5 dark:border-white/5 z-20 flex justify-center">
-          <div
-            ref={scrollThumbRef}
-            className="w-1.5 bg-yellow-accent/40 hover:bg-yellow-accent-hover/70 cursor-pointer absolute top-0 transition-colors duration-150"
-            style={{ height: 0 }}
-            onMouseDown={handleThumbMouseDown}
-          />
-        </div>
+        <SyntheticScrollbar scrollContainerRef={scrollContainerRef} />
       </div>
     </div>
   );
