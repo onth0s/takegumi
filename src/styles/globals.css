@@ -14,6 +14,8 @@
   --color-accent: var(--_accent);
   --color-accent-hover: var(--_accent-hover);
   --color-accent-muted: var(--_accent-muted);
+  --color-yellow-accent: var(--_yellow-accent);
+  --color-yellow-accent-hover: var(--_yellow-accent-hover);
 
   /* Semantic */
   --color-danger: var(--_danger);
@@ -44,6 +46,8 @@
   --_accent: #c4a35a;
   --_accent-hover: #d4b36a;
   --_accent-muted: rgba(196, 163, 90, 0.15);
+  --_yellow-accent: #b59821;
+  --_yellow-accent-hover: #ccac2b;
 
   /* Semantic */
   --_danger: #c45a5a;
