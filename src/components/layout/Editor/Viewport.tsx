@@ -165,7 +165,7 @@ export default function Viewport() {
         <div className="absolute right-0 top-0 bottom-0 w-2 bg-black/5 hover:bg-black/10 border-l border-black/5 dark:border-white/5 z-20 flex justify-center">
           <div
             ref={scrollThumbRef}
-            className="w-1.5 bg-neutral-400/40 hover:bg-neutral-400/60 rounded-full cursor-pointer absolute top-0 transition-colors duration-150"
+            className="w-1.5 bg-neutral-400/40 hover:bg-neutral-400/60 cursor-pointer absolute top-0 transition-colors duration-150"
             style={{ height: 0 }}
             onMouseDown={handleThumbMouseDown}
           />
