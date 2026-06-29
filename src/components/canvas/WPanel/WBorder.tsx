@@ -73,7 +73,7 @@ export default function WBorder({
         >
           {hasMask && (
             <defs>
-              <mask id={maskId}>
+              <mask id={maskId} maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse">
                 {/* White = show the border */}
                 <rect
                   x={-pad}
