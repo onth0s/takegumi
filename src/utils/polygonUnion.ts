@@ -136,7 +136,7 @@ export function splitPolygonEdges(poly1: Point[], poly2: Point[]): Segment[] {
 export function assemblePolygons(segments: Segment[]): Point[][] {
   const loops: Point[][] = [];
   const remaining = [...segments];
-  const eps = 1.0; // 1 pixel tolerance for matching endpoints
+  const eps = 0.05; // tolerance for matching endpoints
 
   while (remaining.length > 0) {
     const loop: Point[] = [];
