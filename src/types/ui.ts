@@ -1,4 +1,4 @@
-/** @planned Selection, context menu, and guide state for the editor shell (misc/PLAN.md Phase 4). */
+/** Selection, context menu, and guide state for the editor shell. */
 
 export interface ContextMenuState {
   x: number;
@@ -12,4 +12,6 @@ export interface AlignmentGuide {
   coordinate: number;
 }
 
-export type SidebarTab = "inspector" | "assets" | "script" | "history";
+export type SidebarTab = "inspector" | "history";
+
+export type ProjectInspectorTab = "canvas" | "info";

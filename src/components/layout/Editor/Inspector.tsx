@@ -1,25 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useProjectStore } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
+import type { ProjectInspectorTab } from "@/types/ui";
 import {
   findPanel,
   findTextBlock,
   findTextGroup,
 } from "@/utils/findInProject";
-import {
-  DEFAULT_PANEL_WIDTH,
-  DEFAULT_PANEL_HEIGHT,
-} from "@/constants/canvasDefaults";
+
 import { SegmentedControl } from "@/components/shared/UI";
 import { EmptyInspectorState, InspectorSection } from "./inspector/InspectorFields";
-import PanelInspector from "./inspector/PanelInspector";
-import ProjectInspector from "./inspector/ProjectInspector";
-import TextBlockInspector from "./inspector/TextBlockInspector";
-import TextGroupInspector from "./inspector/TextGroupInspector";
 
-type ProjectTab = "canvas" | "defaults" | "info";
+const PanelInspector = lazy(() => import("./inspector/PanelInspector"));
+const ProjectInspector = lazy(() => import("./inspector/ProjectInspector"));
+const TextBlockInspector = lazy(() => import("./inspector/TextBlockInspector"));
+const TextGroupInspector = lazy(() => import("./inspector/TextGroupInspector"));
 
 function inspectorTitle(
   selectedBlockId: string | null,
@@ -37,7 +34,7 @@ export default function Inspector() {
   const selectedPanelId = useUIStore((s) => s.selectedWPanelId);
   const selectedGroupId = useUIStore((s) => s.selectedWTextGroupId);
   const selectedBlockId = useUIStore((s) => s.selectedWTextBlockId);
-  const [projectTab, setProjectTab] = useState<ProjectTab>("canvas");
+  const [projectTab, setProjectTab] = useState<ProjectInspectorTab>("canvas");
 
   const title = inspectorTitle(selectedBlockId, selectedGroupId, selectedPanelId);
   const isProjectView = project && !selectedPanelId && !selectedGroupId && !selectedBlockId;
@@ -64,24 +61,6 @@ export default function Inspector() {
   } else if (project && isProjectView) {
     if (projectTab === "canvas") {
       content = <ProjectInspector project={project} />;
-    } else if (projectTab === "defaults") {
-      content = (
-        <div className="flex flex-col gap-6">
-          <InspectorSection title="Panel Defaults">
-            <div className="flex flex-col gap-2 text-xs">
-              <div className="flex justify-between py-1 border-b border-border-subtle">
-                <span className="text-text-secondary font-medium">Default Width</span>
-                <span className="text-text-primary font-semibold">{DEFAULT_PANEL_WIDTH}px</span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-border-subtle">
-                <span className="text-text-secondary font-medium">Default Height</span>
-                <span className="text-text-primary font-semibold">{DEFAULT_PANEL_HEIGHT}px</span>
-              </div>
-            </div>
-            <p className="text-xs text-text-tertiary mt-2">Default dimensions for new panels. Edit in canvasDefaults.ts</p>
-          </InspectorSection>
-        </div>
-      );
     } else {
       const groupCount = project.panels.reduce((sum, p) => sum + p.textGroups.length, 0);
       const blockCount = project.panels.reduce(
@@ -113,16 +92,19 @@ export default function Inspector() {
         <div className="px-3 py-2 border-b border-border-subtle shrink-0">
           <SegmentedControl
             value={projectTab}
-            onChange={(v) => setProjectTab(v as ProjectTab)}
+            onChange={(v) => setProjectTab(v as ProjectInspectorTab)}
             options={[
               { value: "canvas", label: "Canvas" },
-              { value: "defaults", label: "Defaults" },
               { value: "info", label: "Info" },
             ]}
           />
         </div>
       )}
-      <div className="flex-1 overflow-y-auto p-4">{content}</div>
+      <div className="flex-1 overflow-y-auto p-4">
+        <Suspense fallback={<div className="text-xs text-text-tertiary">Loading...</div>}>
+          {content}
+        </Suspense>
+      </div>
     </div>
   );
 }

@@ -96,12 +96,6 @@ WPanel:
     style:
       type: object
       properties:
-        gutter:
-          type: number
-          description: Spacing between adjacent panels
-        borderStyle:
-          type: string
-          description: Synthetic border style token
         freeX:
           type: boolean
           description: When true, X position is not snapped to grid
@@ -253,24 +247,4 @@ WTextBlock:
           maximum: 1
           default: 1
           description: Opacity of this block's individual backdrop layer
-    transition:
-      type: object
-      deprecated: true
-      description: "@planned Remotion playback transitions — not implemented yet"
-      properties:
-        in:
-          type: object
-          properties:
-            type:
-              type: string
-              enum: [fade, slide, scale]
-            duration:
-              type: number
-        out:
-          type: object
-          properties:
-            type:
-              type: string
-              enum: [fade, slide, scale]
-            duration:
-              type: number
+

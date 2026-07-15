@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback } from "react";
+import { useCallback } from "react";
 import type { WProject, CanvasTheme } from "@/types/canvas";
 import {
   DEFAULT_PANEL_WIDTH,
@@ -14,16 +14,31 @@ import {
   FieldRowHorizontal,
   InspectorInput,
   InspectorSection,
+  InspectorButton,
 } from "./InspectorFields";
 
 interface Props {
   project: WProject;
 }
 
-export default memo(function ProjectInspector({ project }: Props) {
+export default function ProjectInspector({ project }: Props) {
   const updateProject = useProjectStore((s) => s.updateProject);
+  const hideAllText = useUIStore((s) => s.hideAllText);
+  const setHideAllText = useUIStore((s) => s.setHideAllText);
 
-  const endContinuous = () => useProjectStore.getState().endContinuousCommit();
+  const endContinuous = useCallback(() => {
+    useProjectStore.getState().endContinuousCommit();
+  }, []);
+
+  const handleExport = useCallback(() => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(project, null, 2));
+    const downloadAnchor = document.createElement("a");
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `${project.name.toLowerCase().replace(/\s+/g, "-")}-project.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  }, [project]);
 
   const handleNameChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,8 +129,8 @@ export default memo(function ProjectInspector({ project }: Props) {
         />
         <FieldRowHorizontal label="Hide All Text">
           <ToggleSwitch 
-            checked={useUIStore((s) => s.hideAllText)} 
-            onChange={(v) => useUIStore.getState().setHideAllText(v)} 
+            checked={hideAllText} 
+            onChange={setHideAllText} 
           />
         </FieldRowHorizontal>
         <FieldRowHorizontal label="Disable Synthetic Border">
@@ -139,6 +154,10 @@ export default memo(function ProjectInspector({ project }: Props) {
         </div>
         <p className="text-xs text-text-tertiary">Default dimensions for new panels. Edit in canvasDefaults.ts</p>
       </InspectorSection>
+
+      <InspectorSection title="Actions">
+        <InspectorButton onClick={handleExport}>Export project JSON</InspectorButton>
+      </InspectorSection>
     </div>
   );
-});
+}

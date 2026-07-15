@@ -12,16 +12,14 @@ export default function FloatingHeader() {
 
   return (
     <div className="absolute top-6 left-4 z-10 select-none flex items-center gap-2">
-      <div
-        role="button"
-        tabIndex={0}
+      <button
+        type="button"
         aria-label="Back to home"
         className="bg-black/70 flex w-10 h-10 justify-center items-center text-text-secondary rounded-sm border border-accent cursor-pointer hover:text-accent transition-colors duration-150"
         onClick={handleBack}
-        onKeyDown={(e) => e.key === "Enter" && handleBack()}
       >
         <span aria-hidden="true">←</span>
-      </div>
+      </button>
     </div>
   );
 }

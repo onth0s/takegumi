@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback } from "react";
+import { useCallback } from "react";
 import type { WTextBlock } from "@/types/canvas";
 import {
   DEFAULT_WTB_COLOR,
@@ -28,7 +28,7 @@ interface Props {
   block: WTextBlock;
 }
 
-export default memo(function TextBlockInspector({ panelId, groupId, block }: Props) {
+export default function TextBlockInspector({ panelId, groupId, block }: Props) {
   const updateProject = useProjectStore((s) => s.updateProject);
 
   const clearSelection = useUIStore((s) => s.clearSelection);
@@ -146,4 +146,4 @@ export default memo(function TextBlockInspector({ panelId, groupId, block }: Pro
       </div>
     </div>
   );
-});
+}

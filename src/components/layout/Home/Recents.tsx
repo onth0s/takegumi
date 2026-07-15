@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useProjectStore } from "@/stores/projectStore";
+import { useResizable } from "@/hooks/useResizable";
 import ProjectCard from "./recents/ProjectCard";
 import ProjectRow from "./recents/ProjectRow";
 
@@ -13,45 +14,14 @@ const MAX_WIDTH = 600;
 const DEFAULT_WIDTH = 340;
 
 export default function Recents() {
-  const [width, setWidth] = useState(DEFAULT_WIDTH);
+  const { width, onMouseDown } = useResizable(DEFAULT_WIDTH, { min: MIN_WIDTH, max: MAX_WIDTH });
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
-  const isResizing = useRef(false);
-  const startX = useRef(0);
-  const startWidth = useRef(0);
 
   const router = useRouter();
   const projects = useProjectStore((s) => s.projects || []);
   const setProject = useProjectStore((s) => s.setProject);
   const deleteProject = useProjectStore((s) => s.deleteProject);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
-
-  const onMouseDown = useCallback(
-    (e: React.MouseEvent) => {
-      isResizing.current = true;
-      startX.current = e.clientX;
-      startWidth.current = width;
-      e.preventDefault();
-    },
-    [width]
-  );
-
-  useEffect(() => {
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isResizing.current) return;
-      const delta = e.clientX - startX.current;
-      setWidth(Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, startWidth.current + delta)));
-    };
-    const onMouseUp = () => {
-      isResizing.current = false;
-    };
-
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-    return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    };
-  }, []);
 
   const handleSelectProject = useCallback(
     (proj: WProject) => {

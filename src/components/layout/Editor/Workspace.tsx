@@ -5,8 +5,10 @@ import Viewport from "./Viewport";
 import Inspector from "./Inspector";
 import FloatingHeader from "./FloatingHeader";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { initStoreSync } from "@/stores/storeSync";
 
 export default function Workspace() {
+  initStoreSync();
   useKeyboardShortcuts();
 
   return (

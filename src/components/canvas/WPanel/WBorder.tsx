@@ -50,7 +50,7 @@ export default function WBorder({
 
   const ringStrokeWidth = isSelected ? 2 : 1;
   const ringColor = isSelected
-    ? "var(--color-accent, #6366f1)"
+    ? "var(--color-accent, #c4a35a)"
     : "var(--color-border-default, #888)";
   const showRing = isSelected || isHovered;
 

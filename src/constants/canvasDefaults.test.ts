@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert";
-import { snapGroupWidth, wtgPercentToWidth, snapGroupHeight, wtgPercentToHeight } from "./canvasDefaults";
+import { wtgPercentToWidth, wtgPercentToHeight } from "./layout";
+import { snapGroupWidth, snapGroupHeight } from "../utils/snapMath";
 
 test("WTextGroup Snapping Verification Tests", async (t) => {
   const GRID_SIZE = 48;

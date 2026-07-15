@@ -1,8 +1,7 @@
 /**
  * Offscreen/Headless text measurement using Canvas.
  *
- * @planned Phase 2 target (misc/PLAN.md) — replace ResizeObserver sizing in useWPath.
- * Kept as scaffold; not wired into the render pipeline yet.
+ * Wired into the useWPath hook to replace ResizeObserver sizing.
  *
  * NOTE: This module contains browser-only APIs (HTMLCanvasElement, OffscreenCanvas).
  * The module-level variables are null in SSR contexts (Node) — that is intentional.

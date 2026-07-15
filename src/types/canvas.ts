@@ -12,18 +12,10 @@ export interface WTextBlockStyle {
   backgroundOpacity?: number;
 }
 
-/** @deprecated Playback transitions — not implemented until Remotion export (misc/PLAN.md). */
-export interface WTextBlockTransition {
-  in?: { type: "fade" | "slide" | "scale"; duration: number };
-  out?: { type: "fade" | "slide" | "scale"; duration: number };
-}
-
 export interface WTextBlock {
   id: string;
   text: string;
   style: WTextBlockStyle;
-  /** @deprecated See {@link WTextBlockTransition}. */
-  transition?: WTextBlockTransition;
 }
 
 // ─── WTextGroup ───────────────────────────────────────────────────────────────
@@ -60,8 +52,6 @@ export interface WTextGroup {
 // ─── WPanel ───────────────────────────────────────────────────────────────────
 
 export interface WPanelStyle {
-  gutter?: number;
-  borderStyle?: string;
   /** When true, the X position is not rounded to the grid even if grid snap is on. */
   freeX?: boolean;
   /** When true, the Y position is not rounded to the grid even if grid snap is on. */
@@ -73,9 +63,9 @@ export interface WPanelStyle {
 export interface WPanel {
   id: string;
   imageUrl: string | null;
-  /** @planned Absolute layout — flex layout used today; coordinates reserved for future engine. */
+  /** Canvas-absolute X coordinate in pixels. */
   x: number;
-  /** @planned Absolute layout — flex layout used today; coordinates reserved for future engine. */
+  /** Canvas-absolute Y coordinate in pixels. */
   y: number;
   width: number;
   height: number;
@@ -111,6 +101,6 @@ export interface WProject {
   canvasTheme: CanvasTheme;
   createdAt: string;
   updatedAt: string;
-  disableSyntheticBorder?: boolean;
+  disableSyntheticBorder: boolean;
 }
 

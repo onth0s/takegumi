@@ -42,10 +42,44 @@ export function useWBorder({
 }: UseWBorderProps): UseWBorderResult {
   const [pathD, setPathD] = useState("");
   const [maskRects, setMaskRects] = useState<{ x: number; y: number; w: number; h: number }[]>([]);
-  const revision = useUIStore((s) => s.revision);
+  
   const hideAllText = useUIStore((s) => s.hideAllText);
   const project = useProjectStore((s) => s.project);
-  const textGroupRects = useUIStore((s) => s.textGroupRects);
+
+  // Selectively subscribe to only the text group rects that actually intersect or belong to this panel
+  const relevantRectsHash = useUIStore((s) => {
+    const ownIds = panel.textGroups.map((g) => g.id);
+    let hash = "";
+    s.textGroupRects.forEach((rect, id) => {
+      const isOwn = ownIds.includes(id);
+      if (isOwn) {
+        hash += `${id}:${rect.width},${rect.height};`;
+        return;
+      }
+      let group = null;
+      if (project) {
+        for (const p of project.panels) {
+          const g = p.textGroups.find((x) => x.id === id);
+          if (g) {
+            group = g;
+            break;
+          }
+        }
+      }
+      if (group) {
+        const localRect = getGroupLocalRect(group, panel.x, panel.y, rect.width, rect.height);
+        const intersects =
+          localRect.left < panel.width &&
+          localRect.right > 0 &&
+          localRect.top < panel.height &&
+          localRect.bottom > 0;
+        if (intersects) {
+          hash += `${id}:${rect.width},${rect.height};`;
+        }
+      }
+    });
+    return hash;
+  });
 
   const enabled =
     panel.borderEnabled &&
@@ -74,15 +108,13 @@ export function useWBorder({
       );
       if (hasAnyUnion && !hideAllText) {
         const offset = bw / 2;
-        // Panel polygon: centerline sits bw/2 OUTSIDE each edge so stroke extends
-        // fully outward, inner stroke edge = panel boundary.
         let currentUnionPolys: Point[][] = [discretizeRect(-offset, -offset, pWidth + bw, pHeight + bw)];
 
         panel.textGroups.forEach((group) => {
           const groupBorderMode = group.style.borderMode ?? DEFAULT_WTG_BORDER_MODE;
           if (groupBorderMode !== "union") return;
 
-          const groupRect = textGroupRects.get(group.id);
+          const groupRect = useUIStore.getState().textGroupRects.get(group.id);
           if (!groupRect) return;
           const localRect = getGroupLocalRect(group, panel.x, panel.y, groupRect.width, groupRect.height);
           const gLeft = localRect.left;
@@ -165,22 +197,13 @@ export function useWBorder({
 
         const d = currentUnionPolys.map(poly => polygonToSVGPath(poly)).join(" ");
         setPathD(d);
-        // Mask out all WTG bounding boxes so the border never shows through them
         computeMaskRects();
         return;
       }
 
-      // Overlap mode: closed rectangle path — centerline sits bw/2 OUTSIDE the
-      // panel boundary. Stroke inner edge = panel boundary; extends fully outward.
-      // Using a closed path (not 4 separate segments) ensures miter-join corners
-      // identical to the polygon approach used in union mode.
-      //
-      // With an outward-only border, WTGs inside the panel can never reach the
-      // border band, so no gap-cutting is required.
       const half = bw / 2;
       const d = `M ${-half},${-half} H ${pWidth + half} V ${pHeight + half} H ${-half} Z`;
       setPathD(d);
-      // Mask out all WTG bounding boxes so the border never shows through them
       computeMaskRects();
     };
 
@@ -199,7 +222,7 @@ export function useWBorder({
         const isOwnUnion = group.panelId === panel.id && groupBorderMode === "union";
         if (isOwnUnion) return;
 
-        const groupRect = textGroupRects.get(group.id);
+        const groupRect = useUIStore.getState().textGroupRects.get(group.id);
         if (!groupRect) return;
         const localRect = getGroupLocalRect(group, panel.x, panel.y, groupRect.width, groupRect.height);
 
@@ -223,7 +246,6 @@ export function useWBorder({
 
     computePath();
 
-    // Trigger update on resize of the panel element
     const observer = new ResizeObserver(() => {
       computePath();
     });
@@ -232,7 +254,7 @@ export function useWBorder({
     return () => {
       observer.disconnect();
     };
-  }, [enabled, panel, borderWidth, borderColor, revision, hideAllText, textGroupRects, panelRef, project]);
+  }, [enabled, panel, borderWidth, borderColor, hideAllText, relevantRectsHash, panelRef, project]);
 
   return {
     pathD,

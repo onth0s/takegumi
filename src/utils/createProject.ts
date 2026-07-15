@@ -24,9 +24,11 @@ import {
   DEFAULT_GRID_SNAP_ENABLED,
   DEFAULT_GRID_SHOW_GRID,
   DEFAULT_CANVAS_THEME,
+} from "@/constants/canvasDefaults";
+import {
   computeDefaultPanelPercent,
   percentToPanelX,
-} from "@/constants/canvasDefaults";
+} from "@/constants/layout";
 import { uid } from "@/utils/uid";
 
 /** Default WTextBlock — a single "Text Block" entry for a fresh panel. */
@@ -135,7 +137,48 @@ export function createBlankProject(name = "Untitled Project"): WProject {
       showGrid: DEFAULT_GRID_SHOW_GRID,
     },
     canvasTheme: DEFAULT_CANVAS_THEME,
+    disableSyntheticBorder: false,
     createdAt: now,
     updatedAt: now,
   };
+}
+
+/** Creates a demo WProject with pre-populated panels and text groups. */
+export function createDemoProject(): WProject {
+  const now = new Date().toISOString();
+  const proj: WProject = {
+    id: uid(),
+    name: "Takegumi Demo Story",
+    grid: {
+      size: 10,
+      snapEnabled: true,
+      showGrid: true,
+    },
+    canvasTheme: "light",
+    disableSyntheticBorder: false,
+    createdAt: now,
+    updatedAt: now,
+    panels: [],
+  };
+
+  const p1 = createBlankPanel({ width: 480, height: 320, borderEnabled: true, y: 40 }, proj.panels);
+  // Clear default auto-created text group so we can customize it
+  p1.textGroups = [];
+  const tg1 = createTextGroup(p1.x + 240, p1.y + 160);
+  tg1.blocks = [
+    createTextBlock({ text: "A long time ago..." }),
+  ];
+  p1.textGroups.push(tg1);
+  proj.panels.push(p1);
+
+  const p2 = createBlankPanel({ width: 640, height: 400, borderEnabled: true, y: 400 }, proj.panels);
+  p2.textGroups = [];
+  const tg2 = createTextGroup(p2.x + 320, p2.y + 200);
+  tg2.blocks = [
+    createTextBlock({ text: "In a webtoon editor far, far away..." }),
+  ];
+  p2.textGroups.push(tg2);
+  proj.panels.push(p2);
+
+  return proj;
 }

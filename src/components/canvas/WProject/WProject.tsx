@@ -7,9 +7,12 @@ import { createBlankPanel } from "@/utils/createProject";
 import { processImageFiles } from "@/utils/processImageFiles";
 import { useImageDrop } from "@/hooks/useImageDrop";
 import ImageDropZone from "@/components/shared/ImageDropZone";
-import WPanel from "../WPanel";
 import WGrid from "../WGrid";
-import WTextGroup from "../WTextGroup";
+
+// Import layers
+import { PanelLayer } from "./PanelLayer";
+import { TextGroupLayer } from "./TextGroupLayer";
+import { PortalTargets } from "./PortalTargets";
 
 interface Props {
   project: WProjectType;
@@ -54,8 +57,6 @@ export default function WProject({ project, scrollRef }: Props) {
   const panelsBottom = project.panels.length > 0 
     ? Math.max(...project.panels.map((p) => p.y + p.height)) 
     : 0;
-  // Calculate total height of the canvas contents: panels + buffer for the drop footer
-  // footer is 200px tall, plus gap/padding
   const contentHeight = Math.max(500, panelsBottom + 280);
 
   return (
@@ -68,94 +69,55 @@ export default function WProject({ project, scrollRef }: Props) {
     >
       <div style={{ position: "relative", width: "100%", height: `${contentHeight}px` }}>
         {project.grid.showGrid && (
-          <WGrid gridSize={project.grid.size} canvasTheme={project.canvasTheme} />
+          <WGrid gridSize={project.grid.size} canvasTheme={project.canvasTheme} height={contentHeight} />
         )}
         
         {/* Layer 1: Panel Backgrounds */}
-        {project.panels.map((panel) => {
-          return (
-            <div
-              key={panel.id}
-              style={{ 
-                position: 'absolute', 
-                left: panel.x, 
-                top: panel.y,
-                zIndex: panel.zIndex
-              }}
-            >
-              <WPanel panel={panel} />
-            </div>
-          );
-        })}
+        <PanelLayer panels={project.panels} />
 
-        {/* Layer 2: Global Text Overlays — always mounted to preserve ResizeObserver measurements;
-            toggled via visibility so dimensions never reset to 0 on re-show */}
-        <div style={{
-          position: "absolute", inset: 0, pointerEvents: "none", zIndex: 20,
-          visibility: hideAllText ? "hidden" : "visible",
-        }}>
-          {project.panels.map((panel) =>
-            panel.textGroups.map((group) => (
-              <div
-                key={group.id}
-                style={{
-                  position: "absolute",
-                  left: `${group.x}px`,
-                  top: `${group.y}px`,
-                  pointerEvents: hideAllText ? "none" : "auto",
-                }}
-              >
-                <WTextGroup panelId={panel.id} group={group} />
-              </div>
-            ))
-          )}
-        </div>
+        {/* Layer 2: Global Text Overlays */}
+        <TextGroupLayer panels={project.panels} hideAllText={hideAllText} />
 
-        {/* Portal target for synthetic borders — sits above panel images, below WTGs */}
-        <div id="panel-borders-portal-target" style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 5 }} />
-
-        {/* Portal target for panel selection/hover rings — always on top */}
-        <div id="panel-selection-portal-target" style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 25 }} />
+        {/* Portals */}
+        <PortalTargets />
 
         <div 
           className="grid grid-cols-[560px_1fr] gap-[20px] shrink-0 px-[40px] w-full"
           style={{ position: "absolute", bottom: "40px", left: 0 }}
         >
-        <ImageDropZone
-          id="viewport-drop-zone"
-          variant="editor"
-          isDragOver={drop.isDragOver}
-          fileInputRef={drop.fileInputRef}
-          onOpen={drop.openFilePicker}
-          onKeyDown={drop.handleKeyDown}
-          onDragOver={drop.handleDragOver}
-          onDragLeave={drop.handleDragLeave}
-          onDrop={drop.handleDrop}
-          onFileChange={drop.handleFileChange}
-        />
+          <ImageDropZone
+            id="viewport-drop-zone"
+            variant="editor"
+            isDragOver={drop.isDragOver}
+            fileInputRef={drop.fileInputRef}
+            onOpen={drop.openFilePicker}
+            onKeyDown={drop.handleKeyDown}
+            onDragOver={drop.handleDragOver}
+            onDragLeave={drop.handleDragLeave}
+            onDrop={drop.handleDrop}
+            onFileChange={drop.handleFileChange}
+          />
 
-        <div
-          role="button"
-          tabIndex={0}
-          id="create-blank-wpanel-btn"
-          onClick={handleCreateBlankPanel}
-          onKeyDown={(e) => e.key === "Enter" && handleCreateBlankPanel()}
-          className="group flex flex-col items-center justify-center gap-[10px] h-[200px] px-[30px] border-2 border-dashed rounded-2xl cursor-pointer transition-colors duration-200 outline-none focus-visible:ring-1 focus-visible:ring-accent/50 border-border-default/60 hover:border-accent/50 hover:bg-accent/5"
-        >
-          <div className="w-10 h-10 rounded-full border border-border-default/60 flex items-center justify-center group-hover:border-accent/50 transition-colors duration-200">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-text-tertiary group-hover:text-accent transition-colors duration-200">
-              <path d="M8 2.5V13.5M2.5 8H13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-          </div>
-          <div className="flex flex-col gap-1 items-center">
-            <p className="text-sm text-text-secondary group-hover:text-accent transition-colors duration-200">
-              Create blank WPanel
-            </p>
-            <p className="text-xs text-text-tertiary">Start from scratch</p>
-          </div>
+          <button
+            type="button"
+            id="create-blank-wpanel-btn"
+            onClick={handleCreateBlankPanel}
+            className="group flex flex-col items-center justify-center gap-[10px] h-[200px] px-[30px] border-2 border-dashed rounded-2xl cursor-pointer transition-colors duration-200 outline-none focus-visible:ring-1 focus-visible:ring-accent/50 border-border-default/60 hover:border-accent/50 hover:bg-accent/5 w-full text-left"
+          >
+            <div className="w-10 h-10 rounded-full border border-border-default/60 flex items-center justify-center group-hover:border-accent/50 transition-colors duration-200">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-text-tertiary group-hover:text-accent transition-colors duration-200">
+                <path d="M8 2.5V13.5M2.5 8H13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <div className="flex flex-col gap-1 items-center w-full">
+              <p className="text-sm text-text-secondary group-hover:text-accent transition-colors duration-200 text-center w-full">
+                Create blank WPanel
+              </p>
+              <p className="text-xs text-text-tertiary text-center w-full">Start from scratch</p>
+            </div>
+          </button>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
 }

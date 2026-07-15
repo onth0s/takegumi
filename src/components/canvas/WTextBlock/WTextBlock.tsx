@@ -45,20 +45,21 @@ export default function WTextBlock({
   ]);
 
   const selectedBlockId = useUIStore((s) => s.selectedWTextBlockId);
+  const selectedGroupId = useUIStore((s) => s.selectedWTextGroupId);
   const selectTextBlock = useUIStore((s) => s.selectTextBlock);
+  const selectTextGroup = useUIStore((s) => s.selectTextGroup);
   const isSelected = selectedBlockId === block.id;
 
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      const selectedGroupId = useUIStore.getState().selectedWTextGroupId;
       if (selectedGroupId === groupId) {
         selectTextBlock(panelId, groupId, block.id);
       } else {
-        useUIStore.getState().selectTextGroup(panelId, groupId);
+        selectTextGroup(panelId, groupId);
       }
     },
-    [panelId, groupId, block.id, selectTextBlock]
+    [panelId, groupId, block.id, selectedGroupId, selectTextBlock, selectTextGroup]
   );
 
 

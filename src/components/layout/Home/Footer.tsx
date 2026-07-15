@@ -3,19 +3,27 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useProjectStore } from "@/stores/projectStore";
+import { createDemoProject } from "@/utils/createProject";
 
 export default function Footer() {
   const router = useRouter();
+  const setProject = useProjectStore((s) => s.setProject);
 
   const handleNuke = useCallback(async () => {
     await useProjectStore.getState().resetAll();
     router.push("/");
   }, [router]);
 
+  const handleLoadDemo = useCallback(() => {
+    const demo = createDemoProject();
+    setProject(demo);
+    router.push("/workspace");
+  }, [setProject, router]);
+
   return (
     <div className="flex items-center justify-between w-full px-6 pb-5 pt-1">
       <button
-        onClick={() => router.push("/workspace")}
+        onClick={handleLoadDemo}
         className="text-sm text-accent hover:text-accent-hover cursor-pointer transition-colors duration-150"
       >
         Load demo

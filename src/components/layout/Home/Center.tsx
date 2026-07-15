@@ -1,5 +1,6 @@
 "use client";
-import { useCallback } from "react";
+
+import { useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useProjectStore } from "@/stores/projectStore";
 import { createBlankProject } from "@/utils/createProject";
@@ -10,6 +11,7 @@ import ImageDropZone from "@/components/shared/ImageDropZone";
 export default function Center() {
   const router = useRouter();
   const setProject = useProjectStore((s) => s.setProject);
+  const jsonFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleCreateBlank = useCallback(() => {
     setProject(createBlankProject());
@@ -28,10 +30,40 @@ export default function Center() {
     [setProject, router]
   );
 
+  const handleJsonImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const parsed = JSON.parse(event.target?.result as string);
+        if (parsed && typeof parsed === "object" && parsed.id && Array.isArray(parsed.panels)) {
+          setProject(parsed);
+          router.push("/workspace");
+        } else {
+          alert("Invalid project file: missing required schema properties.");
+        }
+      } catch (err) {
+        console.error("Failed to parse project JSON", err);
+        alert("Failed to import project: invalid JSON format.");
+      }
+    };
+    reader.readAsText(file);
+  }, [setProject, router]);
+
   const drop = useImageDrop(handleFiles);
 
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-2xl">
+      <input
+        ref={jsonFileInputRef}
+        type="file"
+        accept=".json"
+        onChange={handleJsonImport}
+        className="hidden"
+      />
       <div className="flex flex-row items-stretch gap-4 w-full">
         <ImageDropZone
           id="home-drop-zone"
@@ -46,31 +78,32 @@ export default function Center() {
           onFileChange={drop.handleFileChange}
         />
 
-        <div
-          role="button"
-          tabIndex={0}
+        <button
+          type="button"
           id="create-blank-project-btn"
           onClick={handleCreateBlank}
-          onKeyDown={(e) => e.key === "Enter" && handleCreateBlank()}
           className="group flex flex-col items-center justify-center gap-3 flex-[3.5] h-64 border-2 border-dashed border-border-default rounded-xl bg-surface cursor-pointer transition-colors duration-200 hover:border-accent/50 hover:bg-accent/5 px-6 text-center outline-none focus-visible:ring-1 focus-visible:ring-accent/50"
         >
-          <div className="w-10 h-10 rounded-full border border-border-default flex items-center justify-center group-hover:border-accent/50 transition-colors duration-200">
+          <div className="w-10 h-10 rounded-full border border-border-default flex items-center justify-center group-hover:border-accent/50 transition-colors duration-200 mx-auto">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-text-tertiary group-hover:text-accent transition-colors duration-200">
               <path d="M8 2.5V13.5M2.5 8H13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
           </div>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 items-center">
             <p className="text-sm text-text-secondary group-hover:text-accent transition-colors duration-200">
               Create blank project
             </p>
             <p className="text-xs text-text-tertiary">Start from scratch</p>
           </div>
-        </div>
+        </button>
       </div>
 
       <p className="text-xs text-text-tertiary">
         Or import a{" "}
-        <span className="text-text-secondary hover:text-accent cursor-pointer transition-colors duration-150">
+        <span
+          onClick={() => jsonFileInputRef.current?.click()}
+          className="text-text-secondary hover:text-accent cursor-pointer transition-colors duration-150"
+        >
           project JSON
         </span>{" "}
         or{" "}

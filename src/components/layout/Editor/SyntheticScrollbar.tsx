@@ -91,7 +91,7 @@ export default function SyntheticScrollbar({ scrollContainerRef }: SyntheticScro
   }, [scrollContainerRef, updateScrollbar]);
 
   return (
-    <div className="absolute right-0 top-0 bottom-0 w-2 bg-black/5 hover:bg-black/10 border-l border-black/5 dark:border-white/5 z-20 flex justify-center">
+    <div className="absolute right-0 top-0 bottom-0 w-2 bg-black/5 hover:bg-black/10 border-l border-black/5 z-20 flex justify-center">
       <div
         ref={scrollThumbRef}
         className="w-1.5 bg-yellow-accent/40 hover:bg-yellow-accent-hover/70 cursor-pointer absolute top-0 transition-colors duration-150"

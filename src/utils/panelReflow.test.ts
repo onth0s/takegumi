@@ -9,6 +9,7 @@ function makeDummyProject(): WProject {
     name: "Test Project",
     grid: { size: 10, snapEnabled: true, showGrid: true },
     canvasTheme: "light",
+    disableSyntheticBorder: false,
     createdAt: "",
     updatedAt: "",
     panels: [

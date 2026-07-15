@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useCallback, useLayoutEffect, useState } from "react";
+import { useCallback, useLayoutEffect, useState } from "react";
 import type { WTextGroup as WTextGroupType } from "@/types/canvas";
 import {
   DEFAULT_WTG_BACKGROUND_COLOR,
@@ -22,8 +22,7 @@ interface Props {
 }
 
 export default function WTextGroup({ panelId, group }: Props) {
-  const nonDecoupledRef = useRef<HTMLDivElement>(null);
-  const { backdropPath, tailPathString, width, height } = useWPath(group, nonDecoupledRef);
+  const { backdropPath, tailPathString, width, height } = useWPath(group);
   const setTextGroupRect = useUIStore((s) => s.setTextGroupRect);
 
   useLayoutEffect(() => {
@@ -175,7 +174,6 @@ export default function WTextGroup({ panelId, group }: Props) {
 
       {/* Layer 2: Text blocks container (measured for backdrop) */}
       <div
-        ref={nonDecoupledRef}
         className="relative z-10 flex flex-col gap-1 items-stretch justify-center text-center select-none"
         style={{
           width: group.style.width ? `${group.style.width}px` : "max-content",

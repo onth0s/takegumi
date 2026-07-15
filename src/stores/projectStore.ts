@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { produce } from "immer";
+import { produce, produceWithPatches, applyPatches } from "immer";
 import type { WProject, WProjectGrid } from "@/types/canvas";
 import {
   DEFAULT_GRID_SIZE,
@@ -20,8 +20,9 @@ import {
   MAX_HISTORY_DEPTH,
   type CommitType,
   type HistoryState,
+  type HistoryStep,
 } from "@/stores/projectHistory";
-import { useUIStore } from "@/stores/uiStore";
+
 import { clearAllPanelImages, deletePanelImage } from "@/utils/panelImageStorage";
 import { syncProjectInList } from "@/utils/projectList";
 
@@ -81,6 +82,7 @@ function migrateProject(project: WProject): WProject {
     ...project,
     grid: project.grid ?? defaultGrid,
     canvasTheme: (project as Partial<WProject>).canvasTheme ?? DEFAULT_CANVAS_THEME,
+    disableSyntheticBorder: project.disableSyntheticBorder ?? false,
     panels,
   };
 }
@@ -113,11 +115,11 @@ export const useProjectStore = create<ProjectState>()(
             future: [],
           };
         });
-        useUIStore.getState().resetRevision();
+
       },
 
       deleteProject: (projectId) => {
-        const wasActive = get().project?.id === projectId;
+
         set((state) => {
           const flushed = flushContinuousCommit(state);
           const currentProjects = state.projects || [];
@@ -141,30 +143,34 @@ export const useProjectStore = create<ProjectState>()(
             future: activeProjectDeleted ? [] : flushed.future,
           };
         });
-        if (wasActive) useUIStore.getState().resetRevision();
+
       },
 
       updateProject: (recipe, commitType = "discrete", elementId) => {
         const state = get();
         if (!state.project) return;
-        useUIStore.getState().incrementRevision();
-
-        const nextProject = produce(state.project, (draft) => {
-          recipe(draft);
-          draft.updatedAt = new Date().toISOString();
-        });
-
-        const nextProjects = syncProjectInList(state.projects || [], nextProject);
 
         if (commitType === "ignore") {
+          const nextProject = produce(state.project, (draft) => {
+            recipe(draft);
+            draft.updatedAt = new Date().toISOString();
+          });
+          const nextProjects = syncProjectInList(state.projects || [], nextProject);
           set({ project: nextProject, projects: nextProjects });
           return;
         }
 
         if (commitType === "discrete") {
+          const [nextProject, patches, inversePatches] = produceWithPatches(state.project, (draft) => {
+            recipe(draft);
+            draft.updatedAt = new Date().toISOString();
+          });
+          const nextProjects = syncProjectInList(state.projects || [], nextProject);
+
           set((curr) => {
             const flushed = flushContinuousCommit(curr);
-            const newPast = [...flushed.past, curr.project!].slice(-MAX_HISTORY_DEPTH);
+            const step: HistoryStep = { patches, inversePatches };
+            const newPast = [...flushed.past, step].slice(-MAX_HISTORY_DEPTH);
             return {
               ...flushed,
               project: nextProject,
@@ -177,6 +183,12 @@ export const useProjectStore = create<ProjectState>()(
         }
 
         if (commitType === "continuous") {
+          const nextProject = produce(state.project, (draft) => {
+            recipe(draft);
+            draft.updatedAt = new Date().toISOString();
+          });
+          const nextProjects = syncProjectInList(state.projects || [], nextProject);
+
           set((curr) => {
             const isNewSession =
               !curr.tempPastState ||
@@ -189,7 +201,9 @@ export const useProjectStore = create<ProjectState>()(
             if (isNewSession) {
               // Commit the previous session's base state (element switch mid-drag)
               if (savedBaseState && curr.project) {
-                nextPast = [...curr.past, savedBaseState].slice(-MAX_HISTORY_DEPTH);
+                const [, patches, inversePatches] = produceWithPatches(savedBaseState, () => curr.project!);
+                const step: HistoryStep = { patches, inversePatches };
+                nextPast = [...curr.past, step].slice(-MAX_HISTORY_DEPTH);
               }
               savedBaseState = curr.project;
               // Starting a fresh edit — invalidate the redo stack
@@ -222,8 +236,10 @@ export const useProjectStore = create<ProjectState>()(
           if (curr.continuousTimer) {
             clearTimeout(curr.continuousTimer);
           }
-          if (curr.tempPastState) {
-            const newPast = [...curr.past, curr.tempPastState].slice(-MAX_HISTORY_DEPTH);
+          if (curr.tempPastState && curr.project) {
+            const [, patches, inversePatches] = produceWithPatches(curr.tempPastState, () => curr.project!);
+            const step: HistoryStep = { patches, inversePatches };
+            const newPast = [...curr.past, step].slice(-MAX_HISTORY_DEPTH);
             return {
               past: newPast,
               future: [],
@@ -247,14 +263,16 @@ export const useProjectStore = create<ProjectState>()(
 
           if (activePast.length === 0 || !curr.project) return {};
 
-          const previous = activePast[activePast.length - 1];
+          const stepToUndo = activePast[activePast.length - 1];
           const remainingPast = activePast.slice(0, -1);
-          const newFuture = [curr.project, ...curr.future].slice(0, MAX_HISTORY_DEPTH);
+
+          const previousProject = applyPatches(curr.project, stepToUndo.inversePatches);
+          const newFuture = [stepToUndo, ...curr.future].slice(0, MAX_HISTORY_DEPTH);
 
           return {
             ...flushed,
-            project: previous,
-            projects: syncProjectInList(curr.projects || [], previous),
+            project: previousProject,
+            projects: syncProjectInList(curr.projects || [], previousProject),
             past: remainingPast,
             future: newFuture,
           };
@@ -266,14 +284,16 @@ export const useProjectStore = create<ProjectState>()(
           const flushed = flushContinuousCommit(curr);
           if (curr.future.length === 0 || !curr.project) return {};
 
-          const next = curr.future[0];
+          const stepToRedo = curr.future[0];
           const remainingFuture = curr.future.slice(1);
-          const newPast = [...flushed.past, curr.project].slice(-MAX_HISTORY_DEPTH);
+          const newPast = [...flushed.past, stepToRedo].slice(-MAX_HISTORY_DEPTH);
+
+          const nextProject = applyPatches(curr.project, stepToRedo.patches);
 
           return {
             ...flushed,
-            project: next,
-            projects: syncProjectInList(curr.projects || [], next),
+            project: nextProject,
+            projects: syncProjectInList(curr.projects || [], nextProject),
             past: newPast,
             future: remainingFuture,
           };
@@ -306,7 +326,7 @@ export const useProjectStore = create<ProjectState>()(
           projects: [],
           ...emptyHistoryState(),
         });
-        useUIStore.getState().resetRevision();
+
         await useProjectStore.persist.clearStorage();
         await clearAllPanelImages();
       },

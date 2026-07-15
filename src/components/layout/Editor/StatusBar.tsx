@@ -1,68 +1,10 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback } from "react";
 import { useProjectStore } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
 import { Tooltip } from "@/components/shared/UI";
-
-function InlineProjectName({
-  name,
-  onRename,
-}: {
-  name: string;
-  onRename: (name: string) => void;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(name);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleDoubleClick = useCallback(() => {
-    setDraft(name);
-    setEditing(true);
-    requestAnimationFrame(() => inputRef.current?.select());
-  }, [name]);
-
-  const commit = useCallback(() => {
-    const trimmed = draft.trim();
-    if (trimmed && trimmed !== name) onRename(trimmed);
-    setEditing(false);
-  }, [draft, name, onRename]);
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter") commit();
-      else if (e.key === "Escape") {
-        setDraft(name);
-        setEditing(false);
-      }
-    },
-    [commit, name]
-  );
-
-  if (editing) {
-    return (
-      <input
-        ref={inputRef}
-        type="text"
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={commit}
-        onKeyDown={handleKeyDown}
-        className="px-1 py-0 text-sm rounded border border-accent bg-surface text-text-primary outline-none min-w-48"
-      />
-    );
-  }
-
-  return (
-    <span
-      onDoubleClick={handleDoubleClick}
-      className="cursor-default select-none"
-      title="Double-click to rename"
-    >
-      {name}
-    </span>
-  );
-}
+import InlineProjectName from "./InlineProjectName";
 
 export default function StatusBar() {
   const project = useProjectStore((s) => s.project);
@@ -192,16 +134,6 @@ export default function StatusBar() {
             Redo ({redoDepth})
           </span>
         )}
-
-        {/* Reserved slot: Zoom — placeholder for future canvas zoom */}
-        <span className="text-text-tertiary line-through" title="Zoom — not yet implemented">
-          +Z
-        </span>
-
-        {/* Reserved slot: Animation Editor — placeholder for future timeline */}
-        <span className="text-text-tertiary line-through" title="Animation Editor — not yet implemented">
-          ◆ Anim
-        </span>
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ export default function Header() {
         <img
           src="/SVG/Takegumi.svg"
           alt="Takegumi Logo"
-          className="w-26 h-auto"
+          className="w-2/6 h-auto"
         />
         <span>Takegumi</span>
       </h1>
