@@ -176,6 +176,10 @@ WTextGroup:
           enum: [overlap, union]
           default: overlap
           description: How this WTG interacts with the panel's synthetic border
+        fontFamily:
+          type: string
+          nullable: true
+          description: Default font family for all text blocks within this group
     tailAnchor:
       type: object
       nullable: true

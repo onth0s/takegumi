@@ -193,6 +193,7 @@ export default function WTextGroup({ panelId, group }: Props) {
             groupShapeType={groupShapeType}
             groupBorderRadius={groupBorderRadius}
             groupOpacity={groupOpacity}
+            groupFontFamily={group.style.fontFamily}
           />
         ))}
       </div>

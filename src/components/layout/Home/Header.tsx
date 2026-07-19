@@ -1,11 +1,11 @@
 export default function Header() {
   return (
     <div className="flex flex-col items-center text-center gap-4">
-      <h1 className="text-5xl font-light tracking-wider text-accent flex items-center gap-3">
+      <h1 className="text-5xl font-light tracking-wider text-accent flex items-center gap-3 justify-center">
         <img
           src="/SVG/Takegumi.svg"
           alt="Takegumi Logo"
-          className="w-2/6 h-auto"
+          className="w-1/5"
         />
         <span>Takegumi</span>
       </h1>

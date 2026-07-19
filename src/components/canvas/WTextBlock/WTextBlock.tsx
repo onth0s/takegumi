@@ -24,6 +24,7 @@ interface Props {
   groupShapeType?: BackdropShapeType;
   groupBorderRadius?: number;
   groupOpacity?: number;
+  groupFontFamily?: string;
 }
 
 export default function WTextBlock({
@@ -33,14 +34,16 @@ export default function WTextBlock({
   groupShapeType,
   groupBorderRadius,
   groupOpacity,
+  groupFontFamily,
 }: Props) {
   const { text, style } = block;
   const contentRef = useRef<HTMLDivElement>(null);
+  const resolvedFontFamily = style.fontFamily || groupFontFamily;
   const dimensions = useElementDimensions(contentRef, [
     text,
     style.fontSize,
     style.fontWeight,
-    style.fontFamily,
+    resolvedFontFamily,
     style.lineHeight,
   ]);
 
@@ -118,7 +121,7 @@ export default function WTextBlock({
               : `${DEFAULT_WTB_FONT_SIZE}px`,
           fontWeight: style.fontWeight,
           color: style.color,
-          fontFamily: style.fontFamily,
+          fontFamily: resolvedFontFamily,
           lineHeight: style.lineHeight,
           textAlign: style.textAlign ?? DEFAULT_WTB_TEXT_ALIGN,
           opacity: style.opacity ?? DEFAULT_WTB_OPACITY,

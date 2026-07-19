@@ -34,7 +34,7 @@ export function useWPath(group: WTextGroup): WPathResult {
 
     group.blocks.forEach((block, idx) => {
       const fontSize = block.style.fontSize;
-      const fontFamily = block.style.fontFamily;
+      const fontFamily = block.style.fontFamily || group.style.fontFamily;
       const fontWeight = block.style.fontWeight;
       const lineHeight = block.style.lineHeight;
 
@@ -60,7 +60,7 @@ export function useWPath(group: WTextGroup): WPathResult {
       width: Math.ceil(computedWidth),
       height: Math.ceil(computedHeight),
     };
-  }, [group.style.width, group.style.height, group.blocks]);
+  }, [group.style.width, group.style.height, group.style.fontFamily, group.blocks]);
 
   const shape = group.style.shapeType ?? DEFAULT_WTG_SHAPE_TYPE;
   const r = group.style.borderRadius ?? DEFAULT_WTG_BORDER_RADIUS;

@@ -36,6 +36,7 @@ export interface WTextGroupStyle {
   shapeType?: "rect" | "pill" | "rounded-rectangle" | "action-burst";
   /** How this WTG interacts with the panel's synthetic border. */
   borderMode?: "overlap" | "union";
+  fontFamily?: string;
 }
 
 export interface WTextGroup {
