@@ -13,6 +13,7 @@ import {
 import { useProjectStore } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
 import { useMutateEntity } from "@/hooks/useMutateEntity";
+import { deleteSelectedEntity } from "@/utils/deleteEntity";
 import { SmartSlider, ScrubInput, SmartNumberInput, SegmentedControl, ColorControl } from "@/components/shared/UI";
 import {
   FieldRow,
@@ -37,11 +38,7 @@ export default function TextBlockInspector({ panelId, groupId, block }: Props) {
   const handleDelete = useCallback(() => {
     updateProject(
       (draft) => {
-        const panel = draft.panels.find((p) => p.id === panelId);
-        const group = panel?.textGroups.find((g) => g.id === groupId);
-        if (group && group.blocks.length > 1) {
-          group.blocks = group.blocks.filter((b) => b.id !== block.id);
-        }
+        deleteSelectedEntity(draft, panelId, groupId, block.id);
       },
       "discrete",
       block.id
@@ -108,7 +105,7 @@ export default function TextBlockInspector({ panelId, groupId, block }: Props) {
             onChange={(e) => mutateBlock((b) => { b.style.fontFamily = e.target.value || undefined; }, "discrete")}
           >
             <option value="">System default</option>
-            <option value="Anime Ace 2">Anime Ace 2</option>
+            <option value="Anime Ace">Anime Ace</option>
             <option value="Arial">Arial</option>
             <option value="Helvetica">Helvetica</option>
             <option value="Times New Roman">Times New Roman</option>

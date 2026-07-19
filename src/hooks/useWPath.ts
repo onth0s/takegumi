@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useLayoutEffect } from "react";
 import type { WTextGroup } from "@/types/canvas";
 import {
   DEFAULT_WTG_SHAPE_TYPE,
@@ -17,6 +17,27 @@ export interface WPathResult {
 }
 
 export function useWPath(group: WTextGroup): WPathResult {
+  const [fontsReadyState, setFontsReadyState] = useState(false);
+
+  useLayoutEffect(() => {
+    if (typeof document === "undefined" || !document.fonts) return;
+
+    let active = true;
+    document.fonts.ready.then(() => {
+      if (active) setFontsReadyState(true);
+    });
+
+    const handleLoadingDone = () => {
+      if (active) setFontsReadyState((prev) => !prev);
+    };
+
+    document.fonts.addEventListener("loadingdone", handleLoadingDone);
+    return () => {
+      active = false;
+      document.fonts.removeEventListener("loadingdone", handleLoadingDone);
+    };
+  }, []);
+
   const { width, height } = useMemo(() => {
     if (group.style.width && group.style.height) {
       return { width: group.style.width, height: group.style.height };
@@ -56,11 +77,14 @@ export function useWPath(group: WTextGroup): WPathResult {
     const computedWidth = fixedWidth ?? (maxContentWidth + padX);
     const computedHeight = group.style.height ?? (totalContentHeight + padY);
 
+    // Re-evaluate when font loading state changes
+    void fontsReadyState;
+
     return {
       width: Math.ceil(computedWidth),
       height: Math.ceil(computedHeight),
     };
-  }, [group.style.width, group.style.height, group.style.fontFamily, group.blocks]);
+  }, [group.style.width, group.style.height, group.style.fontFamily, group.blocks, fontsReadyState]);
 
   const shape = group.style.shapeType ?? DEFAULT_WTG_SHAPE_TYPE;
   const r = group.style.borderRadius ?? DEFAULT_WTG_BORDER_RADIUS;

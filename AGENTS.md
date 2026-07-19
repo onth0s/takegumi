@@ -26,3 +26,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Schema Alignment Audit Rule
 
 - **Perform Schema Audit on Changes:** Always audit and align the YAML schema file under `gnd/schemas/canvas.yaml` after every major data model change or new feature implementation to ensure it remains the single source of truth for the codebase and README specifications.
+
+## Font Metadata Validation Rule
+
+- **Check Font File Metadata:** When registering custom local font files (e.g. `.otf` or `.ttf`), always check the font files' internal metadata (such as PostScript name or Font Family name) to verify the exact font family name required by the browser, rather than assuming or guessing based on the filename.

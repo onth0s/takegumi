@@ -6,6 +6,7 @@ import { useUIStore } from "@/stores/uiStore";
 import { useHydration } from "@/hooks/useHydration";
 import { createBlankProject } from "@/utils/createProject";
 import SyntheticScrollbar from "./SyntheticScrollbar";
+import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 
 
 function UndoRedoBtn({ label, disabled, onClick, className }: { label: string; disabled?: boolean; onClick: () => void; className?: string }) {
@@ -94,7 +95,9 @@ export default function Viewport() {
         </div>
         <div className="flex items-center justify-center w-full h-full">
           <div className="relative w-full max-w-[960px] h-full">
-            <WProject project={project} scrollRef={scrollContainerRef} />
+            <ErrorBoundary fallback={<div className="text-xs text-danger p-4">Canvas Error</div>}>
+              <WProject project={project} scrollRef={scrollContainerRef} />
+            </ErrorBoundary>
           </div>
         </div>
 

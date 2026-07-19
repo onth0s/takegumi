@@ -40,7 +40,7 @@ export function TGAppearanceSection({ group, mutateGroup, endContinuous }: Props
           onChange={(e) => mutateGroup((g) => { g.style.fontFamily = e.target.value || undefined; }, "discrete")}
         >
           <option value="">System default</option>
-          <option value="Anime Ace 2">Anime Ace 2</option>
+          <option value="Anime Ace">Anime Ace</option>
           <option value="Arial">Arial</option>
           <option value="Helvetica">Helvetica</option>
           <option value="Times New Roman">Times New Roman</option>

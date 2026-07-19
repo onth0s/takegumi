@@ -1,5 +1,6 @@
 import { createPortal } from "react-dom";
 import { useSyncExternalStore } from "react";
+import { usePortalTargets } from "../WProject/PortalContext";
 
 const emptySubscribe = () => () => {};
 
@@ -37,6 +38,8 @@ export default function WBorder({
   isSelected = false,
   isHovered = false,
 }: WBorderProps) {
+  const { bordersTarget: borderTarget, selectionTarget } = usePortalTargets();
+
   const isClient = useSyncExternalStore(
     emptySubscribe,
     () => true,
@@ -44,9 +47,6 @@ export default function WBorder({
   );
 
   if (!isClient) return null;
-
-  const borderTarget = document.getElementById("panel-borders-portal-target");
-  const selectionTarget = document.getElementById("panel-selection-portal-target");
 
   const ringStrokeWidth = isSelected ? 2 : 1;
   const ringColor = isSelected

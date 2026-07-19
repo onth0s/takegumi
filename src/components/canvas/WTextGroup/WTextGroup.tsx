@@ -13,15 +13,15 @@ import {
 } from "@/constants/canvasDefaults";
 import { useWPath } from "@/hooks/useWPath";
 import { useUIStore } from "@/stores/uiStore";
-import { useProjectStore } from "@/stores/projectStore";
 import WTextBlock from "../WTextBlock";
 
 interface Props {
   panelId: string;
   group: WTextGroupType;
+  panelBorderEnabled?: boolean;
 }
 
-export default function WTextGroup({ panelId, group }: Props) {
+export default function WTextGroup({ panelId, group, panelBorderEnabled = false }: Props) {
   const { backdropPath, tailPathString, width, height } = useWPath(group);
   const setTextGroupRect = useUIStore((s) => s.setTextGroupRect);
 
@@ -65,9 +65,7 @@ export default function WTextGroup({ panelId, group }: Props) {
   const fillColor = group.style.backgroundColor ?? DEFAULT_WTG_BACKGROUND_COLOR;
 
   // Check if bubble overlaps panel boundary in union mode
-  const panel = useProjectStore((s) => s.project?.panels.find((p) => p.id === panelId));
   const borderMode = group.style.borderMode ?? DEFAULT_WTG_BORDER_MODE;
-  const panelBorderEnabled = panel ? (panel.borderEnabled && !panel.disableSyntheticBorder) : false;
 
   const isUnionMode = borderMode === "union" && panelBorderEnabled;
   const strokeColor = borderWidth > 0 && !isUnionMode ? borderColor : "none";

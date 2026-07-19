@@ -3,29 +3,28 @@
 import { useCallback, useRef, useState } from "react";
 import type { WPanel as WPanelType } from "@/types/canvas";
 import { useUIStore } from "@/stores/uiStore";
-import { useProjectStore } from "@/stores/projectStore";
 import { useWBorder } from "@/hooks/useWBorder";
 import WPanelImage from "./WPanelImage";
 import WBorder from "./WBorder";
 
 interface Props {
   panel: WPanelType;
+  disableSyntheticBorderGlobal?: boolean;
 }
 
-export default function WPanel({ panel }: Props) {
+export default function WPanel({ panel, disableSyntheticBorderGlobal = false }: Props) {
   const selectedPanelId = useUIStore((s) => s.selectedWPanelId);
   const selectedGroupId = useUIStore((s) => s.selectedWTextGroupId);
   const selectPanel = useUIStore((s) => s.selectPanel);
   const isSelected = selectedPanelId === panel.id && !selectedGroupId;
   const [isHovered, setIsHovered] = useState(false);
 
-  const project = useProjectStore((s) => s.project);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const { pathD, borderColor, borderWidth, enabled, maskRects } = useWBorder({
     panel,
     panelRef,
-    disableSyntheticBorderGlobal: !!project?.disableSyntheticBorder,
+    disableSyntheticBorderGlobal,
   });
 
   const handleClick = useCallback(

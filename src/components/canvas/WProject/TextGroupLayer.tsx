@@ -12,8 +12,9 @@ export function TextGroupLayer({ panels, hideAllText }: Props) {
       position: "absolute", inset: 0, pointerEvents: "none", zIndex: 20,
       visibility: hideAllText ? "hidden" : "visible",
     }}>
-      {panels.map((panel) =>
-        panel.textGroups.map((group) => (
+      {panels.map((panel) => {
+        const panelBorderEnabled = panel.borderEnabled && !panel.disableSyntheticBorder;
+        return panel.textGroups.map((group) => (
           <div
             key={group.id}
             style={{
@@ -23,10 +24,10 @@ export function TextGroupLayer({ panels, hideAllText }: Props) {
               pointerEvents: hideAllText ? "none" : "auto",
             }}
           >
-            <WTextGroup panelId={panel.id} group={group} />
+            <WTextGroup panelId={panel.id} group={group} panelBorderEnabled={panelBorderEnabled} />
           </div>
-        ))
-      )}
+        ));
+      })}
     </div>
   );
 }

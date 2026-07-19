@@ -46,6 +46,8 @@ export default function DebugAxis() {
   const dotColor = isSnapped ? "#22c55e" : "#6b7280";
   const halfArm = ARM_LENGTH;
 
+  if (process.env.NODE_ENV !== "development") return null;
+
   return (
     <div
       className="absolute z-50 cursor-grab active:cursor-grabbing select-none"

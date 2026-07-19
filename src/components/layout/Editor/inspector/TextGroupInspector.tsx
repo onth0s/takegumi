@@ -6,6 +6,7 @@ import { useProjectStore } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
 import { createTextBlock } from "@/utils/createProject";
 import { useMutateEntity } from "@/hooks/useMutateEntity";
+import { deleteSelectedEntity } from "@/utils/deleteEntity";
 import { InspectorButton } from "./InspectorFields";
 
 // Import sub-sections
@@ -30,10 +31,7 @@ export default function TextGroupInspector({ panelId, group }: Props) {
   const handleDelete = useCallback(() => {
     updateProject(
       (draft) => {
-        const panel = draft.panels.find((p) => p.id === panelId);
-        if (panel) {
-          panel.textGroups = panel.textGroups.filter((g) => g.id !== group.id);
-        }
+        deleteSelectedEntity(draft, panelId, group.id, null);
       },
       "discrete",
       group.id

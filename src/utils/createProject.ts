@@ -33,7 +33,7 @@ import { uid } from "@/utils/uid";
 
 /** Default WTextBlock — a single "Text Block" entry for a fresh panel. */
 export function createTextBlock(overrides?: Partial<WTextBlock>): WTextBlock {
-  return {
+  const defaults: WTextBlock = {
     id: uid(),
     text: "Text Block",
     style: {
@@ -43,7 +43,12 @@ export function createTextBlock(overrides?: Partial<WTextBlock>): WTextBlock {
       textAlign: DEFAULT_WTB_TEXT_ALIGN,
       opacity: DEFAULT_WTB_OPACITY,
     },
+  };
+  if (!overrides) return defaults;
+  return {
+    ...defaults,
     ...overrides,
+    style: { ...defaults.style, ...overrides.style },
   };
 }
 
@@ -52,7 +57,7 @@ export function createTextBlock(overrides?: Partial<WTextBlock>): WTextBlock {
  * `x` and `y` must always be passed explicitly (relative to the parent panel).
  */
 export function createTextGroup(x: number, y: number, overrides?: Partial<WTextGroup>): WTextGroup {
-  return {
+  const defaults: WTextGroup = {
     id: uid(),
     x,
     y,
@@ -69,7 +74,13 @@ export function createTextGroup(x: number, y: number, overrides?: Partial<WTextG
     },
     tailAnchor: null,
     blocks: [createTextBlock()],
+  };
+  if (!overrides) return defaults;
+  return {
+    ...defaults,
     ...overrides,
+    style: { ...defaults.style, ...overrides.style },
+    blocks: overrides.blocks ?? defaults.blocks,
   };
 }
 
@@ -106,7 +117,7 @@ export function createBlankPanel(overrides?: Partial<WPanel>, existingPanels?: W
     y = lowestY + 40;
   }
 
-  return {
+  const defaults: WPanel = {
     id: uid(),
     imageUrl: null,
     x,
@@ -120,7 +131,14 @@ export function createBlankPanel(overrides?: Partial<WPanel>, existingPanels?: W
     zIndex: overrides?.zIndex ?? existingPanels?.length ?? 0,
     textGroups: [createTextGroup(x + width / 2, y + height / 2)],
     style: {},
+  };
+
+  if (!overrides) return defaults;
+  return {
+    ...defaults,
     ...overrides,
+    style: { ...defaults.style, ...overrides.style },
+    textGroups: overrides.textGroups ?? defaults.textGroups,
   };
 }
 

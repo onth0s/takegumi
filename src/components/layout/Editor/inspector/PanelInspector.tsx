@@ -6,6 +6,7 @@ import { useProjectStore } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
 import { createTextGroup } from "@/utils/createProject";
 import { deletePanelImage, savePanelImage, toLocalImageUrl } from "@/utils/panelImageStorage";
+import { deleteSelectedEntity } from "@/utils/deleteEntity";
 import { bringToFront, sendToBack, bringForward, sendBackward } from "@/utils/panelLayering";
 import { shiftPanelsBelow } from "@/utils/panelReflow";
 import { useMutateEntity } from "@/hooks/useMutateEntity";
@@ -88,7 +89,7 @@ export default function PanelInspector({ panel }: Props) {
   const handleDelete = useCallback(() => {
     updateProject(
       (draft) => {
-        draft.panels = draft.panels.filter((p) => p.id !== panel.id);
+        deleteSelectedEntity(draft, panel.id, null, null);
       },
       "discrete",
       panel.id

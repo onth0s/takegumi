@@ -31,7 +31,7 @@ interface PersistedProjectState {
   projects: WProject[];
 }
 
-interface ProjectState extends HistoryState {
+export interface ProjectState extends HistoryState {
   project: WProject | null;
   projects: WProject[];
 
@@ -352,3 +352,12 @@ export const useProjectStore = create<ProjectState>()(
     }
   )
 );
+
+export const selectPanelCount = (s: ProjectState) => s.project?.panels.length ?? 0;
+export const selectGroupCount = (s: ProjectState) =>
+  s.project?.panels.reduce((sum, p) => sum + p.textGroups.length, 0) ?? 0;
+export const selectBlockCount = (s: ProjectState) =>
+  s.project?.panels.reduce(
+    (sum, p) => sum + p.textGroups.reduce((gs, g) => gs + g.blocks.length, 0),
+    0
+  ) ?? 0;

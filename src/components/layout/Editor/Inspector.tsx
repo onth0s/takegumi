@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, lazy, Suspense } from "react";
-import { useProjectStore } from "@/stores/projectStore";
+import { useProjectStore, selectPanelCount, selectGroupCount, selectBlockCount } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
 import type { ProjectInspectorTab } from "@/types/ui";
 import {
@@ -12,6 +12,7 @@ import {
 
 import { SegmentedControl } from "@/components/shared/UI";
 import { EmptyInspectorState, InspectorSection } from "./inspector/InspectorFields";
+import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 
 const PanelInspector = lazy(() => import("./inspector/PanelInspector"));
 const ProjectInspector = lazy(() => import("./inspector/ProjectInspector"));
@@ -31,6 +32,10 @@ function inspectorTitle(
 
 export default function Inspector() {
   const project = useProjectStore((s) => s.project);
+  const panelCount = useProjectStore(selectPanelCount);
+  const groupCount = useProjectStore(selectGroupCount);
+  const blockCount = useProjectStore(selectBlockCount);
+
   const selectedPanelId = useUIStore((s) => s.selectedWPanelId);
   const selectedGroupId = useUIStore((s) => s.selectedWTextGroupId);
   const selectedBlockId = useUIStore((s) => s.selectedWTextBlockId);
@@ -62,18 +67,13 @@ export default function Inspector() {
     if (projectTab === "canvas") {
       content = <ProjectInspector project={project} />;
     } else {
-      const groupCount = project.panels.reduce((sum, p) => sum + p.textGroups.length, 0);
-      const blockCount = project.panels.reduce(
-        (sum, p) => sum + p.textGroups.reduce((s, g) => s + g.blocks.length, 0),
-        0
-      );
       content = (
         <div className="flex flex-col gap-6">
           <InspectorSection title="Project Info">
             <div className="text-xs space-y-1 text-text-tertiary">
               <p>Created: {new Date(project.createdAt).toLocaleDateString()}</p>
               <p>Last edited: {new Date(project.updatedAt).toLocaleDateString()}</p>
-              <p>Panels: {project.panels.length}</p>
+              <p>Panels: {panelCount}</p>
               <p>Text groups: {groupCount}</p>
               <p>Text blocks: {blockCount}</p>
             </div>
@@ -101,9 +101,11 @@ export default function Inspector() {
         </div>
       )}
       <div className="flex-1 overflow-y-auto p-4">
-        <Suspense fallback={<div className="text-xs text-text-tertiary">Loading...</div>}>
-          {content}
-        </Suspense>
+        <ErrorBoundary fallback={<div className="text-xs text-danger">Inspector Error</div>}>
+          <Suspense fallback={<div className="text-xs text-text-tertiary">Loading...</div>}>
+            {content}
+          </Suspense>
+        </ErrorBoundary>
       </div>
     </div>
   );

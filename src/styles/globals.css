@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @font-face {
-  font-family: 'Anime Ace 2';
+  font-family: 'Anime Ace';
   src: url('/fonts/animeace2_reg.otf') format('opentype');
   font-weight: 400;
   font-style: normal;
@@ -9,23 +9,30 @@
 }
 
 @font-face {
-  font-family: 'Anime Ace 2';
-  src: url('/fonts/animeace2_bld.otf') format('opentype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Anime Ace 2';
+  font-family: 'Anime Ace';
   src: url('/fonts/animeace2_ital.otf') format('opentype');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Anime Ace';
+  src: url('/fonts/animeace2_bld.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/*
+ * THEME SYSTEM RULES:
+ * Keep all raw hex/rgba values in the :root block using "--_<name>" prefixed variables.
+ * Reference them in the @theme block via "var(--_<name>)".
+ * This ensures VS Code's CSS language server reliably maintains color swatches.
+ * DO NOT define raw color values directly in the @theme block.
+ */
 @theme {
-  --font-animeace: "Anime Ace 2", sans-serif;
+  --font-animeace: 'Anime Ace', sans-serif;
 
   /* Surface palette */
   --color-surface: var(--_surface);

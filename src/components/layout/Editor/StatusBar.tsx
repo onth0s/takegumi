@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { useProjectStore } from "@/stores/projectStore";
+import { useProjectStore, selectPanelCount, selectGroupCount, selectBlockCount } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
 import { Tooltip } from "@/components/shared/UI";
 import InlineProjectName from "./InlineProjectName";
@@ -9,8 +9,8 @@ import InlineProjectName from "./InlineProjectName";
 export default function StatusBar() {
   const project = useProjectStore((s) => s.project);
   const updateProject = useProjectStore((s) => s.updateProject);
-  const past = useProjectStore((s) => s.past);
-  const future = useProjectStore((s) => s.future);
+  const pastLength = useProjectStore((s) => s.past.length);
+  const futureLength = useProjectStore((s) => s.future.length);
   const revision = useUIStore((s) => s.revision);
   const selectedPanelId = useUIStore((s) => s.selectedWPanelId);
   const selectedGroupId = useUIStore((s) => s.selectedWTextGroupId);
@@ -18,6 +18,10 @@ export default function StatusBar() {
   const selectPanel = useUIStore((s) => s.selectPanel);
   const selectTextGroup = useUIStore((s) => s.selectTextGroup);
   const selectTextBlock = useUIStore((s) => s.selectTextBlock);
+
+  const panelCount = useProjectStore(selectPanelCount);
+  const groupCount = useProjectStore(selectGroupCount);
+  const blockCount = useProjectStore(selectBlockCount);
 
   const handleRename = useCallback(
     (name: string) => {
@@ -30,14 +34,9 @@ export default function StatusBar() {
 
   if (!project) return null;
 
-  const panelCount = project.panels.length;
-  const groupCount = project.panels.reduce((sum, p) => sum + p.textGroups.length, 0);
-  const blockCount = project.panels.reduce(
-    (sum, p) => sum + p.textGroups.reduce((gs, g) => gs + g.blocks.length, 0), 0
-  );
   const isDirty = revision > 0;
-  const undoDepth = past.length;
-  const redoDepth = future.length;
+  const undoDepth = pastLength;
+  const redoDepth = futureLength;
 
   const selectedPanel = selectedPanelId
     ? project.panels.find((p) => p.id === selectedPanelId) ?? null
