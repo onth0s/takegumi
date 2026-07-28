@@ -13,7 +13,9 @@ import {
 import { useProjectStore } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
 import { useMutateEntity } from "@/hooks/useMutateEntity";
-import { deleteSelectedEntity } from "@/utils/deleteEntity";
+import { canDeleteBlock, deleteSelectedEntity } from "@/utils/deleteEntity";
+import { findTextGroup } from "@/utils/findInProject";
+import { AVAILABLE_FONTS } from "@/constants/fonts";
 import { SmartSlider, ScrubInput, SmartNumberInput, SegmentedControl, ColorControl } from "@/components/shared/UI";
 import {
   FieldRow,
@@ -30,12 +32,17 @@ interface Props {
 }
 
 export default function TextBlockInspector({ panelId, groupId, block }: Props) {
+  const project = useProjectStore((s) => s.project);
   const updateProject = useProjectStore((s) => s.updateProject);
+
+  const group = project ? findTextGroup(project, panelId, groupId) : null;
+  const isDeletable = canDeleteBlock(group);
 
   const clearSelection = useUIStore((s) => s.clearSelection);
   const { mutate: mutateBlock, endContinuous } = useMutateEntity("block", { panelId, groupId, blockId: block.id });
 
   const handleDelete = useCallback(() => {
+    if (!isDeletable) return;
     updateProject(
       (draft) => {
         deleteSelectedEntity(draft, panelId, groupId, block.id);
@@ -44,7 +51,7 @@ export default function TextBlockInspector({ panelId, groupId, block }: Props) {
       block.id
     );
     clearSelection();
-  }, [updateProject, panelId, groupId, block.id, clearSelection]);
+  }, [updateProject, panelId, groupId, block.id, isDeletable, clearSelection]);
 
 
   const fontSize = block.style.fontSize ?? DEFAULT_WTB_FONT_SIZE;
@@ -104,14 +111,11 @@ export default function TextBlockInspector({ panelId, groupId, block }: Props) {
           <InspectorSelect value={fontFamily ?? ""}
             onChange={(e) => mutateBlock((b) => { b.style.fontFamily = e.target.value || undefined; }, "discrete")}
           >
-            <option value="">System default</option>
-            <option value="Anime Ace">Anime Ace</option>
-            <option value="Arial">Arial</option>
-            <option value="Helvetica">Helvetica</option>
-            <option value="Times New Roman">Times New Roman</option>
-            <option value="Georgia">Georgia</option>
-            <option value="Courier New">Courier New</option>
-            <option value="Verdana">Verdana</option>
+            {AVAILABLE_FONTS.map((font) => (
+              <option key={font.value} value={font.value}>
+                {font.label}
+              </option>
+            ))}
           </InspectorSelect>
         </FieldRow>
         <SmartSlider label={`Opacity (${Math.round(blockOpacity * 100)}%)`}
@@ -138,7 +142,7 @@ export default function TextBlockInspector({ panelId, groupId, block }: Props) {
       </InspectorSection>
 
       <div className="border-t border-border-subtle pt-4">
-        <InspectorButton variant="danger" onClick={handleDelete}>
+        <InspectorButton variant="danger" onClick={handleDelete} disabled={!isDeletable}>
           Delete text block
         </InspectorButton>
       </div>

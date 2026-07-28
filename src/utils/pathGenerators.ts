@@ -43,7 +43,8 @@ export function actionBurstPath(w: number, h: number): string {
   return parts.join(" ");
 }
 
-export type BackdropShapeType = "rect" | "pill" | "rounded-rectangle" | "action-burst";
+import type { BackdropShapeType } from "@/types/canvas";
+export type { BackdropShapeType };
 
 /** Dispatches to the correct backdrop path generator for a shape type. */
 export function getBackdropPath(

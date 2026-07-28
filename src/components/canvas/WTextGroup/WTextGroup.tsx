@@ -26,10 +26,21 @@ export default function WTextGroup({ panelId, group, panelBorderEnabled = false 
   const setTextGroupRect = useUIStore((s) => s.setTextGroupRect);
 
   useLayoutEffect(() => {
+    const existing = useUIStore.getState().textGroupRects.get(group.id);
     if (width > 0 && height > 0) {
-      const rect = new DOMRect(group.x - width / 2, group.y - height / 2, width, height);
-      setTextGroupRect(group.id, rect);
-    } else {
+      const x = group.x - width / 2;
+      const y = group.y - height / 2;
+      if (
+        !existing ||
+        existing.x !== x ||
+        existing.y !== y ||
+        existing.width !== width ||
+        existing.height !== height
+      ) {
+        const rect = new DOMRect(x, y, width, height);
+        setTextGroupRect(group.id, rect);
+      }
+    } else if (existing) {
       setTextGroupRect(group.id, null);
     }
     return () => {

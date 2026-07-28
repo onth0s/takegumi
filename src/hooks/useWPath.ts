@@ -39,15 +39,18 @@ export function useWPath(group: WTextGroup): WPathResult {
   }, []);
 
   const { width, height } = useMemo(() => {
-    if (group.style.width && group.style.height) {
-      return { width: group.style.width, height: group.style.height };
+    const isNumericWidth = typeof group.style.width === "number" && group.style.width > 0;
+    const isNumericHeight = typeof group.style.height === "number" && group.style.height > 0;
+
+    if (isNumericWidth && isNumericHeight) {
+      return { width: group.style.width as number, height: group.style.height as number };
     }
 
     const padX = BACKDROP_PAD_X;
     const padY = BACKDROP_PAD_Y;
     const gap = 4; // gap-1 in Tailwind is 4px
 
-    const fixedWidth = group.style.width;
+    const fixedWidth = isNumericWidth ? (group.style.width as number) : undefined;
     const wrapWidth = fixedWidth ? Math.max(50, fixedWidth - padX) : 300;
 
     let totalContentHeight = 0;
@@ -74,8 +77,8 @@ export function useWPath(group: WTextGroup): WPathResult {
       }
     });
 
-    const computedWidth = fixedWidth ?? (maxContentWidth + padX);
-    const computedHeight = group.style.height ?? (totalContentHeight + padY);
+    const computedWidth = fixedWidth ?? Math.max(60, maxContentWidth + padX);
+    const computedHeight = isNumericHeight ? (group.style.height as number) : Math.max(32, totalContentHeight + padY);
 
     // Re-evaluate when font loading state changes
     void fontsReadyState;

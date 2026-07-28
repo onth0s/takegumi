@@ -1,3 +1,12 @@
+export type BackdropShapeType = "rect" | "pill" | "rounded-rectangle" | "action-burst";
+
+export interface MaskRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 // ─── WTextBlock ───────────────────────────────────────────────────────────────
 
 export interface WTextBlockStyle {
@@ -23,9 +32,9 @@ export interface WTextBlock {
 export interface WTextGroupStyle {
   opacity?: number;
   backgroundColor?: string;
-  width?: number;
+  width?: number | "fit";
   freeWidth?: boolean;
-  height?: number;
+  height?: number | "fit";
   freeHeight?: boolean;
   freeX?: boolean;
   freeY?: boolean;
@@ -33,7 +42,7 @@ export interface WTextGroupStyle {
   borderWidth?: number;
   borderColor?: string;
   borderOpacity?: number;
-  shapeType?: "rect" | "pill" | "rounded-rectangle" | "action-burst";
+  shapeType?: BackdropShapeType;
   /** How this WTG interacts with the panel's synthetic border. */
   borderMode?: "overlap" | "union";
   fontFamily?: string;

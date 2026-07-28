@@ -23,7 +23,11 @@ export function TGPositionSection({ group, mutateGroup, endContinuous, project, 
   const handleAlign = useCallback(
     (dir: "left" | "center" | "right") => {
       mutateGroup((g) => {
-        const activeW = cachedRect ? cachedRect.width : (g.style.width ?? DEFAULT_WTG_WIDTH);
+        const activeW = cachedRect
+          ? cachedRect.width
+          : typeof g.style.width === "number"
+          ? g.style.width
+          : DEFAULT_WTG_WIDTH;
 
         let targetX = 0;
         if (dir === "left") targetX = activeW / 2;
@@ -39,7 +43,11 @@ export function TGPositionSection({ group, mutateGroup, endContinuous, project, 
     [mutateGroup, project, cachedRect]
   );
 
-  const wtgWidth = cachedRect ? cachedRect.width : (group.style.width ?? DEFAULT_WTG_WIDTH);
+  const wtgWidth = cachedRect
+    ? cachedRect.width
+    : typeof group.style.width === "number"
+    ? group.style.width
+    : DEFAULT_WTG_WIDTH;
   const alignOffsets = {
     left: wtgWidth / 2,
     center: CANVAS_MAX_WIDTH / 2,

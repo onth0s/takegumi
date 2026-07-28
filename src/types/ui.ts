@@ -12,6 +12,7 @@ export interface AlignmentGuide {
   coordinate: number;
 }
 
+/** @planned "history" reserved for planned history panel tab */
 export type SidebarTab = "inspector" | "history";
 
 export type ProjectInspectorTab = "canvas" | "info";

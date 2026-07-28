@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import StatusBar from "./StatusBar";
 import Viewport from "./Viewport";
 import Inspector from "./Inspector";
@@ -8,7 +9,9 @@ import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { initStoreSync } from "@/stores/storeSync";
 
 export default function Workspace() {
-  initStoreSync();
+  useEffect(() => {
+    initStoreSync();
+  }, []);
   useKeyboardShortcuts();
 
   return (

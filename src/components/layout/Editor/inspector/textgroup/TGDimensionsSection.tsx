@@ -13,17 +13,17 @@ interface Props {
 }
 
 export function TGDimensionsSection({ group, mutateGroup, endContinuous, project }: Props) {
-  const widthVal = group.style.width ?? DEFAULT_WTG_WIDTH;
+  const numericWidth = typeof group.style.width === "number" ? group.style.width : DEFAULT_WTG_WIDTH;
   const freeWidth = group.style.freeWidth ?? false;
-  const heightVal = group.style.height ?? DEFAULT_WTG_HEIGHT;
+  const numericHeight = typeof group.style.height === "number" ? group.style.height : DEFAULT_WTG_HEIGHT;
   const freeHeight = group.style.freeHeight ?? false;
 
   return (
     <InspectorSection title="Dimensions">
       <div className="flex flex-col gap-3">
         <SmartSlider
-          label={wtgWidthToPercent(widthVal) === 0 ? "Width: Tight" : `Width: ${wtgWidthToPercent(widthVal)}%`}
-          value={wtgWidthToPercent(widthVal)}
+          label={wtgWidthToPercent(numericWidth) === 0 ? "Width: Tight" : `Width: ${wtgWidthToPercent(numericWidth)}%`}
+          value={wtgWidthToPercent(numericWidth)}
           min={0}
           max={100}
           step={1}
@@ -31,7 +31,7 @@ export function TGDimensionsSection({ group, mutateGroup, endContinuous, project
           ctrlSteps={[0, 10, 25, 50, 75, 100]}
           onChange={(v) => mutateGroup((g) => {
             const rawPx = wtgPercentToWidth(v);
-            const oldW = g.style.width ?? DEFAULT_WTG_WIDTH;
+            const oldW = typeof g.style.width === "number" ? g.style.width : DEFAULT_WTG_WIDTH;
             const leftEdge = g.x - oldW / 2;
             const rightEdge = g.x + oldW / 2;
 
@@ -73,7 +73,7 @@ export function TGDimensionsSection({ group, mutateGroup, endContinuous, project
                 mutateGroup((g) => {
                   g.style.freeWidth = checked || undefined;
                   if (!checked && project.grid.snapEnabled) {
-                    const oldW = g.style.width ?? DEFAULT_WTG_WIDTH;
+                    const oldW = typeof g.style.width === "number" ? g.style.width : DEFAULT_WTG_WIDTH;
 
                     const leftEdge = g.x - oldW / 2;
                     const rightEdge = g.x + oldW / 2;
@@ -110,12 +110,12 @@ export function TGDimensionsSection({ group, mutateGroup, endContinuous, project
         )}
         <ScrubInput
           label="Height"
-          value={heightVal}
+          value={numericHeight}
           step={project?.grid?.snapEnabled && !freeHeight ? ((project?.grid?.size ?? 1) * 2) : 1}
           fineStep={1}
           min={0}
           max={600}
-          suffix={heightVal === 0 ? " (Tight)" : "px"}
+          suffix={numericHeight === 0 ? " (Tight)" : "px"}
           onChange={(v) => mutateGroup((g) => {
             const effectiveGridSize = (project?.grid?.size ?? 1) * 2;
             const snappedPx = snapGroupHeight(v, effectiveGridSize, project?.grid?.snapEnabled ?? false, g.style.freeHeight);
@@ -133,7 +133,8 @@ export function TGDimensionsSection({ group, mutateGroup, endContinuous, project
                   g.style.freeHeight = checked || undefined;
                   if (!checked && project.grid.snapEnabled) {
                     const effectiveGridSize = project.grid.size * 2;
-                    g.style.height = snapGroupHeight(g.style.height ?? DEFAULT_WTG_HEIGHT, effectiveGridSize, true, false);
+                    const oldH = typeof g.style.height === "number" ? g.style.height : DEFAULT_WTG_HEIGHT;
+                    g.style.height = snapGroupHeight(oldH, effectiveGridSize, true, false);
                   }
                 })
               }

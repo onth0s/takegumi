@@ -34,3 +34,10 @@ export function deleteSelectedEntity(
   }
   return null;
 }
+
+/**
+ * Returns true if the block can be deleted (i.e. parent group has more than 1 block).
+ */
+export function canDeleteBlock(group?: { blocks: unknown[] } | null): boolean {
+  return (group?.blocks.length ?? 0) > 1;
+}

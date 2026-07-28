@@ -6,7 +6,7 @@ The name **Takegumi** (竹組み) refers to the Japanese art of bamboo-framing o
 
 ---
 ## ✨ Key Features
-* **Continuous Vertical Canvas**: Simulates a mobile-native webtoon reading flow with intuitive drag-and-drop panel reordering (powered by `@dnd-kit` — [Planned](https://github.com/clauderic/dnd-kit)), image file drops, and interactive click-to-upload workflows.
+* **Continuous Vertical Canvas**: Simulates a mobile-native webtoon reading flow with intuitive drag-and-drop panel reordering via a 10% top-left hover zone handle, image file drops, and interactive click-to-upload workflows.
 * **Macro Sequence Grid Overview** [Planned]: A responsive thumbnail dashboard mapping the structural narrative at a glance.
 * **Immersive Playback Player** [Planned]: A full-featured test player built for instant review.
 * **Synthetic Border Carving**: A dynamic border engine that computes panel borders and cleanly carves out gaps wherever text bubbles overlap them, ensuring a clean, modern graphic novel aesthetic.

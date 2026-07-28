@@ -4,13 +4,13 @@ import { useUIStore } from "./uiStore";
 let isSynced = false;
 
 export function initStoreSync() {
-  if (isSynced) return;
+  if (isSynced) return () => {};
   isSynced = true;
 
   let lastUpdatedAt = useProjectStore.getState().project?.updatedAt;
   let lastProjectId = useProjectStore.getState().project?.id;
 
-  useProjectStore.subscribe((state) => {
+  const unsubscribe = useProjectStore.subscribe((state) => {
     const currentProject = state.project;
     const currentProjectId = currentProject?.id;
     const currentUpdatedAt = currentProject?.updatedAt;
@@ -34,4 +34,9 @@ export function initStoreSync() {
       useUIStore.getState().incrementRevision();
     }
   });
+
+  return () => {
+    unsubscribe();
+    isSynced = false;
+  };
 }

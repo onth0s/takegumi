@@ -1,5 +1,5 @@
-import { useState, useLayoutEffect, RefObject } from "react";
-import type { WPanel } from "@/types/canvas";
+import { useState, useLayoutEffect, useMemo, RefObject } from "react";
+import type { WPanel, WTextGroup } from "@/types/canvas";
 import { useUIStore } from "@/stores/uiStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { getGroupLocalRect } from "@/utils/groupGeometry";
@@ -23,34 +23,39 @@ interface UseWBorderResult {
 export function useWBorder({
   panel,
   panelRef,
-  disableSyntheticBorderGlobal = false,
+  disableSyntheticBorderGlobal,
 }: UseWBorderProps): UseWBorderResult {
   const [pathD, setPathD] = useState("");
   const [maskRects, setMaskRects] = useState<{ x: number; y: number; w: number; h: number }[]>([]);
 
   const hideAllText = useUIStore((s) => s.hideAllText);
   const project = useProjectStore((s) => s.project);
+  const projectDisableSyntheticBorder = project?.disableSyntheticBorder ?? false;
+  const isGlobalDisabled = disableSyntheticBorderGlobal ?? projectDisableSyntheticBorder;
+
+  // Build O(1) group index map
+  const groupIndexMap = useMemo(() => {
+    const map = new Map<string, WTextGroup>();
+    if (project) {
+      for (const p of project.panels) {
+        for (const g of p.textGroups) {
+          map.set(g.id, g);
+        }
+      }
+    }
+    return map;
+  }, [project]);
 
   // Selectively subscribe to only the text group rects that actually intersect or belong to this panel
   const relevantRectsHash = useUIStore((s) => {
-    const ownIds = panel.textGroups.map((g) => g.id);
+    const ownSet = new Set(panel.textGroups.map((g) => g.id));
     let hash = "";
     s.textGroupRects.forEach((rect, id) => {
-      const isOwn = ownIds.includes(id);
-      if (isOwn) {
+      if (ownSet.has(id)) {
         hash += `${id}:${rect.width},${rect.height};`;
         return;
       }
-      let group = null;
-      if (project) {
-        for (const p of project.panels) {
-          const g = p.textGroups.find((x) => x.id === id);
-          if (g) {
-            group = g;
-            break;
-          }
-        }
-      }
+      const group = groupIndexMap.get(id);
       if (group) {
         const localRect = getGroupLocalRect(group, panel.x, panel.y, rect.width, rect.height);
         if (rectsOverlap(localRect, panel.width, panel.height)) {
@@ -64,7 +69,7 @@ export function useWBorder({
   const enabled =
     panel.borderEnabled &&
     !panel.disableSyntheticBorder &&
-    !disableSyntheticBorderGlobal;
+    !isGlobalDisabled;
 
   const borderWidth = panel.borderWidth;
   const borderColor = panel.borderColor;

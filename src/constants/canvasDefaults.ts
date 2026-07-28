@@ -27,7 +27,7 @@ export {
   DEFAULT_WTB_BACKGROUND_OPACITY,
 } from "./_yaml-defaults.generated";
 
-import { CANVAS_MAX_WIDTH } from "./layout";
+
 
 // ─── WTextGroup backdrop padding (useWPath) ───────────────────────────────────
 
@@ -40,10 +40,7 @@ export const LOCAL_IMAGE_PREFIX = "local://";
 
 // ─── Panel dimensions ─────────────────────────────────────────────────────────
 
-export const DEFAULT_PANEL_WIDTH = CANVAS_MAX_WIDTH / 2;
-export const DEFAULT_PANEL_HEIGHT = 480;
-/** Reference width for imported images — same as default panel width. */
-export const IMPORT_PANEL_WIDTH = CANVAS_MAX_WIDTH / 2;
+export { DEFAULT_PANEL_WIDTH, DEFAULT_PANEL_HEIGHT, IMPORT_PANEL_WIDTH } from "./layout";
 
 // ─── Snap threshold ───────────────────────────────────────────────────────────
 

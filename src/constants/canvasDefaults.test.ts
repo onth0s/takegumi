@@ -50,3 +50,13 @@ test("WTextGroup Snapping Verification Tests", async (t) => {
     assert.strictEqual(snapped, 0);
   });
 });
+
+import { DEFAULT_GRID_SIZE, DEFAULT_WTG_OPACITY, DEFAULT_WTB_FONT_SIZE } from "./canvasDefaults";
+
+test("YAML Schema Integrity & Defaults Verification", async (t) => {
+  await t.test("verifies canvasDefaults exports valid non-null constants", () => {
+    assert.ok(typeof DEFAULT_GRID_SIZE === "number" && DEFAULT_GRID_SIZE > 0);
+    assert.ok(typeof DEFAULT_WTG_OPACITY === "number" && DEFAULT_WTG_OPACITY >= 0);
+    assert.ok(typeof DEFAULT_WTB_FONT_SIZE === "number" && DEFAULT_WTB_FONT_SIZE > 0);
+  });
+});

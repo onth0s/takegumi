@@ -4,6 +4,8 @@ import { useState, useRef, useLayoutEffect, type ReactNode } from "react";
 import { useId, cloneElement, isValidElement } from "react";
 import ToggleSwitch from "@/components/shared/UI/ToggleSwitch";
 
+import { motion, AnimatePresence } from "motion/react";
+
 export function InspectorSection({ title, children, defaultOpen = true }: { title: string; children: ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
@@ -11,7 +13,7 @@ export function InspectorSection({ title, children, defaultOpen = true }: { titl
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-text-tertiary w-full text-left"
+        className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-text-tertiary w-full text-left cursor-pointer hover:text-text-secondary transition-colors duration-150"
       >
         <svg
           width="10" height="10" viewBox="0 0 10 10"
@@ -21,7 +23,19 @@ export function InspectorSection({ title, children, defaultOpen = true }: { titl
         </svg>
         {title}
       </button>
-      {open && children}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="flex flex-col gap-3 overflow-hidden"
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

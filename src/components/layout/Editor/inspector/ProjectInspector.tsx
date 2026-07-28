@@ -8,7 +8,7 @@ import {
 } from "@/constants/canvasDefaults";
 import { useProjectStore } from "@/stores/projectStore";
 import { useUIStore } from "@/stores/uiStore";
-import { ScrubInput, SegmentedControl, ToggleSwitch } from "@/components/shared/UI";
+import { SegmentedControl, ToggleSwitch } from "@/components/shared/UI";
 import {
   FieldRow,
   FieldRowHorizontal,
@@ -142,17 +142,17 @@ export default function ProjectInspector({ project }: Props) {
       </InspectorSection>
 
       <InspectorSection title="Defaults" defaultOpen={false}>
-        <div className="grid grid-cols-2 gap-2">
-          <ScrubInput label="Panel width" value={DEFAULT_PANEL_WIDTH} step={1} fineStep={1} min={50} max={2048} suffix="px"
-            onChange={() => {}}
-            onCommit={() => {}}
-          />
-          <ScrubInput label="Panel height" value={DEFAULT_PANEL_HEIGHT} step={1} fineStep={1} min={50} max={2048} suffix="px"
-            onChange={() => {}}
-            onCommit={() => {}}
-          />
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="p-2 rounded bg-surface border border-border-subtle flex flex-col gap-0.5">
+            <span className="text-text-tertiary">Default Width</span>
+            <span className="text-text-primary font-medium">{DEFAULT_PANEL_WIDTH}px</span>
+          </div>
+          <div className="p-2 rounded bg-surface border border-border-subtle flex flex-col gap-0.5">
+            <span className="text-text-tertiary">Default Height</span>
+            <span className="text-text-primary font-medium">{DEFAULT_PANEL_HEIGHT}px</span>
+          </div>
         </div>
-        <p className="text-xs text-text-tertiary">Default dimensions for new panels. Edit in canvasDefaults.ts</p>
+        <p className="text-xs text-text-tertiary">Default dimensions for new panels, derived from canvas.yaml SSOT.</p>
       </InspectorSection>
 
       <InspectorSection title="Actions">

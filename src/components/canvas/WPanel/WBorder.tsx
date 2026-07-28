@@ -1,15 +1,9 @@
 import { createPortal } from "react-dom";
 import { useSyncExternalStore } from "react";
 import { usePortalTargets } from "../WProject/PortalContext";
+import type { MaskRect } from "@/types/canvas";
 
 const emptySubscribe = () => () => {};
-
-interface MaskRect {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
 
 interface WBorderProps {
   pathD: string;

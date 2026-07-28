@@ -1,17 +1,19 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useProjectStore } from "@/stores/projectStore";
 import { createBlankProject } from "@/utils/createProject";
 import { processImageFiles } from "@/utils/processImageFiles";
 import { useImageDrop } from "@/hooks/useImageDrop";
 import ImageDropZone from "@/components/shared/ImageDropZone";
+import { Toast } from "@/components/shared/UI/Toast";
 
 export default function Center() {
   const router = useRouter();
   const setProject = useProjectStore((s) => s.setProject);
   const jsonFileInputRef = useRef<HTMLInputElement>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleCreateBlank = useCallback(() => {
     setProject(createBlankProject());
@@ -34,6 +36,7 @@ export default function Center() {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = "";
+    setErrorMessage(null);
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -43,11 +46,11 @@ export default function Center() {
           setProject(parsed);
           router.push("/workspace");
         } else {
-          alert("Invalid project file: missing required schema properties.");
+          setErrorMessage("Invalid project file: missing required schema properties.");
         }
       } catch (err) {
         console.error("Failed to parse project JSON", err);
-        alert("Failed to import project: invalid JSON format.");
+        setErrorMessage("Failed to import project: invalid JSON format.");
       }
     };
     reader.readAsText(file);
@@ -111,6 +114,8 @@ export default function Center() {
           Markdown script
         </span>
       </p>
+
+      <Toast message={errorMessage} type="error" onClose={() => setErrorMessage(null)} />
     </div>
   );
 }

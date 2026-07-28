@@ -132,16 +132,22 @@ WTextGroup:
           description: Backdrop fill color (opacity applied separately via style.opacity)
           default: "#000000"
         width:
-          type: number
+          oneOf:
+            - type: number
+            - type: string
+              enum: [fit]
           default: 200
-          description: Custom width in pixels
+          description: Custom width in pixels or "fit" to compute minimum sensible bounds automatically
         freeWidth:
           type: boolean
           description: When true, width is not snapped to grid
         height:
-          type: number
+          oneOf:
+            - type: number
+            - type: string
+              enum: [fit]
           default: 40
-          description: Custom height in pixels.
+          description: Custom height in pixels or "fit" to compute minimum sensible bounds automatically
         freeHeight:
           type: boolean
           description: When true, height is not snapped to grid
